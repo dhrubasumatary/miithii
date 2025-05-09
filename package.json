@@ -9,22 +9,41 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@clerk/backend": "^1.31.4",
     "@clerk/nextjs": "^6.19.1",
     "@t3-oss/env-nextjs": "^0.13.4",
+    "@tanstack/react-query": "^5.75.5",
+    "@trpc/client": "^11.1.2",
+    "@trpc/next": "^11.1.2",
+    "@trpc/react-query": "^11.1.2",
+    "@trpc/server": "^11.1.2",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.508.0",
     "next": "15.3.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "superjson": "^2.2.2",
+    "svix": "^1.65.0",
+    "tailwind-merge": "^3.2.0",
     "zod": "^3.24.4"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@radix-ui/react-dialog": "^1.1.13",
+    "@radix-ui/react-slot": "^1.2.2",
+    "@tailwindcss/forms": "^0.5.10",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "autoprefixer": "^10.4.21",
     "eslint": "^9",
     "eslint-config-next": "15.3.2",
-    "tailwindcss": "^4",
+    "eslint-plugin-react": "^7.37.5",
+    "postcss": "^8.5.3",
+    "tailwindcss": "^4.1.5",
+    "tailwindcss-animate": "^1.0.7",
     "typescript": "^5"
   }
 }
