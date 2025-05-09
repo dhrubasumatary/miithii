@@ -2,7 +2,16 @@ import { initTRPC, TRPCError } from '@trpc/server';
 import { auth } from '@clerk/nextjs/server';
 import superjson from 'superjson';
 
-const t = initTRPC.create({
+export type Context = {
+  userId?: string;
+};
+
+export const createContext = async () => {
+  const { userId } = await auth();
+  return { userId };
+};
+
+const t = initTRPC.context<Context>().create({
   transformer: superjson,
 });
 
