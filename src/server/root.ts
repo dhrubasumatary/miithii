@@ -1,7 +1,8 @@
-import { router } from './trpc';
+import { router as createRouter } from './trpc';
+import { chatRouter } from './routers/chat';
 
-export const appRouter = router({
-  // Add your routes here
+export const appRouter = createRouter({
+  chat: chatRouter,
 });
 
 export type AppRouter = typeof appRouter; 

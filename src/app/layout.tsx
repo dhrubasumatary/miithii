@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
-import { Navigation } from "@/components/Navigation";
 import { Providers } from "./providers";
+import { LayoutShell } from "@/components/LayoutShell";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -22,8 +22,7 @@ export default function RootLayout({
       <html lang="en">
         <body className={inter.className}>
           <Providers>
-            <Navigation />
-            <main>{children}</main>
+            <LayoutShell>{children}</LayoutShell>
           </Providers>
         </body>
       </html>
