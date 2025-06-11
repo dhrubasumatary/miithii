@@ -2,7 +2,7 @@
 
 > **A modern, open-source AI chat app for the T3 Chat Cloneathon**
 
-![miithii banner](public/og-miithii.png)
+![miithii banner](public/og-miithii)
 
 ---
 
