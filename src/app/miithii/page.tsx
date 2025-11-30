@@ -450,7 +450,7 @@ function MessageBubble({ message, index }: { message: MiithiiMessage; index: num
                 : "bg-white/[0.02] border border-white/[0.05]"
             }`}>
               {message.parts.map((part, idx) => (
-                <MessagePart key={`${message.id}-${idx}`} part={part} messageId={message.id} index={idx} />
+                <MessagePart key={`${message.id}-${idx}`} part={part} />
               ))}
             </div>
             
@@ -480,7 +480,7 @@ function MessageBubble({ message, index }: { message: MiithiiMessage; index: num
 }
 
 // Message Part Component
-function MessagePart({ part, messageId, index }: { part: MiithiiMessage["parts"][number]; messageId: string; index: number }) {
+function MessagePart({ part }: { part: MiithiiMessage["parts"][number] }) {
   switch (part.type) {
     case "text":
       return (
