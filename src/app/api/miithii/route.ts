@@ -332,7 +332,6 @@ Toi pura 'Gaon-burha' with 'Guwahati' attitude. Helpful but rude, authentic, una
 
       messages: convertToModelMessages(messages),
       tools,
-      maxSteps: 10 as number, // Allow multi-step reasoning and tool chaining
       
       // Provider-specific options for Gemini
       providerOptions: {

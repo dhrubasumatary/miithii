@@ -543,8 +543,10 @@ function ReasoningBlock({ text }: { text: string }) {
 // Tool Part Component
 function ToolPart({ part, messageId, index }: { part: MiithiiMessage["parts"][number]; messageId: string; index: number }) {
   const toolName = part.type.replace("tool-", "");
+  // Cast to any to access tool-specific properties (state, output, errorText)
+  const toolPart = part as { state?: string; output?: unknown; errorText?: string };
   
-  if (part.state === "input-streaming" || part.state === "input-available") {
+  if (toolPart.state === "input-streaming" || toolPart.state === "input-available") {
     return (
       <div className="flex items-center gap-2 text-sm text-white/40 my-2 font-mono">
         <span className="text-[#30D158]">$</span>
@@ -554,22 +556,22 @@ function ToolPart({ part, messageId, index }: { part: MiithiiMessage["parts"][nu
     );
   }
   
-  if (part.state === "output-available") {
+  if (toolPart.state === "output-available") {
     return (
       <div className="bg-[#0A0A0A] border border-white/5 rounded-lg p-3 my-2">
         <div className="flex items-center gap-2 text-xs text-[#30D158] mb-2 font-mono">
           <span>→</span>
           <span>{toolName}</span>
         </div>
-        <ToolOutput toolName={toolName} output={part.output} />
+        <ToolOutput toolName={toolName} output={toolPart.output} />
       </div>
     );
   }
   
-  if (part.state === "output-error") {
+  if (toolPart.state === "output-error") {
     return (
       <div className="text-sm text-red-400 font-mono my-2">
-        error: {String(part.errorText)}
+        error: {String(toolPart.errorText)}
       </div>
     );
   }
