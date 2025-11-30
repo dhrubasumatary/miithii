@@ -511,7 +511,7 @@ function MessagePart({ part, messageId, index }: { part: MiithiiMessage["parts"]
     default:
       // Handle tool parts
       if (part.type.startsWith("tool-")) {
-        return <ToolPart part={part} messageId={messageId} index={index} />;
+        return <ToolPart part={part} />;
       }
       return null;
   }
@@ -541,7 +541,7 @@ function ReasoningBlock({ text }: { text: string }) {
 }
 
 // Tool Part Component
-function ToolPart({ part, messageId, index }: { part: MiithiiMessage["parts"][number]; messageId: string; index: number }) {
+function ToolPart({ part }: { part: MiithiiMessage["parts"][number] }) {
   const toolName = part.type.replace("tool-", "");
   // Cast to any to access tool-specific properties (state, output, errorText)
   const toolPart = part as { state?: string; output?: unknown; errorText?: string };

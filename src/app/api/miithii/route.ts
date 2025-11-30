@@ -46,7 +46,7 @@ const tools = {
           result: typeof result === "number" ? Number(result.toFixed(10)) : result,
           success: true
         };
-      } catch (error) {
+      } catch {
         return { error: "Could not evaluate expression", result: null, success: false };
       }
     },
