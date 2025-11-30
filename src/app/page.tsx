@@ -20,27 +20,7 @@ export default function LandingPage() {
       </div>
 
       {/* Header */}
-      <header className="sticky top-0 z-50 px-4 py-4">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-[#30D158] flex items-center justify-center">
-              <span className="text-black font-mono font-bold text-sm">M</span>
-            </div>
-            <span className="font-medium">Miithii</span>
-          </div>
-          <nav className="flex items-center gap-6 text-sm">
-            <Link href="/contact" className="text-white/50 hover:text-white transition-colors">
-              Contact
-            </Link>
-            <Link 
-              href="/miithii"
-              className="px-4 py-2 rounded-lg bg-[#30D158] text-black font-medium hover:bg-[#2ABF4E] transition-colors"
-            >
-              Try Miithii
-            </Link>
-          </nav>
-        </div>
-      </header>
+      <header className="hidden" />
 
       {/* Hero */}
       <main className="flex-1 flex flex-col justify-center px-4 py-16 relative z-10">
@@ -68,7 +48,7 @@ export default function LandingPage() {
             {/* CTA */}
             <div className="flex flex-wrap gap-4 mb-16">
               <Link 
-                href="/miithii"
+                href="/chat"
                 className="px-6 py-3 rounded-xl bg-[#30D158] text-black font-medium hover:bg-[#2ABF4E] transition-all hover:scale-105"
               >
                 Start Chatting →
@@ -158,7 +138,7 @@ export default function LandingPage() {
               <div>
                 <p className="text-white/30 text-xs uppercase tracking-widest mb-3">Product</p>
                 <div className="space-y-2">
-                  <Link href="/miithii" className="block text-white/50 hover:text-white transition-colors">
+                  <Link href="/chat" className="block text-white/50 hover:text-white transition-colors">
                     Chat
                   </Link>
                 </div>

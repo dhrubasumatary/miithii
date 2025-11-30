@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { Inter, JetBrains_Mono, Space_Grotesk } from "next/font/google";
 import "./globals.css";
+import { Navbar } from "@/components/ui/navbar";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -12,6 +13,12 @@ const jetbrainsMono = JetBrains_Mono({
   variable: "--font-jetbrains",
   subsets: ["latin"],
   weight: ["400", "500"],
+});
+
+const spaceGrotesk = Space_Grotesk({
+  variable: "--font-space",
+  subsets: ["latin"],
+  weight: ["400", "500", "700"],
 });
 
 export const viewport: Viewport = {
@@ -51,9 +58,10 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body
-        className={`${inter.variable} ${jetbrainsMono.variable} antialiased bg-black text-[#EDEDED]`}
-        style={{ fontFamily: "'Inter', system-ui, sans-serif" }}
+        className={`${inter.variable} ${jetbrainsMono.variable} ${spaceGrotesk.variable} antialiased bg-black text-[#EDEDED]`}
+        style={{ fontFamily: "var(--font-inter)" }}
       >
+        <Navbar />
         {children}
       </body>
     </html>

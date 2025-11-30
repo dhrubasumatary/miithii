@@ -22,7 +22,7 @@ export default function TermsPage() {
             <span className="font-medium">Miithii</span>
           </Link>
           <Link 
-            href="/miithii"
+            href="/chat"
             className="text-sm text-[#30D158] hover:underline font-mono"
           >
             → Chat
