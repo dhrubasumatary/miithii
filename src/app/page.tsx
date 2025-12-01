@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Sparkles, Eye, Languages } from "lucide-react";
 import { ChatInput } from "@/components/chat/chat-input";
 
 export default function LandingPage() {
@@ -106,45 +105,6 @@ export default function LandingPage() {
                     {item.text}
                   </button>
                 ))}
-              </div>
-
-              {/* Features */}
-              <div className="space-y-3 pt-4">
-                <div className="flex gap-3 p-3.5 rounded-xl bg-white/[0.02] border border-white/[0.04]">
-                  <div className="w-9 h-9 rounded-lg bg-white/[0.04] flex items-center justify-center flex-shrink-0">
-                    <Sparkles className="w-4 h-4 text-[#30D158]" />
-                  </div>
-                  <div className="min-w-0">
-                    <h3 className="font-medium text-[13px] mb-0.5">Gemini 2.5 Pro</h3>
-                    <p className="text-[13px] text-[var(--text-tertiary)] leading-relaxed">
-                      Google&apos;s most capable AI, tuned for tur kotha.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex gap-3 p-3.5 rounded-xl bg-white/[0.02] border border-white/[0.04]">
-                  <div className="w-9 h-9 rounded-lg bg-white/[0.04] flex items-center justify-center flex-shrink-0">
-                    <Eye className="w-4 h-4 text-[#30D158]" />
-                  </div>
-                  <div className="min-w-0">
-                    <h3 className="font-medium text-[13px] mb-0.5">See & Create</h3>
-                    <p className="text-[13px] text-[var(--text-tertiary)] leading-relaxed">
-                      Analyze photos, generate art. Just ask.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex gap-3 p-3.5 rounded-xl bg-white/[0.02] border border-white/[0.04]">
-                  <div className="w-9 h-9 rounded-lg bg-white/[0.04] flex items-center justify-center flex-shrink-0">
-                    <Languages className="w-4 h-4 text-[#30D158]" />
-                  </div>
-                  <div className="min-w-0">
-                    <h3 className="font-medium text-[13px] mb-0.5">Code-Mix Freely</h3>
-                    <p className="text-[13px] text-[var(--text-tertiary)] leading-relaxed">
-                      Axomiya, English, or mix—moi bujhi pau.
-                    </p>
-                  </div>
-                </div>
               </div>
             </div>
           </div>
