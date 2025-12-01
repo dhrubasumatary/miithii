@@ -1,12 +1,11 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, JetBrains_Mono, Space_Grotesk } from "next/font/google";
+import { Inter, JetBrains_Mono, Newsreader } from "next/font/google";
 import "./globals.css";
-import { Navbar } from "@/components/ui/navbar";
 
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
-  weight: ["300", "400", "500"],
+  weight: ["300", "400", "500", "600"],
 });
 
 const jetbrainsMono = JetBrains_Mono({
@@ -15,10 +14,12 @@ const jetbrainsMono = JetBrains_Mono({
   weight: ["400", "500"],
 });
 
-const spaceGrotesk = Space_Grotesk({
-  variable: "--font-space",
+// Premium serif font for headings - warm, intelligent feel
+const newsreader = Newsreader({
+  variable: "--font-serif",
   subsets: ["latin"],
-  weight: ["400", "500", "700"],
+  weight: ["400", "500", "600"],
+  style: ["normal", "italic"],
 });
 
 export const viewport: Viewport = {
@@ -26,7 +27,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  themeColor: "#000000",
+  themeColor: "#0f0f10",
 };
 
 export const metadata: Metadata = {
@@ -58,10 +59,9 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body
-        className={`${inter.variable} ${jetbrainsMono.variable} ${spaceGrotesk.variable} antialiased bg-black text-[#EDEDED]`}
+        className={`${inter.variable} ${jetbrainsMono.variable} ${newsreader.variable} antialiased h-screen w-screen overflow-hidden`}
         style={{ fontFamily: "var(--font-inter)" }}
       >
-        <Navbar />
         {children}
       </body>
     </html>

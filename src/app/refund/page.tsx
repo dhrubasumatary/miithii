@@ -1,203 +1,123 @@
 "use client";
 
-import Link from "next/link";
+import { AlertTriangle, Check, CreditCard } from "lucide-react";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { PageFooter } from "@/components/layout/PageFooter";
 
 export default function RefundPage() {
   return (
-    <div className="min-h-screen min-h-dvh flex flex-col relative overflow-hidden bg-black text-[#EDEDED]">
-      {/* Ambient Background */}
-      <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute w-[400px] h-[400px] rounded-full bg-[#1e3a8a] -top-32 -right-32 blur-[80px] opacity-15" />
-        <div className="absolute w-[300px] h-[300px] rounded-full bg-[#064e3b] bottom-20 -left-20 blur-[80px] opacity-10" />
-        <div className="grid-overlay" />
-      </div>
+    <div className="h-screen flex flex-col bg-[var(--bg-primary)] text-[var(--text-primary)] overflow-hidden">
+      <PageHeader />
 
-      {/* Header */}
-      <header className="sticky top-0 z-50 px-4 py-4 bg-black/80 backdrop-blur-sm">
-        <div className="max-w-3xl mx-auto flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-            <div className="w-8 h-8 rounded-lg bg-[#30D158] flex items-center justify-center">
-              <span className="text-black font-mono font-bold text-sm">M</span>
-            </div>
-            <span className="font-medium">Miithii</span>
-          </Link>
-          <Link 
-            href="/chat"
-            className="text-sm text-[#30D158] hover:underline font-mono"
-          >
-            → Chat
-          </Link>
-        </div>
-      </header>
-
-      {/* Content */}
-      <main className="flex-1 px-4 py-8 relative z-10">
-        <div className="max-w-3xl mx-auto">
+      {/* Scrollable Content */}
+      <main className="flex-1 overflow-y-auto">
+        <div className="max-w-2xl mx-auto px-6 py-12">
           {/* Hero */}
-          <div className="mb-8">
-            <p className="text-xs uppercase tracking-widest text-white/30 mb-2">Legal</p>
-            <h1 className="text-3xl font-medium mb-2">Refund & Cancellation</h1>
-            <p className="text-white/40 text-sm font-mono">Last updated: November 26, 2025</p>
-          </div>
-
-          {/* The Hard Truth Box */}
-          <div className="bg-red-500/10 border border-red-500/30 rounded-2xl p-6 mb-10">
-            <h2 className="text-red-400 font-medium mb-4 flex items-center gap-2">
-              <span className="font-mono">!</span> Straight up: No refunds. Ever.
-            </h2>
-            <p className="text-white/60 text-sm">
-              You pay ₹49 (or whatever the beta price is) → you get access till the end of the billing month → done.
-            </p>
-          </div>
-
-          {/* Why Section */}
           <div className="mb-10">
-            <h2 className="text-lg font-medium mb-4 flex items-center gap-2">
-              <span className="text-[#30D158] font-mono">→</span>
-              Why so cruel?
-            </h2>
-            <ul className="space-y-3 text-white/60 text-sm pl-5">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.04] mb-6">
+              <CreditCard className="w-3 h-3 text-[var(--text-muted)]" />
+              <span className="text-[11px] text-[var(--text-tertiary)] uppercase tracking-wider">Legal</span>
+            </div>
+            <h1 className="font-serif text-3xl md:text-4xl tracking-tight mb-3">
+              Refund & Cancellation
+            </h1>
+            <p className="text-[var(--text-muted)] text-xs font-mono">Last updated: November 26, 2025</p>
+          </div>
+
+          {/* Warning */}
+          <div className="bg-[#ff453a]/[0.08] rounded-xl p-5 mb-10">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="w-5 h-5 text-[#ff453a] flex-shrink-0 mt-0.5" />
+              <div>
+                <h2 className="text-[#ff453a] font-medium text-sm mb-1.5">
+                  Straight up: No refunds. Ever.
+                </h2>
+                <p className="text-[var(--text-secondary)] text-sm">
+                  You pay ₹49 → you get access till the billing month ends → done.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Why */}
+          <div className="mb-10">
+            <h2 className="font-medium text-sm mb-4 text-[var(--text-primary)]">Why so cruel?</h2>
+            <ul className="space-y-2.5 text-[var(--text-secondary)] text-sm">
               <li className="flex items-start gap-3">
-                <span className="text-white/30">•</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-[var(--text-muted)] mt-1.5 flex-shrink-0" />
                 We&apos;re two people and a prayer.
               </li>
               <li className="flex items-start gap-3">
-                <span className="text-white/30">•</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-[var(--text-muted)] mt-1.5 flex-shrink-0" />
                 Servers cost money the second you hit &quot;send&quot;.
               </li>
               <li className="flex items-start gap-3">
-                <span className="text-white/30">•</span>
-                We&apos;d rather spend time making Assamese AI better than processing refunds.
+                <span className="w-1.5 h-1.5 rounded-full bg-[var(--text-muted)] mt-1.5 flex-shrink-0" />
+                We&apos;d rather build Assamese AI than process refunds.
               </li>
             </ul>
           </div>
 
           {/* Exceptions */}
-          <div className="bg-[#0A0A0A] border border-white/10 rounded-2xl p-6 mb-10">
-            <h2 className="text-white/80 font-medium mb-4 flex items-center gap-2">
-              <span className="text-[#30D158] font-mono">→</span>
-              Exceptions (only these, don&apos;t beg)
-            </h2>
-            <ul className="space-y-3 text-white/60 text-sm">
+          <div className="bg-white/[0.03] rounded-xl p-5 mb-10">
+            <h2 className="font-medium text-sm mb-4">Exceptions (only these)</h2>
+            <ul className="space-y-2.5 text-[var(--text-secondary)] text-sm">
               <li className="flex items-start gap-3">
-                <span className="text-[#30D158]">✓</span>
+                <Check className="w-4 h-4 text-[#30D158] flex-shrink-0 mt-0.5" />
                 We charged you twice by mistake
               </li>
               <li className="flex items-start gap-3">
-                <span className="text-[#30D158]">✓</span>
+                <Check className="w-4 h-4 text-[#30D158] flex-shrink-0 mt-0.5" />
                 We charged you after you cancelled
               </li>
               <li className="flex items-start gap-3">
-                <span className="text-[#30D158]">✓</span>
-                The site was completely dead for 7+ days straight
+                <Check className="w-4 h-4 text-[#30D158] flex-shrink-0 mt-0.5" />
+                Site was dead for 7+ days straight
               </li>
             </ul>
-            <p className="text-white/40 text-xs mt-4">
-              In those cases, mail <a href="mailto:support@miithii.com" className="text-[#30D158] hover:underline">support@miithii.com</a> with proof and we&apos;ll fix it like gentlemen.
+            <p className="text-[var(--text-muted)] text-xs mt-4">
+              Email <a href="mailto:support@miithii.com" className="text-[#30D158] hover:underline">support@miithii.com</a> with proof.
             </p>
           </div>
 
-          {/* Detailed Sections */}
-          <div className="space-y-8">
+          {/* Policy Details */}
+          <div className="space-y-6">
             <Section title="1. Policy Overview">
-              <p>
-                This applies to all beta plans (e.g., ₹49 experimental) and future tiers. 
-                Purchases grant immediate digital access, which cannot be returned.
-              </p>
+              This applies to all plans. Purchases grant immediate digital access, which cannot be returned.
             </Section>
 
-            <Section title="2. What Fees Cover">
-              <p>
-                Access, usage limits, infrastructure, AI processing, storage, and support.
-              </p>
+            <Section title="2. Cancellation">
+              Cancel anytime via account settings. Access continues until billing period ends. No prorated refunds.
             </Section>
 
-            <Section title="3. Cancellation">
-              <SubSection title="How It Works">
-                Cancel anytime via account settings. Access continues until billing period end; 
-                no prorated refunds. Account reverts to free/beta access post-period.
-              </SubSection>
-              <SubSection title="How to Cancel">
-                Log in → Account Settings → Cancel Subscription → Confirm. Confirmation email sent.
-              </SubSection>
+            <Section title="3. Billing Disputes">
+              Contact support with details. We investigate in 5-7 business days. Only legitimate errors qualify.
             </Section>
 
-            <Section title="4. Billing Disputes">
-              <SubSection title="Unauthorized Charges">
-                Contact support@miithii.com with details. We investigate in 5-7 business days. 
-                Legitimate errors (e.g., duplicates) may be corrected/refunded. Normal charges do not qualify.
-              </SubSection>
-              <SubSection title="Technical Issues">
-                Report to support. We resolve promptly; extended outages (&gt;24 hours) may yield credits 
-                at our discretion (not refunds).
-              </SubSection>
+            <Section title="4. Unused Services">
+              No refunds for unused limits or features. Limits expire at end of period.
             </Section>
 
-            <Section title="5. Unused Services">
-              <p>
-                No refunds/credits for unused limits, non-use periods, or unutilized features. 
-                Limits expire end-of-period; no rollover.
-              </p>
-            </Section>
-
-            <Section title="6. Service Changes">
-              <p>
-                We may modify/discontinue services with notice. Existing periods honored; no refunds for changes.
-              </p>
-            </Section>
-
-            <Section title="7. Account Termination">
-              <SubSection title="Voluntary">
-                Immediate access end; no refunds. Data deletion in 30 days.
-              </SubSection>
-              <SubSection title="Involuntary">
-                For violations: no refunds; forfeiture of period.
-              </SubSection>
-            </Section>
-
-            <Section title="8. Third-Party Payments">
-              <p>
-                Subject to processor terms. Direct disputes to us before chargebacks, which may suspend accounts.
-              </p>
-            </Section>
-
-            <Section title="9. Contact">
-              <p>
-                <a href="mailto:support@miithii.com" className="text-[#30D158] hover:underline font-mono">
-                  support@miithii.com
-                </a>
-                <br />
-                <span className="text-white/40">We respond in 24-48 hours.</span>
-              </p>
+            <Section title="5. Contact">
+              <a href="mailto:support@miithii.com" className="text-[#30D158] hover:underline font-mono">
+                support@miithii.com
+              </a>
+              <span className="text-[var(--text-tertiary)]"> — 24-48h response.</span>
             </Section>
           </div>
 
-          {/* Closing */}
-          <div className="mt-12 pt-8 border-t border-white/10">
-            <p className="text-white/50 text-sm mb-4">
-              By subscribing, you agree to this policy: all sales final except errors or law-required.
+          <div className="mt-10 pt-8 border-t border-white/[0.04]">
+            <p className="text-[var(--text-secondary)] text-sm mb-2">
+              By subscribing, you agree: all sales final.
             </p>
-            <p className="text-white/30 text-xs">
-              That&apos;s it. Harsh but fair.
-            </p>
-            <p className="text-white/30 text-xs mt-4 font-mono">
+            <p className="text-[var(--text-muted)] text-xs font-mono">
               – Prompt Mafia (still broke, still building)
             </p>
           </div>
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="px-4 py-6 border-t border-white/5 relative z-10">
-        <div className="max-w-3xl mx-auto flex flex-wrap gap-4 justify-between items-center text-xs text-white/30">
-          <p>© 2025 Prompt Mafia Inc.</p>
-          <div className="flex gap-4">
-            <Link href="/terms" className="hover:text-white/50 transition-colors">Terms</Link>
-            <Link href="/refund" className="text-[#30D158]">Refund</Link>
-            <Link href="/contact" className="hover:text-white/50 transition-colors">Contact</Link>
-          </div>
-        </div>
-      </footer>
+      <PageFooter />
     </div>
   );
 }
@@ -205,23 +125,10 @@ export default function RefundPage() {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div>
-      <h2 className="text-base font-medium text-[#EDEDED] mb-3 flex items-center gap-2">
-        <span className="text-[#30D158] font-mono text-sm">→</span>
-        {title}
-      </h2>
-      <div className="text-white/60 text-sm leading-relaxed space-y-3 pl-5">
+      <h2 className="font-medium text-sm mb-2 text-[var(--text-primary)]">{title}</h2>
+      <p className="text-[var(--text-secondary)] text-sm leading-relaxed">
         {children}
-      </div>
+      </p>
     </div>
   );
 }
-
-function SubSection({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div className="mb-3">
-      <h3 className="text-white/80 font-medium text-sm mb-1">{title}</h3>
-      <p className="text-white/50">{children}</p>
-    </div>
-  );
-}
-
