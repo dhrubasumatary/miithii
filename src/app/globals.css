@@ -202,9 +202,21 @@ body {
   animation: pulse-subtle 2s ease-in-out infinite;
 }
 
-/* === SAFE AREA === */
+/* === SAFE AREA & MOBILE UTILITIES === */
 .safe-area-bottom {
   padding-bottom: env(safe-area-inset-bottom, 16px);
+}
+
+.pb-safe {
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
+}
+
+.overscroll-behavior-contain {
+  overscroll-behavior: contain;
+}
+
+.-webkit-overflow-scrolling-touch {
+  -webkit-overflow-scrolling: touch;
 }
 
 /* === LAYER BASE (SHADCN) === */

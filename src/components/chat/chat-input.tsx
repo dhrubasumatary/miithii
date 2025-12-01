@@ -23,7 +23,7 @@ export function ChatInput({
   onStop,
   onFileSelect,
   hasFiles = false,
-  placeholder = "Ask me anything in Axomiya or English...",
+  placeholder = "Message...",
   showAttach = true,
   showDisclaimer = false,
   autoFocus = false,
@@ -34,7 +34,7 @@ export function ChatInput({
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
-      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 160)}px`;
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 120)}px`;
     }
   }, [input]);
 
@@ -49,6 +49,11 @@ export function ChatInput({
     if (!input.trim() && !hasFiles) return;
     onSend(input);
     setInput("");
+    
+    // Reset height after sending
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+    }
   }, [input, hasFiles, onSend]);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -57,6 +62,11 @@ export function ChatInput({
       if (input.trim() || hasFiles) {
         onSend(input);
         setInput("");
+        
+        // Reset height
+        if (textareaRef.current) {
+          textareaRef.current.style.height = "auto";
+        }
       }
     }
   }, [input, hasFiles, onSend]);
@@ -64,17 +74,17 @@ export function ChatInput({
   return (
     <div>
       <form onSubmit={handleSubmit}>
-        <div className="bg-[var(--bg-secondary)] rounded-2xl shadow-xl overflow-hidden">
-          <div className="flex items-end gap-1 p-2">
+        <div className="bg-[var(--bg-secondary)] rounded-xl sm:rounded-2xl shadow-lg border border-white/[0.04]">
+          <div className="flex items-end gap-0.5 sm:gap-1 p-1.5 sm:p-2">
             {/* Attach Button */}
             {showAttach && onFileSelect && (
               <button
                 type="button"
                 onClick={onFileSelect}
-                className="flex-shrink-0 p-2.5 rounded-xl text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-white/[0.05] transition-colors"
+                className="flex-shrink-0 p-2 sm:p-2.5 rounded-lg sm:rounded-xl text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-white/[0.05] active:bg-white/[0.08] transition-colors touch-manipulation"
                 title="Attach image"
               >
-                <Paperclip className="w-5 h-5" />
+                <Paperclip className="w-4.5 h-4.5 sm:w-5 sm:h-5" />
               </button>
             )}
             
@@ -86,8 +96,11 @@ export function ChatInput({
               placeholder={placeholder}
               disabled={disabled || isThinking}
               rows={1}
-              className="flex-1 bg-transparent text-[var(--text-primary)] text-[15px] outline-none resize-none max-h-40 py-2.5 px-2 placeholder:text-[var(--text-muted)] disabled:opacity-50"
-              style={{ caretColor: '#30D158' }}
+              className="flex-1 bg-transparent text-[var(--text-primary)] text-[15px] sm:text-base outline-none resize-none max-h-32 py-2 sm:py-2.5 px-1 sm:px-2 placeholder:text-[var(--text-muted)] disabled:opacity-50 touch-manipulation"
+              style={{ 
+                caretColor: '#30D158',
+                fontSize: '16px' // Prevents iOS zoom on focus
+              }}
             />
             
             {/* Send/Stop Button */}
@@ -95,19 +108,19 @@ export function ChatInput({
               <button
                 type="button"
                 onClick={onStop}
-                className="flex-shrink-0 p-2.5 rounded-xl bg-[#ff453a]/20 text-[#ff453a] hover:bg-[#ff453a]/30 transition-colors"
+                className="flex-shrink-0 p-2 sm:p-2.5 rounded-lg sm:rounded-xl bg-[#ff453a]/20 text-[#ff453a] hover:bg-[#ff453a]/30 active:bg-[#ff453a]/40 transition-colors touch-manipulation"
                 title="Stop"
               >
-                <Square className="w-5 h-5 fill-current" />
+                <Square className="w-4.5 h-4.5 sm:w-5 sm:h-5 fill-current" />
               </button>
             ) : (
               <button
                 type="submit"
                 disabled={!input.trim() && !hasFiles}
-                className="flex-shrink-0 p-2.5 rounded-xl bg-[#30D158] text-black hover:bg-[#2ABF4E] transition-colors disabled:opacity-20 disabled:cursor-not-allowed"
+                className="flex-shrink-0 p-2 sm:p-2.5 rounded-lg sm:rounded-xl bg-[#30D158] text-black hover:bg-[#2ABF4E] active:bg-[#28A846] transition-colors disabled:opacity-20 disabled:cursor-not-allowed touch-manipulation"
                 title="Send"
               >
-                <Send className="w-5 h-5" />
+                <Send className="w-4.5 h-4.5 sm:w-5 sm:h-5" />
               </button>
             )}
           </div>
@@ -115,7 +128,7 @@ export function ChatInput({
       </form>
       
       {showDisclaimer && (
-        <p className="text-center text-[11px] text-[var(--text-muted)] mt-3">
+        <p className="text-center text-[10px] sm:text-[11px] text-[var(--text-muted)] mt-2 sm:mt-3">
           Miithii can make mistakes. Please verify important information.
         </p>
       )}

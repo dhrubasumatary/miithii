@@ -45,10 +45,10 @@ export default function LandingPage() {
           </nav>
 
           <Link 
-            href="/chat"
+            href="/checkout"
             className="px-3 py-1.5 rounded-lg bg-[#30D158] text-black text-sm font-medium hover:bg-[#2ABF4E] transition-colors"
           >
-            Chat
+            Get Access
           </Link>
         </div>
       </header>
@@ -62,7 +62,7 @@ export default function LandingPage() {
               {/* Badge */}
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.04] border border-white/[0.06]">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#30D158]" />
-                <span className="text-xs text-[var(--text-tertiary)]">Beta • ₹49/month</span>
+                <span className="text-xs text-[var(--text-tertiary)]">Beta • ₹49 one-time</span>
               </div>
 
               {/* Title */}

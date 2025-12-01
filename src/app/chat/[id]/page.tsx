@@ -130,22 +130,23 @@ export default function ConversationPage() {
         {/* Drag Overlay */}
         {isDragOver && (
           <div className="absolute inset-0 z-40 bg-[var(--bg-primary)]/95 flex items-center justify-center animate-fade-in backdrop-blur-sm">
-            <div className="border-2 border-dashed border-[#30D158]/40 rounded-2xl p-16 text-center bg-white/[0.02]">
-              <UploadCloud className="w-10 h-10 mx-auto mb-4 text-[#30D158]" />
-              <p className="text-[var(--text-primary)] font-medium">Drop image here</p>
-              <p className="text-[var(--text-tertiary)] text-sm mt-1">PNG, JPG up to 10MB</p>
+            <div className="border-2 border-dashed border-[#30D158]/40 rounded-2xl p-12 sm:p-16 text-center bg-white/[0.02]">
+              <UploadCloud className="w-8 h-8 sm:w-10 sm:h-10 mx-auto mb-3 sm:mb-4 text-[#30D158]" />
+              <p className="text-[var(--text-primary)] font-medium text-sm sm:text-base">Drop image here</p>
+              <p className="text-[var(--text-tertiary)] text-xs sm:text-sm mt-1">PNG, JPG up to 10MB</p>
             </div>
           </div>
         )}
 
-        {/* Messages Area */}
+        {/* Messages Area - iOS-style scrolling */}
         <div 
           ref={scrollAreaRef}
           onScroll={handleScroll}
-          className="flex-1 overflow-y-auto"
+          className="flex-1 overflow-y-auto overscroll-behavior-contain -webkit-overflow-scrolling-touch"
+          style={{ WebkitOverflowScrolling: 'touch' }}
         >
-          <div className="max-w-2xl mx-auto px-4 py-8">
-            <div className="space-y-8">
+          <div className="w-full max-w-2xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
+            <div className="space-y-6 sm:space-y-8">
               {messages.map((message, idx) => {
                 const isLastMessage = idx === messages.length - 1;
                 const isStreamingAssistant = isLastMessage && message.role === "assistant" && showThinkingIndicator;
@@ -165,44 +166,45 @@ export default function ConversationPage() {
             </div>
             
             {error && (
-              <div className="mt-6 bg-[#ff453a]/10 border border-[#ff453a]/20 rounded-xl p-4">
-                <p className="text-[#ff453a] text-sm font-mono">{error.message}</p>
+              <div className="mt-4 sm:mt-6 bg-[#ff453a]/10 border border-[#ff453a]/20 rounded-xl p-3 sm:p-4">
+                <p className="text-[#ff453a] text-xs sm:text-sm font-mono">{error.message}</p>
               </div>
             )}
             
-            <div ref={messagesEndRef} className="h-40" />
+            {/* Spacer for bottom input */}
+            <div ref={messagesEndRef} className="h-32 sm:h-40" />
           </div>
         </div>
 
-        {/* Scroll Button */}
+        {/* Scroll to Bottom Button */}
         {showScrollButton && (
           <button
             onClick={scrollToBottom}
-            className="absolute bottom-40 left-1/2 -translate-x-1/2 z-30 p-2.5 rounded-full bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all shadow-xl animate-fade-in"
+            className="absolute bottom-28 sm:bottom-36 left-1/2 -translate-x-1/2 z-30 p-2 sm:p-2.5 rounded-full bg-[var(--bg-elevated)] border border-white/[0.08] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all shadow-xl animate-fade-in"
           >
             <ArrowDown className="w-4 h-4" />
           </button>
         )}
 
-        {/* Input Area */}
-        <div className="relative z-20 px-4 pb-6 pt-2">
-          <div className="max-w-2xl mx-auto">
+        {/* Input Area - Fixed bottom with safe area support */}
+        <div className="relative z-20 bg-[var(--bg-primary)] border-t border-white/[0.04]">
+          <div className="w-full max-w-2xl mx-auto px-3 sm:px-4 py-3 sm:py-4 pb-safe">
             {/* Image Preview */}
             {imagePreview && (
-              <div className="mb-3">
+              <div className="mb-2 sm:mb-3">
                 <div className="relative inline-block">
                   <Image
                     src={imagePreview}
                     alt="Preview"
-                    width={72}
-                    height={72}
-                    className="rounded-xl object-cover"
+                    width={64}
+                    height={64}
+                    className="rounded-lg sm:rounded-xl object-cover"
                   />
                   <button
                     onClick={clearFile}
-                    className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-[var(--bg-elevated)] text-[var(--text-secondary)] flex items-center justify-center hover:text-[var(--text-primary)] transition-colors"
+                    className="absolute -top-1.5 -right-1.5 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-[var(--bg-elevated)] text-[var(--text-secondary)] flex items-center justify-center hover:text-[var(--text-primary)] transition-colors shadow-lg"
                   >
-                    <X className="w-3.5 h-3.5" />
+                    <X className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                   </button>
                 </div>
               </div>
@@ -215,6 +217,7 @@ export default function ConversationPage() {
               onStop={stop}
               onFileSelect={() => fileInputRef.current?.click()}
               hasFiles={!!files}
+              placeholder="Message..."
             />
             
             <input
@@ -225,8 +228,8 @@ export default function ConversationPage() {
               className="hidden"
             />
             
-            <p className="text-center text-[11px] text-[var(--text-muted)] mt-3">
-              Miithii can make mistakes. Please verify important information.
+            <p className="text-center text-[10px] sm:text-[11px] text-[var(--text-muted)] mt-2 sm:mt-2.5">
+              Miithii can make mistakes. Verify important info.
             </p>
           </div>
         </div>
@@ -234,4 +237,3 @@ export default function ConversationPage() {
     </div>
   );
 }
-
