@@ -49,6 +49,7 @@ export async function POST(req: NextRequest) {
         notify_url: `${APP_URL}/api/payment/webhook`,
       },
       order_note: "Miithii Beta Access - One-time payment",
+      order_expiry_time: new Date(Date.now() + 30 * 60 * 1000).toISOString(), // 30 min expiry
     };
 
     // Make request to Cashfree
@@ -77,17 +78,23 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Return payment session URL
-    // Note: payment_link might not be in response, we need to construct it
-    const paymentLink = data.payment_link || `https://payments.cashfree.com/order/#${data.payment_session_id}`;
+    // Cashfree response should contain payment_session_id
+    // The payment_link is not always included in the response
+    // We need to construct it using the CORRECT Cashfree URL format
+    const paymentLink = data.payment_link || 
+      (CASHFREE_MODE === "production" 
+        ? `https://payments.cashfree.com/order/#${data.payment_session_id}`
+        : `https://sandbox.cashfree.com/order/#${data.payment_session_id}`);
     
     console.log("Payment link:", paymentLink);
+    console.log("Full response keys:", Object.keys(data));
 
     return NextResponse.json({
       success: true,
       order_id: data.order_id,
       payment_session_id: data.payment_session_id,
       payment_link: paymentLink,
+      cf_order_id: data.cf_order_id,
     });
   } catch (error) {
     console.error("Error creating payment session:", error);
