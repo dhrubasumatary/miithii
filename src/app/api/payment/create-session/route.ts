@@ -16,6 +16,12 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { customerName, customerEmail, customerPhone } = body;
 
+    console.log("=== Payment Session Request ===");
+    console.log("Customer data:", { customerName, customerEmail, customerPhone });
+    console.log("App ID:", CASHFREE_APP_ID);
+    console.log("Mode:", CASHFREE_MODE);
+    console.log("API URL:", CASHFREE_API_URL);
+
     // Validate input
     if (!customerName || !customerEmail || !customerPhone) {
       return NextResponse.json(
@@ -59,6 +65,10 @@ export async function POST(req: NextRequest) {
 
     const data = await response.json();
 
+    console.log("=== Cashfree Response ===");
+    console.log("Status:", response.status);
+    console.log("Data:", JSON.stringify(data, null, 2));
+
     if (!response.ok) {
       console.error("Cashfree API error:", data);
       return NextResponse.json(
@@ -68,11 +78,16 @@ export async function POST(req: NextRequest) {
     }
 
     // Return payment session URL
+    // Note: payment_link might not be in response, we need to construct it
+    const paymentLink = data.payment_link || `https://payments.cashfree.com/order/#${data.payment_session_id}`;
+    
+    console.log("Payment link:", paymentLink);
+
     return NextResponse.json({
       success: true,
       order_id: data.order_id,
       payment_session_id: data.payment_session_id,
-      payment_link: data.payment_link, // Redirect user to this URL
+      payment_link: paymentLink,
     });
   } catch (error) {
     console.error("Error creating payment session:", error);
