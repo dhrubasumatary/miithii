@@ -25,7 +25,7 @@ export default function LandingPage() {
     <div className="min-h-screen flex flex-col bg-[var(--bg-primary)] text-[var(--text-primary)]">
       {/* Header */}
       <header className="w-full sticky top-0 z-50 bg-[var(--bg-primary)]/90 backdrop-blur-md border-b border-white/[0.04]">
-        <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
+        <div className="max-w-4xl mx-auto px-5 h-14 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-lg bg-[#30D158] flex items-center justify-center">
               <span className="text-sm font-bold text-black" style={{ fontFamily: 'system-ui' }}>ম</span>
@@ -47,7 +47,7 @@ export default function LandingPage() {
 
           <Link 
             href="/chat"
-            className="px-4 py-2 rounded-lg bg-[#30D158] text-black text-sm font-medium hover:bg-[#2ABF4E] transition-colors"
+            className="px-3 py-1.5 rounded-lg bg-[#30D158] text-black text-sm font-medium hover:bg-[#2ABF4E] transition-colors"
           >
             Chat
           </Link>
@@ -55,86 +55,93 @@ export default function LandingPage() {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col">
+      <main className="flex-1 flex flex-col overflow-x-hidden">
         {/* Hero */}
-        <div className="flex-1 flex flex-col justify-center px-4 py-8 md:py-16">
-          <div className="max-w-2xl mx-auto w-full">
-            <div className={`transition-all duration-700 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+        <div className="flex-1 flex flex-col justify-center px-5 py-12 sm:py-16">
+          <div className="max-w-xl mx-auto w-full">
+            <div className={`space-y-8 transition-all duration-700 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
               {/* Badge */}
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.04] border border-white/[0.06] mb-8">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.04] border border-white/[0.06]">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#30D158]" />
                 <span className="text-xs text-[var(--text-tertiary)]">Beta • ₹49/month</span>
               </div>
 
               {/* Title */}
-              <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl tracking-tight mb-4">
-                The Smartest AI.
-                <br />
-                <span className="text-[#30D158]">Fluent in Axomiya.</span>
-              </h1>
+              <div>
+                <h1 className="font-serif text-[32px] sm:text-4xl md:text-5xl leading-tight tracking-tight">
+                  The Smartest AI.
+                  <br />
+                  <span className="text-[#30D158]">Fluent in Axomiya.</span>
+                </h1>
+              </div>
 
               {/* Description */}
-              <p className="text-base text-[var(--text-secondary)] max-w-lg mb-8 leading-relaxed">
-                Experience real conversations in Axomiya that spark ideas, solve problems, or just help you pass time. 
-                No formal introductions—just start typing.
+              <p className="text-[15px] sm:text-base text-[var(--text-secondary)] leading-relaxed">
+                Real conversations in Axomiya that spark ideas, solve problems, or just help you pass time. 
+                No formalities—just start typing.
               </p>
 
               {/* Chat Input */}
-              <div className="mb-6">
+              <div>
                 <ChatInput
                   onSend={handleSend}
-                  placeholder="Ask me anything in Axomiya or English..."
+                  placeholder="Ask me anything..."
                   showAttach={false}
                 />
               </div>
 
-              {/* Quick Suggestions - horizontal scroll on mobile */}
-              <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap no-scrollbar mb-12">
-                {["Ki khobor?", "Mok roast kor", "Recipe de", "Life advice"].map((suggestion) => (
+              {/* Quick Suggestions */}
+              <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+                {[
+                  { text: "Ki khobor?", label: "Greet" },
+                  { text: "Roast kor mok", label: "Fun" },
+                  { text: "Recipe de", label: "Food" },
+                  { text: "Life advice", label: "Deep" }
+                ].map((item) => (
                   <button
-                    key={suggestion}
-                    onClick={() => handleSend(suggestion)}
-                    className="flex-shrink-0 px-4 py-2 rounded-full bg-white/[0.04] text-sm text-[var(--text-secondary)] hover:bg-white/[0.08] hover:text-[var(--text-primary)] transition-all border border-white/[0.04]"
+                    key={item.text}
+                    onClick={() => handleSend(item.text)}
+                    className="flex-shrink-0 px-3 py-2 rounded-lg bg-white/[0.03] text-[13px] text-[var(--text-secondary)] hover:bg-white/[0.06] hover:text-[var(--text-primary)] transition-all border border-white/[0.04]"
                   >
-                    {suggestion}
+                    {item.text}
                   </button>
                 ))}
               </div>
 
-              {/* Features - Clean, consistent cards */}
-              <div className="grid gap-3">
-                <div className="flex items-start gap-4 p-4 rounded-xl bg-white/[0.02] border border-white/[0.04]">
-                  <div className="w-10 h-10 rounded-lg bg-white/[0.04] flex items-center justify-center flex-shrink-0">
-                    <Sparkles className="w-5 h-5 text-[#30D158]" />
+              {/* Features */}
+              <div className="space-y-3 pt-4">
+                <div className="flex gap-3 p-3.5 rounded-xl bg-white/[0.02] border border-white/[0.04]">
+                  <div className="w-9 h-9 rounded-lg bg-white/[0.04] flex items-center justify-center flex-shrink-0">
+                    <Sparkles className="w-4 h-4 text-[#30D158]" />
                   </div>
-                  <div>
-                    <h3 className="font-medium text-sm mb-1">Gemini 2.5 Pro</h3>
-                    <p className="text-sm text-[var(--text-tertiary)] leading-relaxed">
-                      Google&apos;s most capable AI—customized to understand tur kotha perfectly.
+                  <div className="min-w-0">
+                    <h3 className="font-medium text-[13px] mb-0.5">Gemini 2.5 Pro</h3>
+                    <p className="text-[13px] text-[var(--text-tertiary)] leading-relaxed">
+                      Google&apos;s most capable AI, tuned for tur kotha.
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-4 p-4 rounded-xl bg-white/[0.02] border border-white/[0.04]">
-                  <div className="w-10 h-10 rounded-lg bg-white/[0.04] flex items-center justify-center flex-shrink-0">
-                    <Eye className="w-5 h-5 text-[#30D158]" />
+                <div className="flex gap-3 p-3.5 rounded-xl bg-white/[0.02] border border-white/[0.04]">
+                  <div className="w-9 h-9 rounded-lg bg-white/[0.04] flex items-center justify-center flex-shrink-0">
+                    <Eye className="w-4 h-4 text-[#30D158]" />
                   </div>
-                  <div>
-                    <h3 className="font-medium text-sm mb-1">See & Create</h3>
-                    <p className="text-sm text-[var(--text-tertiary)] leading-relaxed">
-                      Analyze photos, generate art. &quot;Eitu photo&apos;t ki ase?&quot; — just ask.
+                  <div className="min-w-0">
+                    <h3 className="font-medium text-[13px] mb-0.5">See & Create</h3>
+                    <p className="text-[13px] text-[var(--text-tertiary)] leading-relaxed">
+                      Analyze photos, generate art. Just ask.
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-4 p-4 rounded-xl bg-white/[0.02] border border-white/[0.04]">
-                  <div className="w-10 h-10 rounded-lg bg-white/[0.04] flex items-center justify-center flex-shrink-0">
-                    <Languages className="w-5 h-5 text-[#30D158]" />
+                <div className="flex gap-3 p-3.5 rounded-xl bg-white/[0.02] border border-white/[0.04]">
+                  <div className="w-9 h-9 rounded-lg bg-white/[0.04] flex items-center justify-center flex-shrink-0">
+                    <Languages className="w-4 h-4 text-[#30D158]" />
                   </div>
-                  <div>
-                    <h3 className="font-medium text-sm mb-1">Seamless Code-Mixing</h3>
-                    <p className="text-sm text-[var(--text-tertiary)] leading-relaxed">
-                      Axomiya, English, or mix. Don&apos;t worry about grammar—moi bujhi pau.
+                  <div className="min-w-0">
+                    <h3 className="font-medium text-[13px] mb-0.5">Code-Mix Freely</h3>
+                    <p className="text-[13px] text-[var(--text-tertiary)] leading-relaxed">
+                      Axomiya, English, or mix—moi bujhi pau.
                     </p>
                   </div>
                 </div>
@@ -143,15 +150,17 @@ export default function LandingPage() {
           </div>
         </div>
 
-        {/* Footer - Minimal */}
-        <footer className="px-4 py-6 border-t border-white/[0.04]">
-          <div className="max-w-2xl mx-auto flex flex-col sm:flex-row gap-4 justify-between items-center text-xs text-[var(--text-muted)]">
-            <div className="flex items-center gap-4">
-              <Link href="/terms" className="hover:text-[var(--text-secondary)] transition-colors">Terms</Link>
-              <Link href="/refund" className="hover:text-[var(--text-secondary)] transition-colors">Refund</Link>
-              <Link href="/contact" className="hover:text-[var(--text-secondary)] transition-colors">Contact</Link>
+        {/* Footer */}
+        <footer className="px-5 py-5 border-t border-white/[0.04]">
+          <div className="max-w-xl mx-auto">
+            <div className="flex flex-col sm:flex-row gap-3 justify-between items-center text-[11px] text-[var(--text-muted)]">
+              <div className="flex items-center gap-4">
+                <Link href="/terms" className="hover:text-[var(--text-secondary)] transition-colors">Terms</Link>
+                <Link href="/refund" className="hover:text-[var(--text-secondary)] transition-colors">Refund</Link>
+                <Link href="/contact" className="hover:text-[var(--text-secondary)] transition-colors">Contact</Link>
+              </div>
+              <p>© 2025 Prompt Mafia</p>
             </div>
-            <p>© 2025 Prompt Mafia Inc.</p>
           </div>
         </footer>
       </main>
