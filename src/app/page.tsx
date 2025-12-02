@@ -21,7 +21,7 @@ export default function LandingPage() {
   }, [router]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-[var(--bg-primary)] text-[var(--text-primary)]">
+    <div className="min-h-screen flex flex-col bg-[var(--bg-primary)] text-[var(--text-primary)] overflow-x-hidden">
       {/* Header */}
       <header className="w-full sticky top-0 z-50 bg-[var(--bg-primary)]/90 backdrop-blur-md border-b border-white/[0.04]">
         <div className="max-w-4xl mx-auto px-5 h-14 flex items-center justify-between">
@@ -54,7 +54,7 @@ export default function LandingPage() {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col overflow-x-hidden">
+      <main className="flex-1 flex flex-col overflow-y-auto overscroll-contain">
         {/* Hero */}
         <div className="flex-1 flex flex-col justify-center px-5 py-12 sm:py-16">
           <div className="max-w-xl mx-auto w-full">

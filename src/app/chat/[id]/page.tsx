@@ -142,8 +142,12 @@ export default function ConversationPage() {
         <div 
           ref={scrollAreaRef}
           onScroll={handleScroll}
-          className="flex-1 overflow-y-auto overscroll-behavior-contain -webkit-overflow-scrolling-touch"
-          style={{ WebkitOverflowScrolling: 'touch' }}
+          className="flex-1 overflow-y-auto overscroll-contain webkit-overflow-scrolling-touch"
+          style={{ 
+            WebkitOverflowScrolling: 'touch',
+            overscrollBehavior: 'contain',
+            height: '100%'
+          }}
         >
           <div className="w-full max-w-2xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
             <div className="space-y-6 sm:space-y-8">
@@ -171,8 +175,8 @@ export default function ConversationPage() {
               </div>
             )}
             
-            {/* Spacer for bottom input */}
-            <div ref={messagesEndRef} className="h-32 sm:h-40" />
+            {/* Spacer for bottom input - larger on mobile */}
+            <div ref={messagesEndRef} className="h-40 md:h-32" />
           </div>
         </div>
 
@@ -187,7 +191,7 @@ export default function ConversationPage() {
         )}
 
         {/* Input Area - Fixed bottom with safe area support */}
-        <div className="relative z-20 bg-[var(--bg-primary)] border-t border-white/[0.04]">
+        <div className="relative z-20 bg-[var(--bg-primary)] border-t border-white/[0.04] safe-area-bottom">
           <div className="w-full max-w-2xl mx-auto px-3 sm:px-4 py-3 sm:py-4 pb-safe">
             {/* Image Preview */}
             {imagePreview && (

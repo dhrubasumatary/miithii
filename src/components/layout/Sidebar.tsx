@@ -148,16 +148,16 @@ export function Sidebar() {
       </aside>
 
       {/* Mobile */}
-      <div className="md:hidden fixed top-0 left-0 z-50 p-4">
+      <div className="md:hidden">
         <Sheet>
           <SheetTrigger asChild>
-            <button className="p-2.5 rounded-xl bg-[var(--bg-secondary)] text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)] transition-colors">
+            <button className="fixed top-3 left-3 z-50 p-2.5 rounded-xl bg-[var(--bg-secondary)]/95 backdrop-blur-sm text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)] transition-colors shadow-lg border border-white/[0.06]">
               <Menu className="w-5 h-5" />
             </button>
           </SheetTrigger>
           <SheetContent 
             side="left" 
-            className="w-[280px] p-0 bg-[var(--bg-secondary)] border-r border-white/[0.04]"
+            className="w-[280px] p-0 bg-[var(--bg-secondary)] border-r border-white/[0.04] z-[100]"
           >
             <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
             <SidebarContent collapsed={false} />

@@ -44,6 +44,18 @@ export function ChatInput({
     }
   }, [autoFocus]);
 
+  // Auto-scroll input into view on mobile when focused
+  const handleFocus = useCallback(() => {
+    if (textareaRef.current && window.innerWidth < 768) {
+      setTimeout(() => {
+        textareaRef.current?.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'center' 
+        });
+      }, 300); // Delay for keyboard animation
+    }
+  }, []);
+
   const handleSubmit = useCallback((e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!input.trim() && !hasFiles) return;
@@ -93,13 +105,15 @@ export function ChatInput({
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
+              onFocus={handleFocus}
               placeholder={placeholder}
               disabled={disabled || isThinking}
               rows={1}
-              className="flex-1 bg-transparent text-[var(--text-primary)] text-[15px] sm:text-base outline-none resize-none max-h-32 py-2 sm:py-2.5 px-1 sm:px-2 placeholder:text-[var(--text-muted)] disabled:opacity-50 touch-manipulation"
+              className="flex-1 bg-transparent text-[var(--text-primary)] text-base outline-none resize-none max-h-32 py-2.5 px-2 placeholder:text-[var(--text-muted)] disabled:opacity-50 touch-manipulation"
               style={{ 
                 caretColor: '#30D158',
-                fontSize: '16px' // Prevents iOS zoom on focus
+                fontSize: '16px', // Prevents iOS zoom on focus
+                minHeight: '44px' // Better touch target
               }}
             />
             

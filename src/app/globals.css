@@ -219,6 +219,32 @@ body {
   -webkit-overflow-scrolling: touch;
 }
 
+/* === iOS INPUT BEHAVIOR === */
+input, textarea {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* Prevent iOS zoom on small inputs */
+@media screen and (max-width: 768px) {
+  input, textarea, select {
+    font-size: 16px !important;
+  }
+}
+
+/* Better touch scrolling */
+.touch-scroll {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+}
+
+/* Prevent body scroll when keyboard is open on mobile */
+body.keyboard-open {
+  position: fixed;
+  width: 100%;
+  overflow: hidden;
+}
+
 /* === LAYER BASE (SHADCN) === */
 @layer base {
   * {
