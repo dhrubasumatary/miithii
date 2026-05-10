@@ -36,6 +36,9 @@ export default function LandingPage() {
             <Link href="/chat" className="text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors">
               Chat
             </Link>
+            <Link href="/voice" className="text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors">
+              Voice
+            </Link>
             <Link href="/contact" className="text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors">
               Contact
             </Link>

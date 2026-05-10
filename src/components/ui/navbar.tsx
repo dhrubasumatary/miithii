@@ -22,6 +22,9 @@ export function Navbar() {
             <NavLink href="/chat" active={pathname === "/chat"}>
               Chat
             </NavLink>
+            <NavLink href="/voice" active={pathname === "/voice"}>
+              Voice
+            </NavLink>
             <NavLink href="/contact" active={pathname === "/contact"}>
               Contact
             </NavLink>
