@@ -1,111 +1,74 @@
-"use client";
-
-import { Mail, Clock, Globe, Send } from "lucide-react";
-import { PageHeader } from "@/components/layout/PageHeader";
+import { Clock, FileAudio, Mail } from "lucide-react";
+import type { ReactNode } from "react";
 import { PageFooter } from "@/components/layout/PageFooter";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 export default function ContactPage() {
   return (
-    <div className="h-screen flex flex-col bg-[var(--bg-primary)] text-[var(--text-primary)] overflow-hidden">
+    <div className="flex h-screen flex-col overflow-hidden bg-[#f6f5ef] text-[#111311]">
       <PageHeader />
 
-      {/* Scrollable Content */}
       <main className="flex-1 overflow-y-auto">
-        <div className="max-w-2xl mx-auto px-6 py-12">
-          {/* Hero */}
-          <div className="mb-12">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.04] mb-6">
-              <Send className="w-3 h-3 text-[#30D158]" />
-              <span className="text-[11px] text-[var(--text-tertiary)] uppercase tracking-wider">Support</span>
-            </div>
-            <h1 className="font-serif text-3xl md:text-4xl tracking-tight mb-4">
-              Hit Us Up
-            </h1>
-            <p className="text-[var(--text-secondary)] text-base leading-relaxed">
-              We&apos;re Prompt Mafia Inc.—two caffeine-fueled weirdos hacking Assamese AI in a Guwahati flat.
+        <div className="mx-auto max-w-3xl px-3 py-6 sm:px-6 sm:py-10">
+          <header className="border-b border-[#d9d7ce] pb-5">
+            <p className="mb-2 text-xs font-semibold uppercase text-black/42">Support</p>
+            <h1 className="text-2xl font-semibold tracking-normal sm:text-3xl">Contact Miithii</h1>
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-black/62">
+              Send voice generation bugs, pronunciation feedback, account questions, or billing issues. For audio quality reports, include the source text and detected language.
             </p>
-          </div>
+          </header>
 
-          {/* Contact Card */}
-          <div className="bg-white/[0.03] rounded-2xl p-6 mb-10">
-            <div className="flex items-center gap-4 mb-5">
-              <div className="w-11 h-11 rounded-xl bg-[#30D158]/15 flex items-center justify-center">
-                <Mail className="w-5 h-5 text-[#30D158]" />
+          <section className="mt-5 rounded-lg border border-[#d8d6cc] bg-white p-4 shadow-[0_14px_40px_rgba(16,17,15,0.06)]">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md bg-[#111311] text-white">
+                <Mail className="h-4 w-4" />
               </div>
-              <div>
-                <p className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] mb-0.5">Email Support</p>
-                <a 
-                  href="mailto:support@miithii.com" 
-                  className="text-[#30D158] font-mono text-sm hover:underline"
-                >
+              <div className="min-w-0">
+                <p className="text-xs font-medium uppercase text-black/42">Email support</p>
+                <a href="mailto:support@miithii.com" className="mt-1 block truncate text-base font-semibold text-[#111311] underline-offset-4 hover:underline">
                   support@miithii.com
                 </a>
               </div>
             </div>
+          </section>
 
-            <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
-              We check this hourly (ish). Expect a reply in &lt;24h—faster if it&apos;s 
-              <span className="text-[#30D158] font-mono"> &quot;URGENT&quot;</span> or a meme.
-            </p>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <InfoItem
+              icon={<Clock className="h-4 w-4" />}
+              title="Response time"
+              text="Usually within 24-48 hours while the product is in active build."
+            />
+            <InfoItem
+              icon={<FileAudio className="h-4 w-4" />}
+              title="Audio reports"
+              text="Send the source text, language, selected voice, and what sounded wrong."
+            />
           </div>
 
-          {/* Info Cards */}
-          <div className="grid grid-cols-2 gap-3 mb-10">
-            <div className="bg-white/[0.03] rounded-xl p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <Clock className="w-4 h-4 text-[var(--text-muted)]" />
-                <p className="text-[10px] uppercase tracking-widest text-[var(--text-muted)]">Response</p>
-              </div>
-              <p className="font-mono text-sm">24-48h</p>
-            </div>
-            <div className="bg-white/[0.03] rounded-xl p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <Globe className="w-4 h-4 text-[var(--text-muted)]" />
-                <p className="text-[10px] uppercase tracking-widest text-[var(--text-muted)]">Languages</p>
-              </div>
-              <p className="font-mono text-sm">EN / অসমীয়া</p>
-            </div>
-          </div>
-
-          {/* What to Include */}
-          <div className="mb-10">
-            <h2 className="font-medium text-sm mb-4 text-[var(--text-primary)]">What to Include</h2>
-            <ul className="space-y-2.5 text-[var(--text-secondary)] text-sm">
-              <li className="flex items-start gap-3">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#30D158] mt-1.5 flex-shrink-0" />
-                Your account email (if applicable)
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#30D158] mt-1.5 flex-shrink-0" />
-                Description of the issue or question
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#30D158] mt-1.5 flex-shrink-0" />
-                Screenshots for technical problems
-              </li>
+          <section className="mt-8 border-t border-[#d9d7ce] pt-5">
+            <h2 className="text-sm font-semibold">Helpful details</h2>
+            <ul className="mt-3 space-y-2 text-sm leading-6 text-black/62">
+              <li>Account email if the issue is tied to sign-in or credits.</li>
+              <li>Screenshot or screen recording for UI bugs.</li>
+              <li>The downloaded audio filename for export or playback problems.</li>
             </ul>
-          </div>
-
-          {/* Sass Section */}
-          <div className="border-t border-white/[0.04] pt-8">
-            <p className="text-[var(--text-tertiary)] text-sm leading-relaxed mb-3">
-              Got beef with a buggy response? Wanna roast our beta ₹49 plan? 
-              Spill tea on what Assamese slang we&apos;re missing?
-            </p>
-            <p className="text-[var(--text-muted)] text-xs font-mono">
-              P.S. Beta feedback = Gold. We eat it for breakfast.
-            </p>
-          </div>
-
-          <div className="mt-10 pt-8 border-t border-white/[0.04]">
-            <p className="text-[var(--text-muted)] text-sm">
-              – The Mafia <span className="opacity-50">(code criminals only)</span>
-            </p>
-          </div>
+          </section>
         </div>
       </main>
 
       <PageFooter />
     </div>
+  );
+}
+
+function InfoItem({ icon, text, title }: { icon: ReactNode; text: string; title: string }) {
+  return (
+    <section className="rounded-lg border border-[#d8d6cc] bg-white p-4">
+      <div className="mb-3 flex h-8 w-8 items-center justify-center rounded-md bg-[#f1efe5] text-black/68">
+        {icon}
+      </div>
+      <p className="text-sm font-semibold">{title}</p>
+      <p className="mt-2 text-sm leading-6 text-black/58">{text}</p>
+    </section>
   );
 }

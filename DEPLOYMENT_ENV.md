@@ -1,67 +1,83 @@
 # Deployment Environment Variables
 
-## Required Environment Variables for Production
+Production domain:
 
-### Cashfree Payment Gateway
-```bash
-CASHFREE_APP_ID=your_production_app_id
-CASHFREE_SECRET_KEY=your_production_secret_key
-CASHFREE_MODE=production
+```text
+https://miithii.com
 ```
 
-### App Configuration
-```bash
-# CRITICAL: Must match your deployed domain
-NEXT_PUBLIC_APP_URL=https://miithii.com
-```
-
-### Gemini AI (Already configured)
-```bash
-GEMINI_API_KEY=your_gemini_api_key
-```
-
-## Local Development (.env.local)
-```bash
-CASHFREE_APP_ID=your_production_app_id
-CASHFREE_SECRET_KEY=your_production_secret_key
-CASHFREE_MODE=production
-NEXT_PUBLIC_APP_URL=http://localhost:3000
-GEMINI_API_KEY=your_gemini_api_key
-```
-
-## Important Notes
-
-1. **NEXT_PUBLIC_APP_URL** is used for:
-   - Payment return URL (callback after payment)
-   - Webhook notification URL
-   - MUST match your actual deployed domain
-
-2. **Never use ngrok URLs in production** - they expire and cause payment failures
-
-3. **Cashfree Webhook Configuration**:
-   - Login to Cashfree Dashboard
-   - Go to Developers > Webhooks
-   - Set webhook URL to: `https://miithii.com/api/payment/webhook`
-   - Enable events: `PAYMENT_SUCCESS_WEBHOOK`, `PAYMENT_FAILED_WEBHOOK`
-
-## Vercel Deployment
+## Required For Production
 
 ```bash
-vercel env add NEXT_PUBLIC_APP_URL
-# Enter: https://miithii.com
+# Site URL
+NEXT_PUBLIC_SITE_URL=https://miithii.com
 
-vercel env add CASHFREE_APP_ID
-# Enter: your_production_app_id
+# Clerk
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_live_...
+CLERK_SECRET_KEY=sk_live_...
 
-vercel env add CASHFREE_SECRET_KEY
-# Enter: your_production_secret_key
+# Gemini TTS
+GEMINI_API_KEY=...
+GEMINI_TTS_MODEL=gemini-3.1-flash-tts-preview
 
-vercel env add CASHFREE_MODE
-# Enter: production
+# Optional language detection provider
+SARVAM_API_KEY=...
+
+# Razorpay
+NEXT_PUBLIC_RAZORPAY_KEY_ID=rzp_live_...
+RAZORPAY_KEY_SECRET=...
+RAZORPAY_WEBHOOK_SECRET=...
+
+# Supabase
+SUPABASE_URL=https://your-project-ref.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=...
+SUPABASE_AUDIO_BUCKET=miithii-audio
+
+# Admin API
+MIITHII_ADMIN_USER_IDS=user_abc123,user_def456
 ```
 
-Then redeploy:
+## Optional Local Flags
+
+Production always requires auth and credits for generation. Local development can test those gates explicitly:
+
 ```bash
-vercel --prod
+MIITHII_REQUIRE_AUTH_FOR_GENERATION=true
+MIITHII_ENABLE_CREDIT_GATE=true
 ```
 
+## Required Setup
+
+1. Apply `supabase/migrations/20260511010000_miithii_voice_billing.sql`.
+2. Confirm the private Supabase storage bucket `miithii-audio` exists.
+3. Configure Razorpay webhook:
+
+```text
+https://miithii.com/api/payment/webhook
+```
+
+4. Subscribe the webhook to `payment.captured`.
+5. Set Clerk production keys and allowed redirect domains:
+
+```text
+https://miithii.com
+https://www.miithii.com
+```
+
+6. Add every required variable above in Vercel Project Settings -> Environment Variables for Production.
+7. Run `npm run build` before deployment.
+8. After deployment, sign in as an admin and open:
+
+```text
+https://miithii.com/api/admin/launch-readiness
+```
+
+The endpoint only returns setup states, not secret values.
+
+## Deployment Notes
+
+- The old chat routes are intentionally redirected/offline while the product focuses on voice export.
+- Do not expose `SUPABASE_SERVICE_ROLE_KEY` to browser code.
+- Keep `NEXT_PUBLIC_RAZORPAY_KEY_ID` public; keep `RAZORPAY_KEY_SECRET` private.
+- Signed-in users receive one lifetime 3-minute trial grant when their ledger is first loaded.
+- In production, generation requires sign-in and credit gating even if local flags are not set.

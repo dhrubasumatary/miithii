@@ -2,26 +2,24 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { AuthControls } from "@/components/auth/AuthControls";
 import { cn } from "@/lib/utils";
 
 export function Navbar() {
   const pathname = usePathname();
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b border-white/5 bg-black/50 backdrop-blur-xl">
+    <nav className="sticky top-0 z-50 w-full border-b border-[#d9d7ce] bg-[#f6f5ef]/95 backdrop-blur">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         <div className="flex items-center gap-8">
           <Link href="/" className="flex items-center gap-2 transition-opacity hover:opacity-80">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#30D158]">
-              <span className="font-mono text-sm font-bold text-black">M</span>
+            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-[#30D158]">
+              <span className="font-mono text-sm font-bold text-black">ম</span>
             </div>
-            <span className="font-medium text-[#EDEDED]">Miithii</span>
+            <span className="font-medium text-[#111311]">Miithii</span>
           </Link>
 
           <div className="hidden items-center gap-6 md:flex">
-            <NavLink href="/chat" active={pathname === "/chat"}>
-              Chat
-            </NavLink>
             <NavLink href="/voice" active={pathname === "/voice"}>
               Voice
             </NavLink>
@@ -34,12 +32,13 @@ export function Navbar() {
           </div>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2">
+          <AuthControls compact />
           <Link
-            href="/chat"
-            className="rounded-lg bg-[#30D158] px-4 py-2 text-sm font-medium text-black transition-colors hover:bg-[#2ABF4E]"
+            href="/voice"
+            className="hidden rounded-md bg-[#111311] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-black sm:inline-flex"
           >
-            Start Chatting
+            Generate audio
           </Link>
         </div>
       </div>
@@ -52,12 +51,11 @@ function NavLink({ href, active, children }: { href: string; active: boolean; ch
     <Link
       href={href}
       className={cn(
-        "text-sm transition-colors hover:text-white",
-        active ? "text-white font-medium" : "text-white/50"
+        "text-sm transition-colors hover:text-black",
+        active ? "font-medium text-black" : "text-black/50"
       )}
     >
       {children}
     </Link>
   );
 }
-

@@ -1,118 +1,62 @@
-"use client";
-
-import { AlertTriangle, Check, CreditCard } from "lucide-react";
-import { PageHeader } from "@/components/layout/PageHeader";
+import Link from "next/link";
+import type { ReactNode } from "react";
+import { ReceiptText } from "lucide-react";
 import { PageFooter } from "@/components/layout/PageFooter";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 export default function RefundPage() {
   return (
-    <div className="h-screen flex flex-col bg-[var(--bg-primary)] text-[var(--text-primary)] overflow-hidden">
+    <div className="flex h-screen flex-col overflow-hidden bg-[#f6f5ef] text-[#111311]">
       <PageHeader />
 
-      {/* Scrollable Content */}
       <main className="flex-1 overflow-y-auto">
-        <div className="max-w-2xl mx-auto px-6 py-12">
-          {/* Hero */}
-          <div className="mb-10">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.04] mb-6">
-              <CreditCard className="w-3 h-3 text-[var(--text-muted)]" />
-              <span className="text-[11px] text-[var(--text-tertiary)] uppercase tracking-wider">Legal</span>
+        <div className="mx-auto max-w-3xl px-3 py-6 sm:px-6 sm:py-10">
+          <header className="border-b border-[#d9d7ce] pb-5">
+            <p className="mb-2 text-xs font-semibold uppercase text-black/42">Billing</p>
+            <h1 className="text-2xl font-semibold tracking-normal sm:text-3xl">Refund & Cancellation</h1>
+            <p className="mt-2 text-sm text-black/48">Last updated: May 11, 2026</p>
+          </header>
+
+          <section className="mt-5 rounded-lg border border-[#d8d6cc] bg-white p-4 shadow-[0_14px_40px_rgba(16,17,15,0.06)]">
+            <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-md bg-[#f1efe5] text-black/70">
+              <ReceiptText className="h-4 w-4" />
             </div>
-            <h1 className="font-serif text-3xl md:text-4xl tracking-tight mb-3">
-              Refund & Cancellation
-            </h1>
-            <p className="text-[var(--text-muted)] text-xs font-mono">Last updated: November 26, 2025</p>
-          </div>
-
-          {/* Warning */}
-          <div className="bg-[#ff453a]/[0.08] rounded-xl p-5 mb-10">
-            <div className="flex items-start gap-3">
-              <AlertTriangle className="w-5 h-5 text-[#ff453a] flex-shrink-0 mt-0.5" />
-              <div>
-                <h2 className="text-[#ff453a] font-medium text-sm mb-1.5">
-                  Straight up: No refunds. Ever.
-                </h2>
-                <p className="text-[var(--text-secondary)] text-sm">
-                  You pay ₹49 → you get access till the billing month ends → done.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Why */}
-          <div className="mb-10">
-            <h2 className="font-medium text-sm mb-4 text-[var(--text-primary)]">Why so cruel?</h2>
-            <ul className="space-y-2.5 text-[var(--text-secondary)] text-sm">
-              <li className="flex items-start gap-3">
-                <span className="w-1.5 h-1.5 rounded-full bg-[var(--text-muted)] mt-1.5 flex-shrink-0" />
-                We&apos;re two people and a prayer.
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="w-1.5 h-1.5 rounded-full bg-[var(--text-muted)] mt-1.5 flex-shrink-0" />
-                Servers cost money the second you hit &quot;send&quot;.
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="w-1.5 h-1.5 rounded-full bg-[var(--text-muted)] mt-1.5 flex-shrink-0" />
-                We&apos;d rather build Assamese AI than process refunds.
-              </li>
-            </ul>
-          </div>
-
-          {/* Exceptions */}
-          <div className="bg-white/[0.03] rounded-xl p-5 mb-10">
-            <h2 className="font-medium text-sm mb-4">Exceptions (only these)</h2>
-            <ul className="space-y-2.5 text-[var(--text-secondary)] text-sm">
-              <li className="flex items-start gap-3">
-                <Check className="w-4 h-4 text-[#30D158] flex-shrink-0 mt-0.5" />
-                We charged you twice by mistake
-              </li>
-              <li className="flex items-start gap-3">
-                <Check className="w-4 h-4 text-[#30D158] flex-shrink-0 mt-0.5" />
-                We charged you after you cancelled
-              </li>
-              <li className="flex items-start gap-3">
-                <Check className="w-4 h-4 text-[#30D158] flex-shrink-0 mt-0.5" />
-                Site was dead for 7+ days straight
-              </li>
-            </ul>
-            <p className="text-[var(--text-muted)] text-xs mt-4">
-              Email <a href="mailto:support@miithii.com" className="text-[#30D158] hover:underline">support@miithii.com</a> with proof.
+            <h2 className="text-base font-semibold">Credit packs are one-time purchases.</h2>
+            <p className="mt-3 text-sm leading-7 text-black/62">
+              Miithii sells generated-minute packs for voice exports. Each checkout should show the price, minutes, and payment details before purchase.
             </p>
-          </div>
+          </section>
 
-          {/* Policy Details */}
-          <div className="space-y-6">
-            <Section title="1. Policy Overview">
-              This applies to all plans. Purchases grant immediate digital access, which cannot be returned.
+          <div className="mt-8 space-y-7">
+            <Section title="1. Cancellations">
+              One-time credit packs do not renew, so there is no subscription to cancel. Future recurring plans, if added, should include cancellation rules at checkout.
             </Section>
 
-            <Section title="2. Cancellation">
-              Cancel anytime via account settings. Access continues until billing period ends. No prorated refunds.
+            <Section title="2. Refund review">
+              Refunds can be reviewed for duplicate charges, failed credit activation after payment, or other billing mistakes. Send the payment receipt and account email.
             </Section>
 
-            <Section title="3. Billing Disputes">
-              Contact support with details. We investigate in 5-7 business days. Only legitimate errors qualify.
+            <Section title="3. Used credits">
+              Voice generation has model cost. Credits used for completed generations are generally not reversible unless a billing or system error caused the issue.
             </Section>
 
-            <Section title="4. Unused Services">
-              No refunds for unused limits or features. Limits expire at end of period.
+            <Section title="4. Re-downloads">
+              Downloading an already generated file does not spend credits again. Regenerating the same or edited text creates a new charge.
             </Section>
 
             <Section title="5. Contact">
-              <a href="mailto:support@miithii.com" className="text-[#30D158] hover:underline font-mono">
+              Email{" "}
+              <a href="mailto:support@miithii.com" className="font-semibold text-[#147a35] underline-offset-4 hover:underline">
                 support@miithii.com
-              </a>
-              <span className="text-[var(--text-tertiary)]"> — 24-48h response.</span>
+              </a>{" "}
+              for billing support.
             </Section>
           </div>
 
-          <div className="mt-10 pt-8 border-t border-white/[0.04]">
-            <p className="text-[var(--text-secondary)] text-sm mb-2">
-              By subscribing, you agree: all sales final.
-            </p>
-            <p className="text-[var(--text-muted)] text-xs font-mono">
-              – Prompt Mafia (still broke, still building)
-            </p>
+          <div className="mt-8 border-t border-[#d9d7ce] pt-5">
+            <Link href="/voice" className="inline-flex min-h-11 items-center justify-center rounded-md bg-[#111311] px-5 text-sm font-semibold text-white transition-colors hover:bg-black">
+              Open Voice
+            </Link>
           </div>
         </div>
       </main>
@@ -122,13 +66,11 @@ export default function RefundPage() {
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({ children, title }: { children: ReactNode; title: string }) {
   return (
-    <div>
-      <h2 className="font-medium text-sm mb-2 text-[var(--text-primary)]">{title}</h2>
-      <p className="text-[var(--text-secondary)] text-sm leading-relaxed">
-        {children}
-      </p>
-    </div>
+    <section>
+      <h2 className="text-sm font-semibold text-[#111311]">{title}</h2>
+      <p className="mt-2 text-sm leading-7 text-black/62">{children}</p>
+    </section>
   );
 }

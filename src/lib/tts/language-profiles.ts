@@ -10,6 +10,29 @@ const profiles: Record<string, LanguageProfile> = {
   unknown: { code: "unknown", displayName: "Detected language", nativeName: "Detected language", scripts: ["Unknown"], qualityStatus: "beta", estimatedWpm: 130, maxChunkChars: 1000, promptStrategy: "default", accentMode: "Indian multilingual professional", systemInstruction: "Read aloud naturally in the original language of the text. Do not translate and preserve words exactly.", styleInstruction: "Professional and neutral narration.", forbiddenBehaviors: ["Do not translate", "Do not summarize"] },
 };
 
-export function getLanguageProfile(code?: string): LanguageProfile { return profiles[code || ""] || profiles.unknown; }
+const profileAliases: Record<string, string> = {
+  as: "as-IN",
+  assamese: "as-IN",
+  brx: "brx-IN",
+  bodo: "brx-IN",
+  mni: "mni-IN",
+  manipuri: "mni-IN",
+  meiteilon: "mni-IN",
+  hi: "hi-IN",
+  hindi: "hi-IN",
+  bn: "bn-IN",
+  bengali: "bn-IN",
+  en: "en-IN",
+  english: "en-IN",
+};
+
+export function resolveLanguageCode(code?: string): string {
+  const key = (code || "").trim();
+  if (!key) return "unknown";
+  if (profiles[key]) return key;
+  return profileAliases[key.toLowerCase()] || "unknown";
+}
+
+export function getLanguageProfile(code?: string): LanguageProfile { return profiles[resolveLanguageCode(code)] || profiles.unknown; }
 export function getAllLanguageProfiles() { return profiles; }
 export function makeDetectionFromProfile(code: string, confidence = 0.7, script?: string): DetectionResult { const p = getLanguageProfile(code); return { languageCode: p.code, languageName: p.displayName, nativeName: p.nativeName, script: script || p.scripts[0] || "Unknown", confidence, detectionSource: "sarvam+custom-rules", accentMode: p.accentMode, qualityStatus: p.qualityStatus }; }

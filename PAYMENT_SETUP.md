@@ -1,92 +1,70 @@
-# Cashfree Payment Integration Setup
+# Razorpay Payment Setup
 
-## 1. Environment Variables
+Miithii sells one-time generated-minute credit packs through Razorpay Checkout.
 
-Add these to your `.env.local` file:
+## Environment Variables
 
 ```bash
-# Cashfree Payment Gateway
-CASHFREE_APP_ID=your_app_id_here
-CASHFREE_SECRET_KEY=your_secret_key_here
-CASHFREE_MODE=sandbox
-NEXT_PUBLIC_APP_URL=http://localhost:3000
+NEXT_PUBLIC_RAZORPAY_KEY_ID=rzp_test_or_live_key
+RAZORPAY_KEY_SECRET=your_razorpay_secret
+RAZORPAY_WEBHOOK_SECRET=your_webhook_secret
 ```
 
-**For Production:**
-- Change `CASHFREE_MODE` to `production`
-- Update `NEXT_PUBLIC_APP_URL` to your live domain
-- Use production Cashfree credentials
+Also configure Clerk and Supabase, because successful payments grant credits to the signed-in Clerk user in the Supabase credit ledger.
 
-## 2. Test Payment Flow
+## Flow
 
-### Sandbox Testing
-1. Visit `http://localhost:3000/checkout`
-2. Fill in the form with test details
-3. Use Cashfree test cards:
-   - Card: `4111 1111 1111 1111`
-   - CVV: Any 3 digits
-   - Expiry: Any future date
+1. User signs in.
+2. User opens `/pricing` and selects a credit pack.
+3. `/api/payment/create-session` creates a Razorpay order with server-side notes:
+   - `clerkUserId`
+   - `packId`
+   - `minutes`
+   - `product=miithii_voice_credits`
+4. Razorpay Checkout opens in the browser.
+5. Browser callback posts payment ids/signature to `/api/payment/verify`.
+6. Server verifies the signature, loads the Razorpay order, checks the order amount, pack id, currency, and Clerk user id, then grants credits.
+7. Razorpay webhook posts `payment.captured` to `/api/payment/webhook`; duplicate credit grants are ignored by the ledger.
 
-### Test UPI
-- UPI ID: `success@paytm` (for successful payment)
-- UPI ID: `failure@paytm` (for failed payment)
+## Webhook
 
-## 3. Webhook Configuration
+In Razorpay Dashboard, add:
 
-In your Cashfree dashboard:
-1. Go to **Settings** → **Webhooks**
-2. Add webhook URL: `https://yourdomain.com/api/payment/webhook`
-3. Subscribe to events:
-   - `PAYMENT_SUCCESS_WEBHOOK`
-   - `PAYMENT_FAILED_WEBHOOK`
-   - `PAYMENT_USER_DROPPED_WEBHOOK`
-
-## 4. Payment Flow
-
-```
-User clicks "Get Access" 
-  → /checkout page
-  → Fill details & submit
-  → Backend creates Cashfree order (/api/payment/create-session)
-  → User redirected to Cashfree hosted page
-  → User completes payment
-  → Cashfree redirects to /payment/callback
-  → Webhook confirms payment (/api/payment/webhook)
-  → User redirected to /chat
+```text
+https://miithii.com/api/payment/webhook
 ```
 
-## 5. Convex Integration (Later)
+Subscribe to:
 
-When you set up Convex, update the webhook handler:
-
-```typescript
-// In /api/payment/webhook/route.ts
-case "PAYMENT_SUCCESS_WEBHOOK":
-  // Store in Convex:
-  await convex.mutation(api.payments.recordPayment, {
-    orderId: order.order_id,
-    customerEmail: order.customer_details.customer_email,
-    amount: order.order_amount,
-    status: "success",
-    paidAt: new Date().toISOString(),
-  });
-  break;
+```text
+payment.captured
 ```
 
-## 6. Files Created
+Set `RAZORPAY_WEBHOOK_SECRET` to the same secret configured in the dashboard.
 
-- `/src/app/api/payment/create-session/route.ts` - Creates payment order
-- `/src/app/api/payment/webhook/route.ts` - Handles payment notifications
-- `/src/app/checkout/page.tsx` - Payment initiation page
-- `/src/app/payment/callback/page.tsx` - Payment result page
+For local webhook testing, use a tunnel URL that forwards to `/api/payment/webhook`, then replace it with `https://miithii.com/api/payment/webhook` before production.
 
-## 7. Next Steps
+## Credit Packs
 
-- [ ] Add Cashfree credentials to `.env.local`
-- [ ] Test payment flow in sandbox mode
-- [ ] Set up webhooks in Cashfree dashboard
-- [ ] Test webhook delivery
-- [ ] Integrate Convex for storing payment records
-- [ ] Add Clerk authentication
-- [ ] Restrict `/chat` to paid users only
+Visible launch packs are defined in `src/lib/billing/pricing.ts`. Confirm the code and this document match before going live.
 
+- Test: INR 9, 1 minute
+- Reels: INR 29, 4 minutes
+- Creator: INR 79, 12 minutes
+
+## Local Test Checklist
+
+```bash
+npm run build
+npm run dev
+```
+
+Then:
+
+1. Sign in with Clerk.
+2. Visit `/pricing`.
+3. Start checkout.
+4. Complete Razorpay test payment.
+5. Confirm `/api/generations` shows the updated `balanceMinutes`.
+6. Generate audio on `/voice`.
+7. Confirm the generation appears under Recent files and can be downloaded again without burning credits.

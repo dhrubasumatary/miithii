@@ -1,8 +1,18 @@
 node_modules
 .next
+.next.corrupt-*
 .env.local
 .env
 *.log
 .DS_Store
 build
 out
+*.tsbuildinfo
+
+# clerk configuration (can include secrets)
+/.clerk/
+
+# local agent/tooling artifacts
+/.agents/
+/.devin/config.local.json
+skills-lock.json

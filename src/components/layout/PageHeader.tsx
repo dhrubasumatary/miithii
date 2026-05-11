@@ -2,44 +2,52 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { CreditCard, FileAudio } from "lucide-react";
+import type { ReactNode } from "react";
+import { AuthControls } from "@/components/auth/AuthControls";
 import { cn } from "@/lib/utils";
 
 export function PageHeader() {
   const pathname = usePathname();
+  const voiceActive = pathname === "/" || pathname === "/voice";
   
   return (
-    <header className="flex-shrink-0 w-full bg-[var(--bg-primary)] border-b border-white/[0.04]">
-      <div className="max-w-4xl mx-auto px-6 h-14 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Link 
-            href="/" 
-            className="p-2 -ml-2 rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-white/[0.04] transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" />
-          </Link>
-          <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <div className="w-6 h-6 rounded-md bg-[#30D158] flex items-center justify-center">
-              <span className="text-xs font-bold text-black" style={{ fontFamily: 'system-ui' }}>ম</span>
+    <header className="w-full flex-shrink-0 border-b border-[#d9d7ce] bg-[#f6f5ef]/95 backdrop-blur">
+      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-3 px-3 sm:h-16 sm:px-6">
+        <div className="flex min-w-0 items-center gap-2.5">
+          <Link href="/" className="flex min-w-0 items-center gap-2.5 transition-opacity hover:opacity-80">
+            <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md bg-[#30D158] text-black shadow-sm">
+              <span className="text-sm font-black leading-none" style={{ fontFamily: "system-ui" }}>ম</span>
             </div>
-            <span className="font-medium text-sm hidden sm:block">Miithii</span>
+            <div className="leading-tight">
+              <span className="block text-sm font-semibold text-[#111311]">Miithii</span>
+              <span className="hidden text-[11px] text-black/45 sm:block">Assamese voice</span>
+            </div>
           </Link>
         </div>
         
-        <nav className="flex items-center gap-0.5">
-          <NavLink href="/chat" active={pathname?.startsWith("/chat") ?? false}>
-            Chat
-          </NavLink>
-          <NavLink href="/terms" active={pathname === "/terms"}>
-            Terms
-          </NavLink>
-          <NavLink href="/refund" active={pathname === "/refund"}>
-            Refund
-          </NavLink>
-          <NavLink href="/contact" active={pathname === "/contact"}>
-            Contact
-          </NavLink>
-        </nav>
+        <div className="flex items-center gap-2">
+          <nav className="flex items-center gap-1 text-sm">
+            <NavLink href="/voice" active={voiceActive}>
+              <FileAudio className="h-3.5 w-3.5" />
+              <span>Voice</span>
+            </NavLink>
+            <NavLink href="/pricing" active={pathname === "/pricing"} className="hidden sm:inline-flex">
+              <CreditCard className="h-3.5 w-3.5" />
+              <span>Pricing</span>
+            </NavLink>
+            <NavLink href="/terms" active={pathname === "/terms"} className="hidden lg:inline-flex">
+              Terms
+            </NavLink>
+            <NavLink href="/refund" active={pathname === "/refund"} className="hidden lg:inline-flex">
+              Refund
+            </NavLink>
+            <NavLink href="/contact" active={pathname === "/contact"} className="hidden sm:inline-flex">
+              Contact
+            </NavLink>
+          </nav>
+          <AuthControls compact />
+        </div>
       </div>
     </header>
   );
@@ -48,20 +56,23 @@ export function PageHeader() {
 function NavLink({ 
   href, 
   active, 
+  className,
   children 
 }: { 
   href: string; 
   active: boolean; 
-  children: React.ReactNode 
+  className?: string;
+  children: ReactNode 
 }) {
   return (
     <Link
       href={href}
       className={cn(
-        "px-2.5 py-1.5 rounded-md text-xs transition-colors",
+        "inline-flex min-h-9 items-center justify-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium transition-colors",
         active 
-          ? "text-[#30D158] bg-[#30D158]/10" 
-          : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-white/[0.04]"
+          ? "bg-[#111311] text-white" 
+          : "text-black/60 hover:bg-white hover:text-black",
+        className
       )}
     >
       {children}

@@ -1,101 +1,96 @@
-# Miithii 🇮🇳
+# Miithii Voice
 
-**Chat with AI in Assamese**
+Miithii Voice is a Next.js product for generating downloadable regional Indian language voice files. The current product focus is voice export, not chat.
 
-Miithii (मिथि - "to understand" in Bodo) is an AI-powered chat application that speaks native Assamese. Built by Prompt Mafia Inc.
+## Current Product
 
-![Miithii Screenshot](./screenshot.png)
+- Paste text and auto-detect Assamese, Bodo, Manipuri, Hindi, Bengali, English, or unknown text.
+- Generate male or female Gemini TTS audio with language-specific prompt profiles.
+- Charge generated minute credits, with free re-downloads from history.
+- Sell one-time credit packs through Razorpay.
+- Store generation metadata, credit ledger rows, cost events, and private audio files in Supabase.
+- Use Clerk for sign-in and account controls.
 
-## Features
+## Stack
 
-- 🗣️ **Native Assamese** - Street-level Guwahati dialect, not textbook Sahitya Sabha
-- ⚡ **Gemini 2.5 Pro** - Powered by Google's most capable model with thinking/reasoning
-- 🖼️ **Image Analysis** - Upload images for AI analysis
-- 🛠️ **Built-in Tools** - Calculator, time zones, unit converter, code runner
-- 🌙 **Beautiful Dark UI** - Terminal-inspired glass morphism design
+- Next.js 15 App Router
+- React 19
+- Tailwind CSS v4
+- Clerk auth
+- Razorpay checkout
+- Supabase REST and Storage
+- Gemini TTS
+- Sarvam language detection when configured, local detection rules as fallback
 
-## Tech Stack
-
-- **Framework**: Next.js 15 (App Router)
-- **Styling**: Tailwind CSS v4
-- **AI**: Vercel AI SDK v5 + AI Gateway
-- **Language**: TypeScript
-
-## Getting Started
-
-### Prerequisites
-
-- Node.js 18+
-- pnpm (recommended) or npm
-
-### Installation
+## Development
 
 ```bash
-# Clone the repo
-git clone https://github.com/promptmafia/miithii.git
-cd miithii
-
-# Install dependencies
-pnpm install
-
-# Copy environment variables
-cp .env.local.example .env.local
-
-# Add your Vercel AI Gateway API key to .env.local
+npm install
+cp .env.example .env.local
+npm run dev
 ```
 
-### Development
+Open `http://localhost:3000`.
+
+## Build
 
 ```bash
-pnpm dev
+npm run build
+npm start
 ```
 
-Open [http://localhost:3000](http://localhost:3000)
+## Key Routes
 
-### Production
+- `/voice` - main voice generation console
+- `/pricing` - credit packs
+- `/api/detect-language` - language detection
+- `/api/generate-voice` - TTS generation, billing gate, storage
+- `/api/generations` - balance and recent generation history
+- `/api/generations/[id]/download` - signed private audio download URL
+- `/api/payment/create-session` - Razorpay order creation
+- `/api/payment/verify` - Razorpay client callback verification and credit grant
+- `/api/payment/webhook` - Razorpay webhook credit grant
+- `/api/admin/profitability` - admin-only revenue/cost summary
+
+## Required Environment
+
+See `.env.example` for the full list.
+
+Minimum production setup:
+
+- `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`
+- `CLERK_SECRET_KEY`
+- `GEMINI_API_KEY`
+- `NEXT_PUBLIC_RAZORPAY_KEY_ID`
+- `RAZORPAY_KEY_SECRET`
+- `RAZORPAY_WEBHOOK_SECRET`
+- `SUPABASE_URL`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `SUPABASE_AUDIO_BUCKET`
+- `MIITHII_ADMIN_USER_IDS`
+
+Production automatically requires signed-in generation and credit gating. Local development can opt into those gates with:
 
 ```bash
-pnpm build
-pnpm start
+MIITHII_REQUIRE_AUTH_FOR_GENERATION=true
+MIITHII_ENABLE_CREDIT_GATE=true
 ```
 
-## Environment Variables
+## Database
 
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `AI_GATEWAY_API_KEY` | Vercel AI Gateway API key | Yes |
+Apply the Supabase migration in `supabase/migrations/20260511010000_miithii_voice_billing.sql`.
 
-## Project Structure
+It creates:
 
-```
-src/app/
-├── api/miithii/     # Chat API route
-├── miithii/         # Main chat page
-├── contact/         # Contact page
-├── terms/           # Terms & conditions
-├── refund/          # Refund policy
-├── globals.css      # Design system
-├── layout.tsx       # Root layout
-└── page.tsx         # Landing page
-```
+- `payments`
+- `generations`
+- `audio_files`
+- `credit_ledger`
+- `cost_events`
+- `user_credit_balances`
+- `daily_profitability`
+- private `miithii-audio` storage bucket
 
-## Roadmap
+## Product Notes
 
-- [ ] User authentication
-- [ ] Chat history persistence
-- [ ] Bodo language support
-- [ ] Voice input/output
-- [ ] Mobile app
-
-## Contributing
-
-We're looking for young talent to help build a foundational AI model for low-resource languages. Interested? Email us at [support@miithii.com](mailto:support@miithii.com)
-
-## License
-
-Proprietary - © 2025 Prompt Mafia Inc.
-
----
-
-Made with ☕ in Guwahati
-
+The launch pricing model is documented in `docs/miithii-economics.md`. The revenue and distribution plan is in `docs/revenue-plan.md`. The operational product status and launch checklist are in `docs/product-status.md`. The execution checklist is in `TODO.md`. The next-agent implementation handoff is in `AGENT_HANDOFF.md`.
