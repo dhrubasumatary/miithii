@@ -108,14 +108,14 @@ export default function PricingPage() {
                 <p className="text-xs font-semibold uppercase tracking-[0.1em] text-white/52">Studio offers</p>
                 <h2 className="mt-1 text-lg font-semibold">Need bulk minutes for an agency or studio?</h2>
                 <p className="mt-1 text-sm leading-6 text-white/64">
-                  Talk to us on WhatsApp for custom bulk packs, invoicing, and brand-locked voice profiles.
+                    Contact us about custom bulk packs, invoicing, and brand-locked voice profiles.
                 </p>
               </div>
               <a
                 href="/contact"
                 className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-[#30D158] px-4 py-2.5 text-sm font-semibold text-black transition-colors hover:bg-[#28b14b] sm:w-auto"
               >
-                Open WhatsApp
+                Contact us
               </a>
             </div>
           </div>

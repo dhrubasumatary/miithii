@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { getLanguageProfile } from "@/lib/tts/language-profiles";
 import { chunkTextForTts } from "@/lib/tts/chunker";
-import { buildGeminiTtsPrompt, promptVersion } from "@/lib/tts/prompt-builder";
+import { buildGeminiTtsPrompt, normalizeEmotion, promptVersion } from "@/lib/tts/prompt-builder";
 import { resolveVoiceName } from "@/lib/tts/voice-map";
 import { estimateDurationSeconds } from "@/lib/tts/duration";
 import { VoiceGender } from "@/lib/tts/types";
@@ -58,8 +58,7 @@ export async function POST(req: Request) {
     const trimmed = text.trim();
     if (trimmed.length > 8000) return NextResponse.json({ error: "Text too long" }, { status: 400 });
 
-    const normalizedEmotion = typeof emotion === "string" ? emotion.trim().toLowerCase() : "";
-    const emotionPrefix = normalizedEmotion && normalizedEmotion !== "neutral" ? `[${normalizedEmotion}] ` : "";
+    const normalizedEmotion = normalizeEmotion(emotion);
 
     const profile = getLanguageProfile(languageCode);
     const chunks = chunkTextForTts(trimmed, profile.maxChunkChars);
@@ -136,9 +135,10 @@ export async function POST(req: Request) {
     const pcmBuffers = await Promise.all(
       chunks.map(async (chunk) => {
         const prompt = buildGeminiTtsPrompt({
-          text: `${emotionPrefix}${chunk}`,
+          text: chunk,
           profile,
           voiceGender,
+          emotion: normalizedEmotion,
         });
         const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`, {
           method: "POST",
