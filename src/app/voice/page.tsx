@@ -4,18 +4,14 @@ import Link from "next/link";
 import {
   AlertCircle,
   Check,
-  ChevronDown,
   CreditCard,
   Download,
   FileAudio,
   History,
   Languages,
   Loader2,
-  Mic2,
-  Play,
   Share2,
   Sparkles,
-  X,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { AuthControls } from "@/components/auth/AuthControls";
@@ -79,10 +75,39 @@ type GenerationHistory = {
 
 type FeedbackRating = "perfect" | "wrong_accent" | "wrong_language" | "bad_pronunciation" | "skipped_words";
 
-const voiceOptions = [
-  { value: "female", label: "Warm female", description: "Soft narration for stories, lessons, reels" },
-  { value: "male", label: "Clear male", description: "Crisp narration for explainers and demos" },
+const emotionOptions = [
+  { value: "neutral", label: "Neutral" },
+  { value: "cheerful", label: "Cheerful" },
+  { value: "excited", label: "Excited" },
+  { value: "sad", label: "Sad" },
+  { value: "serious", label: "Serious" },
+  { value: "whispering", label: "Whisper" },
 ] as const;
+
+type EmotionValue = (typeof emotionOptions)[number]["value"];
+
+const sampleTexts: Array<{ label: string; text: string; emotion: EmotionValue }> = [
+  {
+    label: "Reel intro",
+    text: "নমস্কাৰ বন্ধুসকল, আজি মই তোমালোকক এটা বিশেষ কথা কম",
+    emotion: "cheerful",
+  },
+  {
+    label: "Business promo",
+    text: "আমাৰ নতুন প্ৰডাক্ট এতিয়া উপলব্ধ। আজিয়েই অৰ্ডাৰ কৰক।",
+    emotion: "excited",
+  },
+  {
+    label: "Story narration",
+    text: "বহুত দিনৰ আগতে, এখন সৰু গাঁৱত এজন ল'ৰা আছিল।",
+    emotion: "neutral",
+  },
+  {
+    label: "Latin demo",
+    text: "Nomoskar bondhu hokolok, aaji moi tumalokak eta bisesh kotha kom",
+    emotion: "cheerful",
+  },
+];
 
 const feedbackOptions = [
   { value: "perfect", label: "Perfect" },
@@ -128,13 +153,13 @@ function base64ToBlob(base64: string, mimeType: string) {
 export default function VoicePage() {
   const [text, setText] = useState("");
   const [voiceGender, setVoiceGender] = useState<"male" | "female">("female");
+  const [emotion, setEmotion] = useState<EmotionValue>("neutral");
   const [detecting, setDetecting] = useState(false);
   const [detection, setDetection] = useState<Detection | null>(null);
   const [generating, setGenerating] = useState(false);
   const [result, setResult] = useState<VoiceResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [history, setHistory] = useState<GenerationHistory | null>(null);
-  const [voicePickerOpen, setVoicePickerOpen] = useState(false);
   const [feedbackRating, setFeedbackRating] = useState<FeedbackRating | null>(null);
   const [feedbackState, setFeedbackState] = useState<"idle" | "sending" | "sent" | "error">("idle");
 
@@ -151,9 +176,7 @@ export default function VoicePage() {
   );
   const activeCredits = result?.billing?.roundedCredits || estimatedCredits;
   const availableMinutes = result?.balanceAfter ?? history?.balanceMinutes ?? FREE_TRIAL_MINUTES;
-  const detectedLanguageReady = Boolean(detection && detection.languageCode !== "unknown");
-  const canGenerate = Boolean(textReady && detectedLanguageReady && !detecting && !generating);
-  const selectedVoice = voiceOptions.find((voice) => voice.value === voiceGender) || voiceOptions[0];
+  const canGenerate = Boolean(textReady && !generating);
 
   useEffect(() => {
     if (trimmedText.length < 12) {
@@ -165,7 +188,6 @@ export default function VoicePage() {
     let cancelled = false;
     const t = setTimeout(async () => {
       setDetecting(true);
-      setError(null);
 
       try {
         const res = await fetch("/api/detect-language", {
@@ -176,7 +198,7 @@ export default function VoicePage() {
         const data = await res.json();
         if (!cancelled && res.ok) setDetection(data);
       } catch {
-        if (!cancelled) setError("Language detection is unavailable.");
+        // Detection is non-blocking; ignore failures.
       } finally {
         if (!cancelled) setDetecting(false);
       }
@@ -199,12 +221,9 @@ export default function VoicePage() {
 
   useEffect(() => {
     if (!result || typeof window === "undefined") return;
-    if (!window.matchMedia("(max-width: 767px)").matches) return;
-
     const timer = window.setTimeout(() => {
       document.getElementById("generated-voice")?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 120);
-
     return () => window.clearTimeout(timer);
   }, [result]);
 
@@ -225,6 +244,14 @@ export default function VoicePage() {
     setError(null);
   }
 
+  function applySample(sample: (typeof sampleTexts)[number]) {
+    setText(sample.text);
+    setEmotion(sample.emotion);
+    setDetection(null);
+    setResult(null);
+    setError(null);
+  }
+
   async function generate() {
     if (!canGenerate) return;
 
@@ -238,8 +265,9 @@ export default function VoicePage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           text: trimmedText,
-          languageCode: detection?.languageCode || "unknown",
+          languageCode: detection?.languageCode || "as-IN",
           voiceGender,
+          emotion,
         }),
       });
       const data = await res.json();
@@ -262,7 +290,7 @@ export default function VoicePage() {
       const link = document.createElement("a");
       const ext = chunk.mimeType.includes("wav") ? "wav" : "audio";
       link.href = chunk.audioUrl;
-      link.download = `${safeFileName(trimmedText)}-${chunk.index + 1}.${ext}`;
+      link.download = `${safeFileName(trimmedText)}.${ext}`;
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -277,16 +305,10 @@ export default function VoicePage() {
     const link = document.createElement("a");
     const ext = chunk.mimeType.includes("wav") ? "wav" : "audio";
     link.href = `data:${chunk.mimeType};base64,${chunk.audioBase64}`;
-    link.download = `${safeFileName(trimmedText)}-${chunk.index + 1}.${ext}`;
+    link.download = `${safeFileName(trimmedText)}.${ext}`;
     document.body.appendChild(link);
     link.click();
     link.remove();
-  }
-
-  function downloadAllChunks() {
-    result?.chunks.forEach((chunk, index) => {
-      window.setTimeout(() => downloadChunk(chunk), index * 160);
-    });
   }
 
   async function shareChunk(chunk: VoiceChunk) {
@@ -303,7 +325,7 @@ export default function VoicePage() {
         return;
       }
 
-      const file = new File([blob], `${safeFileName(trimmedText)}-${chunk.index + 1}.${ext}`, {
+      const file = new File([blob], `${safeFileName(trimmedText)}.${ext}`, {
         type: chunk.mimeType,
       });
       const shareData: ShareData = {
@@ -371,84 +393,116 @@ export default function VoicePage() {
     }
   }
 
-  return (
-    <div className="min-h-screen overflow-y-auto bg-[#f4f5ef] text-[#111311]">
+  const generateLabel = generating ? "Rendering..." : result ? "Regenerate voice" : "Generate voice";
+  const primaryChunk = result?.chunks?.[0];
 
+  return (
+    <div className="min-h-screen bg-[#f4f5ef] text-[#111311]">
       <AppHeader activeCredits={activeCredits} availableMinutes={availableMinutes} />
 
-      <main className="mx-auto w-full max-w-7xl overflow-x-hidden px-2 pb-28 pt-3 sm:px-5 sm:pb-6 sm:pt-5">
-        <section className="w-full min-w-0 overflow-hidden rounded-[1.1rem] border border-[#d9d4c9] bg-[#fbfaf6] shadow-[0_18px_70px_rgba(16,17,15,0.08)] sm:rounded-[1.25rem]">
-          <div className="flex min-h-14 items-center justify-between gap-3 border-b border-[#ded9cd] bg-white px-3 sm:px-4">
-            <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#30D158] text-black">
-                  <FileAudio className="h-4 w-4" />
-                </span>
-                <div className="min-w-0">
-                  <h1 className="truncate text-sm font-semibold sm:text-base">New voice export</h1>
-                  <p className="truncate text-xs text-black/45">Assamese-first · WAV download · Gemini TTS</p>
-                </div>
-              </div>
-            </div>
-            <Link href="/pricing" className="hidden rounded-full border border-[#d9d4c9] bg-[#fbfaf6] px-3 py-2 text-xs font-semibold text-black/58 transition-colors hover:text-black sm:inline-flex">
-              Buy minutes
-            </Link>
+      <main className="mx-auto w-full max-w-3xl px-3 pb-40 pt-4 sm:px-5 sm:pb-10 sm:pt-6">
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <h1 className="truncate text-base font-semibold sm:text-lg">Generate voice</h1>
+            <p className="truncate text-xs text-black/45 sm:text-sm">
+              Paste Assamese, Bodo, Manipuri, Hindi, Bengali, or English text.
+            </p>
           </div>
+          <DetectionBadge detection={detection} detecting={detecting} />
+        </div>
 
-          <div className="grid min-h-[calc(100svh-9.5rem)] min-w-0 lg:grid-cols-[minmax(0,1fr)_380px]">
-            <div className="min-w-0 overflow-hidden border-b border-[#ded9cd] bg-[#f7f8f2] p-2 lg:border-b-0 lg:border-r lg:p-4">
-              <VoiceComposer
-                activeCredits={activeCredits}
-                detection={detection}
-                detecting={detecting}
-                estimatedSeconds={estimatedSeconds}
-                generating={generating}
-                onTextChange={updateText}
-                selectedVoice={selectedVoice.label}
-                text={text}
-              />
-            </div>
-
-            <ExportPanel
-              activeCredits={activeCredits}
-              availableMinutes={availableMinutes}
-              canGenerate={canGenerate}
-              detection={detection}
-              detecting={detecting}
-              error={error}
-              feedbackRating={feedbackRating}
-              feedbackState={feedbackState}
-              generating={generating}
-              history={history}
-              onDownload={downloadChunk}
-              onDownloadAll={downloadAllChunks}
-              onDownloadStored={downloadStoredGeneration}
-              onFeedback={sendFeedback}
-              onGenerate={generate}
-              onShare={shareChunk}
-              onVoicePickerOpen={() => setVoicePickerOpen(true)}
-              result={result}
-              selectedVoice={selectedVoice.label}
-              textReady={textReady}
-            />
+        <div className="relative">
+          <textarea
+            value={text}
+            onChange={(event) => updateText(event.target.value)}
+            placeholder="Paste your script here. Tap a sample below to try a template."
+            disabled={generating}
+            spellCheck={false}
+            autoCorrect="off"
+            autoCapitalize="off"
+            data-gramm="false"
+            data-ms-editor="false"
+            className={cn(
+              "block min-h-[160px] w-full resize-y rounded-2xl border border-[#d9d4c9] bg-white px-4 py-4 text-[16px] leading-7 text-[#111311] shadow-sm outline-none placeholder:text-black/28 focus:border-[#30D158] focus:ring-2 focus:ring-[#30D158]/30 sm:min-h-[200px] sm:text-[18px]",
+              generating && "text-black/32"
+            )}
+          />
+          <div className="pointer-events-none absolute bottom-3 right-4 text-xs text-black/38">
+            {text.length} chars
           </div>
-        </section>
+        </div>
+
+        <SampleRow onApply={applySample} disabled={generating} />
+
+        <InlineControls
+          voiceGender={voiceGender}
+          onVoiceGenderChange={setVoiceGender}
+          emotion={emotion}
+          onEmotionChange={setEmotion}
+          disabled={generating}
+        />
+
+        {!textReady && trimmedText.length > 0 && (
+          <p className="mt-3 text-xs text-black/45">Add a bit more text to enable Generate.</p>
+        )}
+
+        {error && (
+          <div className="mt-4">
+            <ErrorNotice message={error} />
+          </div>
+        )}
+
+        <div className="mt-4 hidden sm:block">
+          <GenerateButton
+            generating={generating}
+            disabled={!canGenerate}
+            onClick={generate}
+            label={generateLabel}
+          />
+          {textReady && (
+            <p className="mt-2 text-center text-xs text-black/42">
+              {formatDuration(estimatedSeconds)} · uses {formatCredits(activeCredits)} · {formatMinutes(availableMinutes)} left
+            </p>
+          )}
+        </div>
+
+        {result && primaryChunk && (
+          <GeneratedVoice
+            chunk={primaryChunk}
+            detection={detection}
+            feedbackRating={feedbackRating}
+            feedbackState={feedbackState}
+            onDownload={downloadChunk}
+            onFeedback={sendFeedback}
+            onShare={shareChunk}
+            result={result}
+          />
+        )}
+
+        <RecentExports history={history} onDownload={downloadStoredGeneration} />
       </main>
 
-      <VoicePickerSheet
-        open={voicePickerOpen}
-        onClose={() => setVoicePickerOpen(false)}
-        onVoiceGenderChange={setVoiceGender}
-        voiceGender={voiceGender}
-      />
+      {textReady && (
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[#d9d4c9] bg-[#f4f5ef]/96 px-3 pb-[max(env(safe-area-inset-bottom),0.75rem)] pt-3 backdrop-blur-md sm:hidden">
+          <GenerateButton
+            generating={generating}
+            disabled={!canGenerate}
+            onClick={generate}
+            label={generateLabel}
+          />
+          <p className="mt-2 text-center text-xs text-black/42">
+            {formatDuration(estimatedSeconds)} · uses {formatCredits(activeCredits)}
+          </p>
+        </div>
+      )}
     </div>
   );
 }
 
 function AppHeader({ activeCredits, availableMinutes }: { activeCredits: number; availableMinutes: number }) {
   return (
-    <header className="sticky top-0 z-50 overflow-x-hidden border-b border-[#ddd8cc]/80 bg-[#f6f5ef]/86 backdrop-blur-2xl">
-      <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-3 px-3 sm:h-16 sm:px-6">
+    <header className="sticky top-0 z-50 border-b border-[#ddd8cc]/80 bg-[#f6f5ef]/86 backdrop-blur-2xl">
+      <div className="mx-auto flex h-14 max-w-3xl items-center justify-between gap-3 px-3 sm:h-16 sm:px-5">
         <Link href="/voice" className="flex min-w-0 items-center gap-2.5 transition-opacity hover:opacity-80">
           <BrandMark />
           <div className="min-w-0 leading-tight">
@@ -466,97 +520,130 @@ function AppHeader({ activeCredits, availableMinutes }: { activeCredits: number;
   );
 }
 
-function VoiceComposer({
-  activeCredits,
-  detection,
-  detecting,
-  estimatedSeconds,
-  generating,
-  onTextChange,
-  selectedVoice,
-  text,
+function SampleRow({
+  onApply,
+  disabled,
 }: {
-  activeCredits: number;
-  detection: Detection | null;
-  detecting: boolean;
-  estimatedSeconds: number;
-  generating: boolean;
-  onTextChange: (value: string) => void;
-  selectedVoice: string;
-  text: string;
+  onApply: (sample: (typeof sampleTexts)[number]) => void;
+  disabled: boolean;
 }) {
-  const empty = !text.trim();
-
   return (
-    <div className="relative h-full min-h-[360px] min-w-0 sm:min-h-[430px]">
-      <DetectionOrbitBadge detection={detection} detecting={detecting} />
-
-      <div
-        className={cn(
-          "group relative flex h-full min-h-[320px] min-w-0 flex-col overflow-hidden rounded-[0.9rem] border bg-white shadow-sm transition-all duration-500 sm:min-h-[560px] sm:rounded-[1rem]",
-          detecting && "border-[#b8c9e8] shadow-[0_30px_90px_rgba(25,88,184,0.11)]",
-          detection && "border-[#93dba5] shadow-[0_30px_90px_rgba(48,209,88,0.16)]",
-          !detecting && !detection && "border-[#d9d4c9]",
-          generating && "scale-[0.985] border-[#30D158] bg-[#edf9ef]/88"
-        )}
-      >
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(48,209,88,0.12),transparent_44%)] opacity-80" />
-        <div className="relative z-20 flex min-w-0 items-center justify-between gap-2 border-b border-[#ebe6dc] px-3 py-3 sm:gap-3 sm:px-6">
-          <div className="min-w-0">
-            <p className="text-xs font-semibold uppercase tracking-[0.1em] text-black/36">Script</p>
-            <p className="mt-0.5 truncate text-sm font-medium text-[#111311]">Paste or write text</p>
-          </div>
-          <div className="flex flex-shrink-0 items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#edf9ef] px-2 py-1 text-[11px] font-semibold text-[#147a35] sm:px-2.5">
-              <Sparkles className="h-3 w-3" />
-              Auto
-            </span>
-          </div>
-        </div>
-        <textarea
-          value={text}
-          onChange={(event) => onTextChange(event.target.value)}
-          placeholder="Paste Assamese text here. Bodo, Manipuri, Hindi, Bengali, and English are detected automatically."
-          disabled={generating}
-          spellCheck={false}
-          autoCorrect="off"
-          autoCapitalize="off"
-          data-gramm="false"
-          data-ms-editor="false"
-          className={cn(
-            "relative z-10 min-h-0 w-full min-w-0 flex-1 resize-none bg-transparent px-3 pb-16 pt-4 text-[16px] leading-7 text-[#111311] outline-none placeholder:text-black/28 sm:px-6 sm:pb-20 sm:pt-6 sm:text-[24px] sm:leading-10",
-            generating && "text-black/32"
-          )}
-        />
-
-        {generating && (
-          <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-[#edf9ef]/88 px-8 text-center backdrop-blur-xl">
-            <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-3xl bg-[#30D158] text-black shadow-sm">
-              <Loader2 className="h-6 w-6 animate-spin" />
-            </div>
-            <p className="text-xl font-semibold text-[#111311]">Rendering {detection?.languageName || "regional"} voice</p>
-            <p className="mt-2 max-w-sm text-sm leading-6 text-black/52">Preserving original words, accent, and sentence rhythm.</p>
-          </div>
-        )}
-
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex items-center justify-between gap-3 border-t border-[#ebe6dc] bg-white/76 px-3 py-3 text-xs text-black/38 backdrop-blur sm:px-6">
-          <span>{empty ? "Assamese first" : `${text.length} chars`}</span>
-          <span>{empty ? "WAV export" : selectedVoice}</span>
-        </div>
+    <div className="mt-3 -mx-3 overflow-x-auto px-3 sm:mx-0 sm:px-0">
+      <div className="flex gap-2 pb-1">
+        {sampleTexts.map((sample) => (
+          <button
+            key={sample.label}
+            type="button"
+            disabled={disabled}
+            onClick={() => onApply(sample)}
+            className="inline-flex flex-shrink-0 items-center gap-1.5 rounded-full border border-[#d9d4c9] bg-white px-3 py-2 text-xs font-semibold text-black/64 transition-colors hover:border-black/22 hover:text-black disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <Sparkles className="h-3 w-3 text-[#147a35]" />
+            {sample.label}
+          </button>
+        ))}
       </div>
-
-      {!empty && (
-        <div className="mt-3 flex items-center justify-center gap-2 text-xs text-black/36">
-          <span>{formatDuration(estimatedSeconds)}</span>
-          <span>·</span>
-          <span>uses {formatCredits(activeCredits)}</span>
-        </div>
-      )}
     </div>
   );
 }
 
-function DetectionOrbitBadge({
+function InlineControls({
+  voiceGender,
+  onVoiceGenderChange,
+  emotion,
+  onEmotionChange,
+  disabled,
+}: {
+  voiceGender: "male" | "female";
+  onVoiceGenderChange: (gender: "male" | "female") => void;
+  emotion: EmotionValue;
+  onEmotionChange: (emotion: EmotionValue) => void;
+  disabled: boolean;
+}) {
+  return (
+    <div className="mt-3 space-y-3 rounded-2xl border border-[#d9d4c9] bg-white p-3 sm:p-4">
+      <div>
+        <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.1em] text-black/42">Voice</p>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            disabled={disabled}
+            onClick={() => onVoiceGenderChange("female")}
+            className={cn(
+              "rounded-full px-3 py-2 text-xs font-semibold transition-colors",
+              voiceGender === "female"
+                ? "bg-[#30D158] text-black"
+                : "border border-[#d9d4c9] text-black/52 hover:text-black"
+            )}
+          >
+            ♀ Female
+          </button>
+          <button
+            type="button"
+            disabled={disabled}
+            onClick={() => onVoiceGenderChange("male")}
+            className={cn(
+              "rounded-full px-3 py-2 text-xs font-semibold transition-colors",
+              voiceGender === "male"
+                ? "bg-[#30D158] text-black"
+                : "border border-[#d9d4c9] text-black/52 hover:text-black"
+            )}
+          >
+            ♂ Male
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.1em] text-black/42">Emotion</p>
+        <div className="-mx-1 flex flex-wrap gap-2 px-1">
+          {emotionOptions.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              disabled={disabled}
+              onClick={() => onEmotionChange(option.value)}
+              className={cn(
+                "inline-flex h-9 flex-shrink-0 items-center rounded-full border px-3 text-xs font-semibold transition-colors",
+                emotion === option.value
+                  ? "border-[#30D158] bg-[#30D158] text-black"
+                  : "border-[#d8d3c7] bg-white text-black/52 hover:border-black/20 hover:text-black"
+              )}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function GenerateButton({
+  generating,
+  disabled,
+  onClick,
+  label,
+}: {
+  generating: boolean;
+  disabled: boolean;
+  onClick: () => void;
+  label: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-[#30D158] px-4 text-sm font-semibold text-black shadow-[0_12px_28px_rgba(48,209,88,0.28)] transition-colors hover:bg-[#28b14b] disabled:cursor-not-allowed disabled:bg-black/16 disabled:text-black/42 disabled:shadow-none"
+    >
+      {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileAudio className="h-4 w-4" />}
+      {label}
+    </button>
+  );
+}
+
+function DetectionBadge({
   detection,
   detecting,
 }: {
@@ -565,266 +652,97 @@ function DetectionOrbitBadge({
 }) {
   if (detecting) {
     return (
-      <div className="absolute right-2 top-3 z-30 inline-flex max-w-[48%] animate-slide-up items-center gap-1.5 truncate rounded-full border border-[#b8c9e8] bg-[#eef5ff]/96 px-2 py-1.5 text-xs font-semibold text-[#1958b8] shadow-[0_10px_30px_rgba(25,88,184,0.16)] backdrop-blur sm:right-3 sm:max-w-none sm:gap-2 sm:px-3">
-        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+      <div className="inline-flex flex-shrink-0 items-center gap-1.5 rounded-full border border-[#b8c9e8] bg-[#eef5ff] px-2.5 py-1 text-[11px] font-semibold text-[#1958b8]">
+        <Loader2 className="h-3 w-3 animate-spin" />
         Detecting
       </div>
     );
   }
 
-  if (detection) {
-    const unknown = detection.languageCode === "unknown";
+  if (!detection) return null;
+  if (detection.languageCode === "unknown") {
     return (
-      <div className={cn(
-        "absolute right-2 top-3 z-30 inline-flex max-w-[54%] animate-slide-up items-center gap-1.5 rounded-full border px-2 py-1.5 text-xs font-semibold shadow-[0_10px_30px_rgba(48,209,88,0.18)] backdrop-blur sm:right-3 sm:max-w-none sm:gap-2 sm:px-3",
-        unknown
-          ? "border-[#e1dccf] bg-white/96 text-black/56"
-          : "border-[#93dba5] bg-[#edf9ef]/96 text-[#147a35]"
-      )}>
-        {unknown ? <Languages className="h-3.5 w-3.5" /> : <Check className="h-3.5 w-3.5" />}
-        <span className="truncate">{unknown ? "Language unclear" : detection.languageName}</span>
-        <span className="hidden rounded-full bg-white/76 px-1.5 py-0.5 font-mono text-[10px] uppercase text-black/46 sm:inline">{detection.languageCode}</span>
+      <div className="inline-flex flex-shrink-0 items-center gap-1.5 rounded-full border border-[#d9d4c9] bg-white px-2.5 py-1 text-[11px] font-semibold text-black/52">
+        <Languages className="h-3 w-3" />
+        Auto-detect
       </div>
     );
   }
 
-  return null;
-}
-
-function ExportPanel({
-  activeCredits,
-  availableMinutes,
-  canGenerate,
-  detection,
-  detecting,
-  error,
-  feedbackRating,
-  feedbackState,
-  generating,
-  history,
-  onDownload,
-  onDownloadAll,
-  onDownloadStored,
-  onFeedback,
-  onGenerate,
-  onShare,
-  onVoicePickerOpen,
-  result,
-  selectedVoice,
-  textReady,
-}: {
-  activeCredits: number;
-  availableMinutes: number;
-  canGenerate: boolean;
-  detection: Detection | null;
-  detecting: boolean;
-  error: string | null;
-  feedbackRating: FeedbackRating | null;
-  feedbackState: "idle" | "sending" | "sent" | "error";
-  generating: boolean;
-  history: GenerationHistory | null;
-  onDownload: (chunk: VoiceChunk) => void;
-  onDownloadAll: () => void;
-  onDownloadStored: (generationId: string, fileId?: string) => void;
-  onFeedback: (rating: FeedbackRating) => void;
-  onGenerate: () => void;
-  onShare: (chunk: VoiceChunk) => void;
-  onVoicePickerOpen: () => void;
-  result: VoiceResult | null;
-  selectedVoice: string;
-  textReady: boolean;
-}) {
-  const languageLabel = detecting
-    ? "Detecting"
-    : detection?.languageCode === "unknown"
-      ? "Needs clearer text"
-      : detection?.languageName || "Not detected";
-  const generateLabel = generating
-    ? "Rendering voice"
-    : detecting
-      ? "Detecting language"
-    : detection?.languageCode && detection.languageCode !== "unknown"
-      ? `${result ? "Regenerate" : "Generate"} ${detection.languageName} voice`
-      : detection?.languageCode === "unknown"
-        ? "Use clearer text"
-      : textReady
-        ? "Waiting for language"
-        : "Paste text first";
-
   return (
-    <aside className="flex min-h-0 min-w-0 flex-col overflow-hidden bg-white lg:min-h-[420px]">
-      <div className="hidden grid-cols-2 border-b border-[#ded9cd] sm:grid">
-        <PanelMetric label="Credits left" value={`${formatMinutes(availableMinutes)} left`} />
-        <PanelMetric label="Will use" value={formatCredits(activeCredits)} />
-      </div>
-
-      <div className="space-y-3 border-b border-[#ded9cd] p-3 sm:p-4">
-        {error && <ErrorNotice message={error} />}
-
-        <button
-          onClick={onVoicePickerOpen}
-          className="flex min-h-11 w-full items-center justify-between rounded-xl border border-[#d9d4c9] bg-white px-3 text-sm font-semibold text-black/64 transition-colors hover:border-black/20 hover:text-black"
-        >
-          <span className="inline-flex items-center gap-2">
-            <Mic2 className="h-4 w-4" />
-            {selectedVoice}
-          </span>
-          <ChevronDown className="h-4 w-4" />
-        </button>
-
-        <button
-          disabled={!canGenerate || generating}
-          onClick={onGenerate}
-          className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#111311] px-4 text-sm font-semibold text-white shadow-[0_12px_28px_rgba(17,19,17,0.16)] transition-colors hover:bg-black disabled:cursor-not-allowed disabled:bg-black/16 disabled:text-black/42 disabled:shadow-none"
-        >
-          {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileAudio className="h-4 w-4" />}
-          {generateLabel}
-        </button>
-
-        <div className="rounded-xl border border-[#e5e0d6] bg-[#fbfaf6] p-3">
-          <div className="mb-3 flex items-center justify-between gap-3">
-            <span className="text-xs font-semibold uppercase tracking-[0.1em] text-black/36">Language</span>
-            <span className={cn(
-              "rounded-full px-2 py-1 text-xs font-semibold",
-              detection?.languageCode && detection.languageCode !== "unknown"
-                ? "bg-[#edf9ef] text-[#147a35]"
-                : "bg-[#f1efe5] text-black/48"
-            )}>
-              {detection?.languageCode && detection.languageCode !== "unknown" ? detection.languageCode : "auto"}
-            </span>
-          </div>
-          <p className="text-base font-semibold text-[#111311]">{languageLabel}</p>
-          <p className="mt-1 text-sm leading-5 text-black/48">
-            {detection?.languageCode === "unknown"
-              ? "Paste a longer Assamese, Bodo, Manipuri, Hindi, Bengali, or English line."
-              : detection
-                ? `${detection.accentMode} · ${detection.script}`
-              : "Detection starts automatically after enough text is entered."}
-          </p>
-        </div>
-      </div>
-
-      <div className="min-h-0 flex-1 overflow-y-auto p-3 sm:p-4">
-        {result ? (
-          <GeneratedVoice
-            detection={detection}
-            feedbackRating={feedbackRating}
-            feedbackState={feedbackState}
-            onDownload={onDownload}
-            onDownloadAll={onDownloadAll}
-            onFeedback={onFeedback}
-            onShare={onShare}
-            result={result}
-          />
-        ) : (
-          <RecentExports history={history} onDownload={onDownloadStored} />
-        )}
-      </div>
-    </aside>
-  );
-}
-
-function PanelMetric({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="min-w-0 px-3 py-3">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-black/34">{label}</p>
-      <p className="mt-1 truncate text-lg font-semibold text-[#111311]">{value}</p>
+    <div className="inline-flex flex-shrink-0 items-center gap-1.5 rounded-full border border-[#93dba5] bg-[#edf9ef] px-2.5 py-1 text-[11px] font-semibold text-[#147a35]">
+      <Check className="h-3 w-3" />
+      Detected: {detection.languageName}
     </div>
   );
 }
 
 function GeneratedVoice({
+  chunk,
   detection,
   feedbackRating,
   feedbackState,
   onDownload,
-  onDownloadAll,
   onFeedback,
   onShare,
   result,
 }: {
+  chunk: VoiceChunk;
   detection: Detection | null;
   feedbackRating: FeedbackRating | null;
   feedbackState: "idle" | "sending" | "sent" | "error";
   onDownload: (chunk: VoiceChunk) => void;
-  onDownloadAll: () => void;
   onFeedback: (rating: FeedbackRating) => void;
   onShare: (chunk: VoiceChunk) => void;
   result: VoiceResult;
 }) {
-  return (
-    <div id="generated-voice" className="scroll-mt-16 rounded-xl border border-[#d9d4c9] bg-[#fbfaf6] p-3">
-      <div className="mb-4 flex items-center justify-between gap-3">
-        <div className="min-w-0">
-          <p className="truncate text-base font-semibold">{detection?.languageName || result.languageCode} voice ready</p>
-          <p className="mt-1 truncate text-xs text-black/42">
-            {formatDuration(result.estimatedDurationSeconds)} · {result.voiceName} · {result.promptVersion}
-          </p>
-        </div>
-        {result.chunks.length > 1 && (
-          <button
-            onClick={onDownloadAll}
-            className="inline-flex h-10 flex-shrink-0 items-center gap-2 rounded-full bg-[#111311] px-4 text-xs font-semibold text-white transition-colors hover:bg-black"
-          >
-            <Download className="h-3.5 w-3.5" />
-            All
-          </button>
-        )}
-      </div>
-
-      <div className="space-y-3">
-        {result.chunks.map((chunk) => (
-          <AudioObject key={chunk.index} chunk={chunk} onDownload={onDownload} onShare={onShare} />
-        ))}
-      </div>
-
-      <AccentFeedback feedbackRating={feedbackRating} feedbackState={feedbackState} onFeedback={onFeedback} />
-    </div>
-  );
-}
-
-function AudioObject({
-  chunk,
-  onDownload,
-  onShare,
-}: {
-  chunk: VoiceChunk;
-  onDownload: (chunk: VoiceChunk) => void;
-  onShare: (chunk: VoiceChunk) => void;
-}) {
   const audioSrc = chunk.audioUrl || (chunk.audioBase64 ? `data:${chunk.mimeType};base64,${chunk.audioBase64}` : undefined);
 
   return (
-    <div className="rounded-xl border border-[#e2ded3] bg-white p-3">
-      <div className="mb-3 flex items-center gap-3">
-        <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-[#111311] text-white">
-          <Play className="h-4 w-4" />
+    <section
+      id="generated-voice"
+      className="mt-6 scroll-mt-20 rounded-2xl border border-[#93dba5] bg-[#fbfaf6] p-3 shadow-[0_18px_60px_rgba(48,209,88,0.12)] sm:p-4"
+    >
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <p className="truncate text-base font-semibold">
+            {detection?.languageName || result.languageCode} voice ready
+          </p>
+          <p className="mt-0.5 truncate text-xs text-black/42">
+            {formatDuration(result.estimatedDurationSeconds)} · {result.voiceName} · {result.promptVersion}
+          </p>
         </div>
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold">Audio {chunk.index + 1}</p>
-          <p className="truncate text-xs text-black/42">{chunk.textLength} chars · WAV</p>
-        </div>
+      </div>
+
+      {audioSrc ? (
+        <audio autoPlay controls className="w-full" src={audioSrc} />
+      ) : (
+        <p className="rounded-lg bg-white px-3 py-2 text-xs text-black/48">
+          Audio is stored in history. Use download to fetch a fresh link.
+        </p>
+      )}
+
+      <div className="mt-3 flex items-center gap-2">
         <button
+          type="button"
+          onClick={() => onDownload(chunk)}
+          className="inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-[#30D158] px-4 text-sm font-semibold text-black shadow-[0_10px_24px_rgba(48,209,88,0.24)] transition-colors hover:bg-[#28b14b]"
+        >
+          <Download className="h-4 w-4" />
+          Download WAV
+        </button>
+        <button
+          type="button"
           onClick={() => onShare(chunk)}
-          className="flex h-10 w-10 items-center justify-center rounded-full border border-[#d8d3c7] bg-white text-black/68 transition-colors hover:bg-[#111311] hover:text-white"
-          aria-label={`Share audio ${chunk.index + 1}`}
+          aria-label="Share audio"
+          className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl border border-[#d8d3c7] bg-white text-black/68 transition-colors hover:bg-[#111311] hover:text-white"
         >
           <Share2 className="h-4 w-4" />
         </button>
-        <button
-          onClick={() => onDownload(chunk)}
-          className="flex h-10 w-10 items-center justify-center rounded-full border border-[#d8d3c7] bg-white text-black/68 transition-colors hover:bg-[#111311] hover:text-white"
-          aria-label={`Download audio ${chunk.index + 1}`}
-        >
-          <Download className="h-4 w-4" />
-        </button>
       </div>
-      {audioSrc ? (
-        <audio controls className="w-full" src={audioSrc} />
-      ) : (
-        <p className="rounded-lg bg-white px-3 py-2 text-xs text-black/48">Audio is stored in history. Use download to fetch a fresh link.</p>
-      )}
-    </div>
+
+      <AccentFeedback feedbackRating={feedbackRating} feedbackState={feedbackState} onFeedback={onFeedback} />
+    </section>
   );
 }
 
@@ -836,20 +754,10 @@ function RecentExports({
   onDownload: (generationId: string, fileId?: string) => void;
 }) {
   const generations = history?.generations || [];
-  if (generations.length === 0) {
-    return (
-      <section className="rounded-xl border border-dashed border-[#d9d4c9] bg-[#fbfaf6] p-4">
-        <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-[#eef5ff] text-[#1958b8]">
-          <History className="h-4 w-4" />
-        </div>
-        <h2 className="text-sm font-semibold">No exports yet</h2>
-        <p className="mt-1 text-sm leading-5 text-black/48">Generated files will appear here for replay and free re-download.</p>
-      </section>
-    );
-  }
+  if (generations.length === 0) return null;
 
   return (
-    <section className="rounded-xl border border-[#d9d4c9] bg-[#fbfaf6] p-3">
+    <section className="mt-6 rounded-2xl border border-[#d9d4c9] bg-[#fbfaf6] p-3 sm:p-4">
       <div className="mb-3 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#eef5ff] text-[#1958b8]">
@@ -871,12 +779,16 @@ function RecentExports({
           return (
             <div key={generation.id} className="flex items-center gap-3 rounded-xl border border-[#ece8dc] bg-white p-3">
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold">{generation.languageCode} · {formatDuration(generation.estimatedDurationSeconds)}</p>
+                <p className="truncate text-sm font-semibold">
+                  {generation.languageCode} · {formatDuration(generation.estimatedDurationSeconds)}
+                </p>
                 <p className="mt-0.5 truncate text-xs text-black/42">
-                  {formatCredits(generation.creditsDebited)} used · {new Date(generation.createdAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short" })}
+                  {formatCredits(generation.creditsDebited)} used ·{" "}
+                  {new Date(generation.createdAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short" })}
                 </p>
               </div>
               <button
+                type="button"
                 onClick={() => onDownload(generation.id, firstFile?.id)}
                 className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border border-[#d8d3c7] bg-white text-black/68 transition-colors hover:bg-[#111311] hover:text-white"
                 aria-label={`Download export ${generation.id}`}
@@ -912,6 +824,7 @@ function AccentFeedback({
         {feedbackOptions.map((option) => (
           <button
             key={option.value}
+            type="button"
             onClick={() => onFeedback(option.value)}
             className={cn(
               "inline-flex h-9 flex-shrink-0 items-center rounded-full border px-3 text-xs font-semibold transition-colors",
@@ -923,61 +836,6 @@ function AccentFeedback({
             {option.label}
           </button>
         ))}
-      </div>
-    </div>
-  );
-}
-
-function VoicePickerSheet({
-  onClose,
-  onVoiceGenderChange,
-  open,
-  voiceGender,
-}: {
-  onClose: () => void;
-  onVoiceGenderChange: (gender: "male" | "female") => void;
-  open: boolean;
-  voiceGender: "male" | "female";
-}) {
-  if (!open) return null;
-
-  return (
-    <div className="fixed inset-0 z-[80] flex items-end justify-center bg-black/24 px-3 pb-3 backdrop-blur-sm sm:items-center sm:pb-0">
-      <div className="w-full max-w-md rounded-[1.8rem] border border-[#d9d4c9] bg-[#fbfaf6] p-4 shadow-[0_24px_70px_rgba(0,0,0,0.22)]">
-        <div className="mb-4 flex items-center justify-between gap-3">
-          <div>
-            <p className="text-lg font-semibold">Choose voice</p>
-            <p className="mt-1 text-sm text-black/48">Miithii keeps the accent prompt layer separate from voice tone.</p>
-          </div>
-          <button onClick={onClose} className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-black/56 transition-colors hover:text-black" aria-label="Close voice picker">
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-
-        <div className="space-y-2">
-          {voiceOptions.map((voice) => (
-            <button
-              key={voice.value}
-              onClick={() => {
-                onVoiceGenderChange(voice.value);
-                onClose();
-              }}
-              className={cn(
-                "flex w-full items-center gap-3 rounded-[1.2rem] border p-3 text-left transition-colors",
-                voiceGender === voice.value ? "border-[#30D158] bg-[#edf9ef]" : "border-[#e2ded3] bg-white hover:border-black/18"
-              )}
-            >
-              <span className={cn("flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl", voiceGender === voice.value ? "bg-[#30D158] text-black" : "bg-[#f1eee5] text-black/54")}>
-                <Mic2 className="h-4 w-4" />
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block text-sm font-semibold">{voice.label}</span>
-                <span className="mt-0.5 block text-xs leading-5 text-black/46">{voice.description}</span>
-              </span>
-              {voiceGender === voice.value && <Check className="h-4 w-4 text-[#147a35]" />}
-            </button>
-          ))}
-        </div>
       </div>
     </div>
   );

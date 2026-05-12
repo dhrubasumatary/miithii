@@ -101,6 +101,24 @@ export default function PricingPage() {
               <RuleItem label="Download" value="Existing files do not burn credits again" />
             </div>
           </div>
+
+          <div className="mt-4 rounded-lg border border-[#d8d6cc] bg-[#111311] p-4 text-white shadow-[0_14px_40px_rgba(16,17,15,0.12)]">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.1em] text-white/52">Studio offers</p>
+                <h2 className="mt-1 text-lg font-semibold">Need bulk minutes for an agency or studio?</h2>
+                <p className="mt-1 text-sm leading-6 text-white/64">
+                  Talk to us on WhatsApp for custom bulk packs, invoicing, and brand-locked voice profiles.
+                </p>
+              </div>
+              <a
+                href="/contact"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-[#30D158] px-4 py-2.5 text-sm font-semibold text-black transition-colors hover:bg-[#28b14b] sm:w-auto"
+              >
+                Open WhatsApp
+              </a>
+            </div>
+          </div>
         </section>
         <PageFooter />
       </main>

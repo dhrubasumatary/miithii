@@ -1,3 +1,5 @@
-import VoicePage from "./voice/page";
+import { redirect } from "next/navigation";
 
-export default VoicePage;
+export default function HomePage() {
+  redirect("/voice");
+}

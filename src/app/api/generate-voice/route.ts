@@ -52,11 +52,14 @@ export async function POST(req: Request) {
       );
     }
 
-    const { text, languageCode, voiceGender } = await req.json();
+    const { text, languageCode, voiceGender, emotion } = await req.json();
     if (!text || typeof text !== "string") return NextResponse.json({ error: "Text is required" }, { status: 400 });
     if (!["male", "female"].includes(voiceGender)) return NextResponse.json({ error: "voiceGender must be male or female" }, { status: 400 });
     const trimmed = text.trim();
     if (trimmed.length > 8000) return NextResponse.json({ error: "Text too long" }, { status: 400 });
+
+    const normalizedEmotion = typeof emotion === "string" ? emotion.trim().toLowerCase() : "";
+    const emotionPrefix = normalizedEmotion && normalizedEmotion !== "neutral" ? `[${normalizedEmotion}] ` : "";
 
     const profile = getLanguageProfile(languageCode);
     const chunks = chunkTextForTts(trimmed, profile.maxChunkChars);
@@ -109,27 +112,60 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Gemini TTS is not configured.", code: "TTS_NOT_CONFIGURED" }, { status: 503 });
     }
 
+    const totalLength = chunks.reduce((sum, c) => sum + c.length, 0);
+
     if (!key) {
-      return NextResponse.json({ languageCode: profile.code, voiceGender, voiceName, promptVersion: promptVersion(profile), estimatedDurationSeconds: estimatedDuration, billing, chunks: chunks.map((c, i) => ({ index: i, audioBase64: "UklGRigAAABXQVZFZm10IBAAAAABAAEA", mimeType: "audio/wav", textLength: c.length })) });
+      return NextResponse.json({
+        languageCode: profile.code,
+        voiceGender,
+        voiceName,
+        promptVersion: promptVersion(profile),
+        estimatedDurationSeconds: estimatedDuration,
+        billing,
+        chunks: [
+          {
+            index: 0,
+            audioBase64: "UklGRigAAABXQVZFZm10IBAAAAABAAEA",
+            mimeType: "audio/wav",
+            textLength: totalLength,
+          },
+        ],
+      });
     }
 
-    const out = [] as Array<{ index: number; audioBase64: string; mimeType: string; textLength: number }>;
-    const audioFiles = [] as Array<{ audio: Buffer; chunkIndex: number; mimeType: string; textLength: number }>;
-    for (let i = 0; i < chunks.length; i++) {
-      const prompt = buildGeminiTtsPrompt({ text: chunks[i], profile, voiceGender });
-      const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { responseModalities: ["AUDIO"], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName } } } } }) });
-      const data = await r.json();
-      const part = data?.candidates?.[0]?.content?.parts?.find((p: { inlineData?: { data?: string; mimeType?: string } }) => p.inlineData?.data);
-      if (!part?.inlineData?.data) throw new Error("No audio returned by Gemini");
+    const pcmBuffers = await Promise.all(
+      chunks.map(async (chunk) => {
+        const prompt = buildGeminiTtsPrompt({
+          text: `${emotionPrefix}${chunk}`,
+          profile,
+          voiceGender,
+        });
+        const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: {
+              responseModalities: ["AUDIO"],
+              speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName } } },
+            },
+          }),
+        });
+        const data = await r.json();
+        const part = data?.candidates?.[0]?.content?.parts?.find(
+          (p: { inlineData?: { data?: string; mimeType?: string } }) => p.inlineData?.data
+        );
+        if (!part?.inlineData?.data) throw new Error("No audio returned by Gemini");
+        return Buffer.from(part.inlineData.data, "base64");
+      })
+    );
 
-      // Convert PCM to WAV format for browser compatibility
-      const pcmBuffer = Buffer.from(part.inlineData.data, 'base64');
-      const wavBuffer = pcmToWav(pcmBuffer, 24000, 1, 16);
-      const wavBase64 = wavBuffer.toString('base64');
+    const mergedPcm = Buffer.concat(pcmBuffers);
+    const mergedWav = pcmToWav(mergedPcm, 24000, 1, 16);
+    const mergedBase64 = mergedWav.toString("base64");
 
-      audioFiles.push({ audio: wavBuffer, chunkIndex: i, mimeType: "audio/wav", textLength: chunks[i].length });
-      out.push({ index: i, audioBase64: wavBase64, mimeType: "audio/wav", textLength: chunks[i].length });
-    }
+    const out = [{ index: 0, audioBase64: mergedBase64, mimeType: "audio/wav", textLength: totalLength }];
+    const audioFiles = [{ audio: mergedWav, chunkIndex: 0, mimeType: "audio/wav", textLength: totalLength }];
 
     const stored = userId
       ? await recordGenerationSuccess({
@@ -146,7 +182,7 @@ export async function POST(req: Request) {
             billableMinutes: billing.estimatedMinutes,
             creditsDebited: billing.roundedCredits,
             apiCostInrEstimate: billing.internalCostInr,
-            chunkCount: out.length,
+            chunkCount: chunks.length,
             status: "success",
           },
           audioFiles,

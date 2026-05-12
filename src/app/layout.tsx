@@ -33,20 +33,11 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
   applicationName: siteConfig.name,
   title: {
-    default: "Miithii Voice - Assamese and Northeast voiceovers",
-    template: "%s | Miithii Voice",
+    default: "Miithii \u2014 AI Assamese Voice Generator",
+    template: "%s | Miithii",
   },
-  description: siteConfig.description,
-  keywords: [
-    "Miithii Voice",
-    "Assamese text to speech",
-    "Assamese voice generator",
-    "Northeast India voiceover",
-    "Bodo text to speech",
-    "Manipuri voice",
-    "regional voice generator",
-    "downloadable voice files",
-  ],
+  description: "Generate Assamese voiceovers for reels, YouTube, and business promotions. Powered by AI.",
+  keywords: ["Assamese TTS", "Assamese voice generator", "Axomiya voiceover", "Miithii"],
   authors: [{ name: "Prompt Mafia Inc." }],
   creator: "Prompt Mafia Inc.",
   publisher: "Prompt Mafia Inc.",
@@ -63,8 +54,8 @@ export const metadata: Metadata = {
     apple: [{ url: "/apple-icon", type: "image/png" }],
   },
   openGraph: {
-    title: "Miithii Voice - Assamese and Northeast voiceovers",
-    description: siteConfig.tagline,
+    title: "Miithii \u2014 AI Assamese Voice Generator",
+    description: "Generate Assamese voiceovers for reels, YouTube, and business promotions. Powered by AI.",
     url: "/",
     siteName: siteConfig.name,
     images: [
@@ -72,7 +63,7 @@ export const metadata: Metadata = {
         url: "/opengraph-image",
         width: 1200,
         height: 630,
-        alt: "Miithii Voice - Assamese and Northeast voiceovers in seconds",
+        alt: "Miithii \u2014 AI Assamese Voice Generator",
       },
     ],
     type: "website",
@@ -80,8 +71,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Miithii Voice - Assamese and Northeast voiceovers",
-    description: siteConfig.tagline,
+    title: "Miithii \u2014 AI Assamese Voice Generator",
+    description: "Generate Assamese voiceovers for reels, YouTube, and business promotions. Powered by AI.",
     images: ["/twitter-image"],
   },
 };
@@ -94,7 +85,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${inter.variable} ${jetbrainsMono.variable} ${newsreader.variable} antialiased h-screen w-screen overflow-hidden`}
+        className={`${inter.variable} ${jetbrainsMono.variable} ${newsreader.variable} antialiased min-h-screen`}
         style={{ fontFamily: "var(--font-inter)" }}
       >
         <ClerkProvider>
