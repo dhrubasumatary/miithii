@@ -75,40 +75,17 @@ CREATE INDEX IF NOT EXISTS idx_razorpay_orders_user_id ON razorpay_orders(user_i
 CREATE INDEX IF NOT EXISTS idx_razorpay_orders_payment_id ON razorpay_orders(razorpay_payment_id);
 
 -- ─── Row Level Security ───────────────────────────────────────────────────────
+-- NOTE: All database operations are performed server-side via `supabaseAdmin`
+-- (service role key), which bypasses RLS. Clerk JWT integration with
+-- Supabase Auth is not yet configured, so auth.uid() would fail at runtime.
+-- RLS will be re-enabled once Clerk ↔ Supabase JWT mapping is set up.
+-- ───────────────────────────────────────────────────────────────────────────────
 
-ALTER TABLE credit_balances       ENABLE ROW LEVEL SECURITY;
-ALTER TABLE credit_transactions   ENABLE ROW LEVEL SECURITY;
-ALTER TABLE razorpay_orders       ENABLE ROW LEVEL SECURITY;
-ALTER TABLE chats                 ENABLE ROW LEVEL SECURITY;
-ALTER TABLE messages              ENABLE ROW LEVEL SECURITY;
-
--- credit_balances: only the user can read/write their own
-CREATE POLICY "Users read own balance"       ON credit_balances FOR SELECT USING (user_id = (SELECT auth.uid()));
-CREATE POLICY "Users insert own balance"     ON credit_balances FOR INSERT WITH CHECK (user_id = (SELECT auth.uid()));
-CREATE POLICY "Users update own balance"     ON credit_balances FOR UPDATE USING (user_id = (SELECT auth.uid()));
-
--- credit_transactions: only the user can read their own
-CREATE POLICY "Users read own transactions"  ON credit_transactions FOR SELECT USING (user_id = (SELECT auth.uid()));
-
--- razorpay_orders: only the user can read their own; service role key used for writes
-CREATE POLICY "Users read own orders"        ON razorpay_orders FOR SELECT USING (user_id = (SELECT auth.uid()));
-
--- chats: only the user can read/write their own
-CREATE POLICY "Users read own chats"         ON chats FOR SELECT USING (user_id = (SELECT auth.uid()));
-CREATE POLICY "Users insert own chats"       ON chats FOR INSERT WITH CHECK (user_id = (SELECT auth.uid()));
-CREATE POLICY "Users update own chats"       ON chats FOR UPDATE USING (user_id = (SELECT auth.uid()));
-CREATE POLICY "Users delete own chats"       ON chats FOR DELETE USING (user_id = (SELECT auth.uid()));
-
--- messages: user must own the parent chat
-CREATE POLICY "Users read own messages"      ON messages FOR SELECT USING (
-  chat_id IN (SELECT id FROM chats WHERE user_id = (SELECT auth.uid()))
-);
-CREATE POLICY "Users insert own messages"    ON messages FOR INSERT WITH CHECK (
-  chat_id IN (SELECT id FROM chats WHERE user_id = (SELECT auth.uid()))
-);
-CREATE POLICY "Users delete own messages"    ON messages FOR DELETE USING (
-  chat_id IN (SELECT id FROM chats WHERE user_id = (SELECT auth.uid()))
-);
+-- ALTER TABLE credit_balances       ENABLE ROW LEVEL SECURITY;
+-- ALTER TABLE credit_transactions   ENABLE ROW LEVEL SECURITY;
+-- ALTER TABLE razorpay_orders       ENABLE ROW LEVEL SECURITY;
+-- ALTER TABLE chats                 ENABLE ROW LEVEL SECURITY;
+-- ALTER TABLE messages              ENABLE ROW LEVEL SECURITY;
 
 -- ─── RPC Functions ────────────────────────────────────────────────────────────
 
