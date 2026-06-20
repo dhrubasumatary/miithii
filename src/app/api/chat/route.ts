@@ -1,5 +1,6 @@
 import { auth } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
+import { supabaseAdmin } from '@/lib/supabase';
 
 const MIITHII_API_URL = process.env.MIITHII_API_URL || 'https://api.miithii.in/v1/chat/completions';
 const MIITHII_API_KEY = process.env.MIITHII_API_KEY;
@@ -19,13 +20,6 @@ interface ChatRequest {
 }
 
 async function getOrCreateBalance(userId: string) {
-  const { createClient } = await import('@supabase/supabase-js');
-  const supabaseAdmin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { autoRefreshToken: false, persistSession: false } }
-  );
-
   const { data, error } = await supabaseAdmin
     .from('credit_balances')
     .select('credits, free_tokens_used_today, free_tokens_reset_at')
@@ -64,13 +58,6 @@ async function deductChatTokens(
   tokens: number,
   requestId?: string | null
 ): Promise<{ success: boolean; creditsUsed: number; balanceAfter: number }> {
-  const { createClient } = await import('@supabase/supabase-js');
-  const supabaseAdmin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { autoRefreshToken: false, persistSession: false } }
-  );
-
   if (tokens <= 0) {
     return { success: true, creditsUsed: 0, balanceAfter: 0 };
   }
@@ -156,13 +143,6 @@ async function saveChatMessages(
   assistantContent: string | null,
   tokens?: number | null
 ): Promise<void> {
-  const { createClient } = await import('@supabase/supabase-js');
-  const supabaseAdmin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { autoRefreshToken: false, persistSession: false } }
-  );
-
   const messagesToInsert = [];
 
   if (userContent) {
@@ -189,13 +169,6 @@ async function saveChatMessages(
 }
 
 async function createNewChat(userId: string): Promise<string> {
-  const { createClient } = await import('@supabase/supabase-js');
-  const supabaseAdmin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { autoRefreshToken: false, persistSession: false } }
-  );
-
   const { data, error } = await supabaseAdmin
     .from('chats')
     .insert({ user_id: userId, title: 'New Chat', model: 'glm-5.2' })
@@ -272,6 +245,11 @@ export async function POST(req: Request) {
     const creditsUsed = totalTokens > 0 ? Math.ceil(totalTokens / TOKENS_PER_CREDIT) : 0;
 
     // 7. Save user message immediately (fire-and-forget is fine)
+    // TODO (P014): In streaming mode, assistantContent is not saved because the full
+    // response isn't available until the stream completes. This creates a gap where only
+    // the user message is persisted. Fix by switching to a Vercel Edge Function that
+    // streams and persists incrementally, or use a streaming parser that accumulates
+    // the full response before saving.
     const lastUserMsg = [...messages].reverse().find(m => m.role === 'user');
     if (lastUserMsg) {
       saveChatMessages(userId, actualChatId, lastUserMsg.content, null, null).catch(console.error);

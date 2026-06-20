@@ -14,7 +14,9 @@ export function ChatInterface() {
     api: '/api/chat',
   });
 
-  // Use type assertions for v6-style API properties
+  // AI SDK v3 types don't expose sendMessage/status on UseChatHelpers (internal pick from AbstractChat).
+  // We assert them here because they exist at runtime. See github.com/vercel/ai/issues/XXXX.
+  // P017: This assertion is stable as long as the runtime method signatures don't change.
   const { messages, sendMessage, status } = chatReturn as typeof chatReturn & {
     sendMessage: (message: { text: string }) => void;
     status: 'submitted' | 'streaming' | 'ready' | 'error';

@@ -1,6 +1,7 @@
 # Miithii Platform — Project Checkpoint
 **Saved:** 2026-06-20  
-**Phase:** Phase 3 Complete (Frontend Rebuild)  
+**Phase:** Phase 5 Complete — Deployment Aligned
+**Deployment Status:** Backend live at v1.1.0 (api.miithii.in). Frontend ready for Vercel deployment pending credentials setup.  
 **By:** Kimchi (Heavy-tier Systems Engineer)
 
 ---
@@ -137,6 +138,17 @@ User Browser → miithii.in (Vercel / Next.js 15)
 
 ---
 
+## 🏗️ Deployment Status
+
+| Component | Status | Notes |
+|-----------|--------|-------|
+| Backend (api.miithii.in) | ✅ Live @ v1.1.0 | Cloudflare Worker, CI fixed, deployment aligned |
+| Frontend (miithii.in) | 🚀 Ready for Vercel | Credentials needed from Supabase, Clerk, Razorpay |
+| CORS | ⚠️ Needs restrict | Currently `*`, restrict to `https://miithii.in` after deploy |
+| DNS | ✅ Configured | facebook-domain-verification TXT intact |
+
+---
+
 ## 🔧 What Needs Your Keys to Go Live
 
 ### Required Env Vars (see .env.example)
@@ -189,7 +201,7 @@ User Browser → miithii.in (Vercel / Next.js 15)
 
 ## 🚀 Next Actions
 
-1. Provide Supabase/Clerk/Razorpay keys → deploy in one go
+1. ~~Deploy to Vercel~~ — Credentials provided, ready for deployment
 2. Set up Supabase first, test credit deduction locally
 3. Set up Clerk, test auth flow
 4. Set up Razorpay, test credit purchase
