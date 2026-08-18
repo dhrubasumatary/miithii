@@ -1,0 +1,22 @@
+@import "tailwindcss";
+@source "../../../../packages/ui/src";
+@import "@miithii/ui/styles.css";
+
+:root {
+  --font-miithii-display: system-ui, sans-serif;
+  --font-miithii-body: system-ui, sans-serif;
+  --font-miithii-mono: ui-monospace, "SFMono-Regular", Consolas, monospace;
+}
+
+.logo-only-page {
+  display: grid;
+  min-height: 100dvh;
+  place-items: center;
+  background: var(--color-bg);
+  padding: 24px;
+}
+
+.logo-only-page .mi-wordmark {
+  transform: scale(1.2);
+  transform-origin: center;
+}

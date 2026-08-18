@@ -1,0 +1,29 @@
+{
+  "name": "@miithii/subtitles",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev --port 3001",
+    "build": "next build",
+    "start": "next start --port 3001",
+    "typecheck": "tsc --noEmit",
+    "clean": "rimraf .next"
+  },
+  "dependencies": {
+    "@miithii/auth": "workspace:*",
+    "@miithii/billing": "workspace:*",
+    "@miithii/db": "workspace:*",
+    "@miithii/llm-router": "workspace:*",
+    "@miithii/ui": "workspace:*",
+    "@miithii/uploads": "workspace:*",
+    "lucide-react": "latest",
+    "next": "latest",
+    "react": "latest",
+    "react-dom": "latest"
+  },
+  "devDependencies": {
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "typescript": "^5.9.2"
+  }
+}

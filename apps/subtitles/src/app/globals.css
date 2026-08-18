@@ -1,0 +1,252 @@
+@import "tailwindcss";
+@source "../../../../packages/ui/src";
+@import "@miithii/ui/styles.css";
+
+.subtitles-shell {
+  min-height: 100vh;
+  color: var(--color-text-primary);
+}
+
+.subtitles-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  border-bottom: 1px solid var(--color-border);
+  padding: 18px 28px;
+}
+
+.subtitles-main {
+  display: grid;
+  grid-template-columns: minmax(0, 340px) minmax(0, 1fr);
+  min-height: calc(100vh - 77px);
+}
+
+.subtitles-sidebar {
+  border-right: 1px solid var(--color-border);
+  padding: 24px;
+}
+
+.subtitles-workspace {
+  padding: 24px;
+}
+
+.subtitles-panel {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+}
+
+.subtitles-panel__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  border-bottom: 1px solid var(--color-border);
+  padding: 18px;
+}
+
+.subtitles-panel__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.subtitles-panel__copy {
+  margin: 6px 0 0;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.upload-zone {
+  display: grid;
+  min-height: 220px;
+  place-items: center;
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-soft);
+  padding: 24px;
+  text-align: center;
+}
+
+.upload-zone h2 {
+  margin: 14px 0 8px;
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.upload-zone p {
+  max-width: 440px;
+  margin: 0 auto;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+}
+
+.control-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.field {
+  display: grid;
+  gap: 7px;
+}
+
+.field label {
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.field select,
+.field input {
+  min-height: 42px;
+  width: 100%;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  padding: 0 12px;
+}
+
+.pipeline {
+  display: grid;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.pipeline-step {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  background: var(--color-surface);
+}
+
+.pipeline-step__icon {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(29, 158, 117, 0.12);
+  color: var(--color-primary);
+}
+
+.pipeline-step__name {
+  margin: 0;
+  font-weight: 700;
+}
+
+.pipeline-step__meta {
+  margin: 2px 0 0;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+}
+
+.timeline {
+  display: grid;
+  gap: 10px;
+  padding: 18px;
+}
+
+.caption-row {
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr);
+  gap: 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 12px;
+}
+
+.caption-row time {
+  color: var(--color-primary-hover);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.caption-row p {
+  margin: 0;
+  line-height: 1.55;
+}
+
+.sidebar-section {
+  display: grid;
+  gap: 14px;
+  margin-top: 24px;
+}
+
+.sidebar-section h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.job-list {
+  display: grid;
+  gap: 8px;
+}
+
+.job-row {
+  display: grid;
+  gap: 5px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  background: var(--color-surface);
+}
+
+.job-row strong {
+  font-size: 14px;
+}
+
+.job-row span {
+  color: var(--color-text-secondary);
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+@media (max-width: 880px) {
+  .subtitles-header {
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 16px;
+  }
+
+  .subtitles-main {
+    grid-template-columns: 1fr;
+  }
+
+  .subtitles-sidebar {
+    border-right: 0;
+    border-bottom: 1px solid var(--color-border);
+    padding: 16px;
+  }
+
+  .subtitles-workspace {
+    padding: 16px;
+  }
+
+  .control-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .pipeline-step,
+  .caption-row {
+    grid-template-columns: 1fr;
+  }
+}

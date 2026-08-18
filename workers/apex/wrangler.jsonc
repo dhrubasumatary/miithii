@@ -1,0 +1,20 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "miithii-apex-fresh",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-08-17",
+  "workers_dev": true,
+  "routes": [
+    {
+      "pattern": "miithii.in/*",
+      "zone_name": "miithii.in"
+    },
+    {
+      "pattern": "www.miithii.in/*",
+      "zone_name": "miithii.in"
+    }
+  ],
+  "observability": {
+    "enabled": true
+  }
+}

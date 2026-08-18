@@ -1,36 +1,45 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Miithii
 
-## Getting Started
+Miithii is being built as one AI product suite under `miithii.in`.
 
-First, run the development server:
+## Apps
+
+- `apps/hub` -> `miithii.in`
+- `apps/subtitles` -> `subtitles.miithii.in`
+- `apps/chat` -> `chat.miithii.in`
+- `apps/voice` -> `voice.miithii.in`
+
+## Shared packages
+
+- `packages/ui` - Pulse design system, logo, tokens, shared components
+- `packages/auth` - Supabase Auth wrapper
+- `packages/db` - Supabase client and shared schema types
+- `packages/llm-router` - provider routing for OpenRouter, AIMLAPI, and Sarvam
+- `packages/memory` - supermemory.ai wrapper
+- `packages/uploads` - UploadThing wrapper boundary
+- `packages/billing` - Razorpay entitlements boundary
+
+## First build target
+
+Start with `apps/subtitles`. It is the first real app because the subtitle prototype is the most proven. The other apps are thin shells until their product logic is ready.
+
+## Local commands
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
+pnpm dev:subtitles
+pnpm build
+pnpm typecheck
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Deployment shape
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Each app should become its own Vercel project with the root directory set to its app folder:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `apps/hub`
+- `apps/subtitles`
+- `apps/chat`
+- `apps/voice`
 
-## Learn More
+Cloudflare already owns the product subdomains. Until each Vercel project is ready, the new subdomains can stay parked behind the placeholder Worker.
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.

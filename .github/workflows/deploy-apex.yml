@@ -1,0 +1,53 @@
+name: Deploy Apex
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - workers/apex/**
+      - .github/workflows/deploy-apex.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-apex-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy miithii.in Worker
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: production
+      url: https://miithii.in
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Validate Worker bundle
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: workers/apex
+          command: deploy --dry-run --outdir .wrangler-dry-run
+
+      - name: Deploy Worker
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: workers/apex
+          command: deploy --minify
+
+      - name: Verify production
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --location https://miithii.in/ | grep -q "<title>Miithii</title>"
+          status="$(curl --silent --output /dev/null --write-out "%{http_code}" --head https://www.miithii.in/)"
+          test "$status" = "301" || test "$status" = "308"

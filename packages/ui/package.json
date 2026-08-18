@@ -1,0 +1,55 @@
+{
+  "name": "@miithii/ui",
+  "private": true,
+  "type": "module",
+  "sideEffects": ["./src/styles.css"],
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./components": {
+      "types": "./src/components.ts",
+      "default": "./src/components.ts"
+    },
+    "./components/*": {
+      "types": "./src/components/*.tsx",
+      "default": "./src/components/*.tsx"
+    },
+    "./styles.css": "./src/styles.css",
+    "./tokens": {
+      "types": "./src/tokens.ts",
+      "default": "./src/tokens.ts"
+    },
+    "./cn": {
+      "types": "./src/lib/cn.ts",
+      "default": "./src/lib/cn.ts"
+    },
+    "./lib/*": {
+      "types": "./src/lib/*.ts",
+      "default": "./src/lib/*.ts"
+    },
+    "./assets/logo-mark.svg": "./assets/logo-mark.svg",
+    "./assets/logo-wordmark.svg": "./assets/logo-wordmark.svg"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "clean": "rimraf dist"
+  },
+  "peerDependencies": {
+    "react": ">=19",
+    "react-dom": ">=19"
+  },
+  "dependencies": {
+    "class-variance-authority": "latest",
+    "clsx": "latest",
+    "lucide-react": "latest",
+    "radix-ui": "latest",
+    "tailwind-merge": "latest"
+  },
+  "devDependencies": {
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "typescript": "^5.9.2"
+  }
+}

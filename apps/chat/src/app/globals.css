@@ -1,0 +1,31 @@
+@import "tailwindcss";
+@source "../../../../packages/ui/src";
+@import "@miithii/ui/styles.css";
+
+.mini-app__main {
+  max-width: 840px;
+  margin: 54px auto 0;
+}
+
+.mini-app__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(34px, 6vw, 64px);
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+.mini-app p {
+  max-width: 620px;
+  margin: 0;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+}
+
+.composer {
+  min-height: 118px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 14px;
+  color: var(--color-text-muted);
+}
