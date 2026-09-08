@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "@miithii/ui/styles.css";
+@import "tw-shimmer";
 
 :root { color-scheme: light; }
 * { box-sizing: border-box; }
@@ -88,3 +89,19 @@ button, a { -webkit-tap-highlight-color: transparent; }
   .chat-composer-wrap { padding-top: 10px; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; scroll-behavior: auto !important; transition-duration: .01ms !important; } }
+
+@custom-variant data-open (&:where([data-state="open"], [data-open]:not([data-open="false"])));
+
+@custom-variant data-closed (&:where([data-state="closed"], [data-closed]:not([data-closed="false"])));
+
+@theme inline {
+  @keyframes collapsible-down {
+  from {
+    height: 0; }
+  to {
+    height: var(--radix-collapsible-content-height, var(--collapsible-panel-height, auto)); } }
+  @keyframes collapsible-up {
+  from {
+    height: var(--radix-collapsible-content-height, var(--collapsible-panel-height, auto)); }
+  to {
+    height: 0; } } }

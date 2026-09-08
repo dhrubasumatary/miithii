@@ -10,18 +10,27 @@
     "clean": "rimraf .next"
   },
   "dependencies": {
-    "@assistant-ui/react": "^0.15.18",
-    "@assistant-ui/react-data-stream": "^0.12.29",
+    "@assistant-ui/ai-sdk": "0.0.4",
+    "@assistant-ui/react": "0.15.18",
+    "@assistant-ui/react-markdown": "^0.14.14",
+    "@base-ui/react": "1.8.0",
     "@miithii/ui": "workspace:*",
-    "assistant-cloud": "^0.1.43",
+    "ai": "7.0.94",
+    "assistant-cloud": "0.1.43",
+    "class-variance-authority": "^0.7.1",
+    "cn": "^0.2.6",
     "lucide-react": "^1.40.0",
-    "next": "latest",
-    "react": "latest",
-    "react-dom": "latest"
+    "next": "16.3.4",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1",
+    "tw-shimmer": "^0.4.12",
+    "zustand": "^5.0.15"
   },
   "devDependencies": {
-    "@types/react": "latest",
-    "@types/react-dom": "latest",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.7",
     "typescript": "^5.9.2"
   }
 }
