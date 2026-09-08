@@ -1,155 +1,394 @@
 "use client";
 
+import { useState, useEffect, useCallback, type FC } from "react";
 import {
   AssistantRuntimeProvider,
   AssistantCloud,
-  AuiIf,
-  ComposerPrimitive,
-  MessagePrimitive,
-  ThreadPrimitive,
-  useAuiState
+  useAui,
+  useAuiState,
+  unstable_useComposerInput,
 } from "@assistant-ui/react";
-import { useDataStreamRuntime } from "@assistant-ui/react-data-stream";
-import { ArrowUp, AudioLines, MessageCirclePlus, Plus, Search, Settings2, Sparkles, Square, Trash2 } from "lucide-react";
+import { useChatRuntime, AssistantChatTransport } from "@assistant-ui/ai-sdk";
+import { Thread } from "@/components/thread.aui";
+import { ThreadList } from "@/components/thread-list.aui";
+import {
+  AudioLines,
+  MessageCirclePlus,
+  PanelLeft,
+  PanelLeftClose,
+  Plus,
+  Settings2,
+  Sparkles,
+  Menu,
+  X,
+  ExternalLink,
+} from "lucide-react";
+import { cn } from "@miithii/ui/lib/utils";
 
 const assistantCloud = new AssistantCloud({
-  // The project id is encoded in this Frontend API URL. This public endpoint
-  // is safe to ship in the static client; anonymous mode issues its own
-  // browser-scoped Cloud identity.
   baseUrl:
     process.env.NEXT_PUBLIC_ASSISTANT_BASE_URL ??
     "https://proj-00s8iick8y6c.assistant-api.com",
   anonymous: true,
 });
 
-// The chat Worker proxies this same-origin path to the API Worker through a
-// private service binding. Keeping the browser request same-origin avoids
-// extension and cross-origin restrictions without exposing any credentials.
+const transport = new AssistantChatTransport({
+  api: "/api/chat/v2",
+  credentials: "include",
+});
+
 export function Chat() {
-  const runtime = useDataStreamRuntime({
-    api: "/api/chat",
-    credentials: "include",
-    protocol: "data-stream",
+  const runtime = useChatRuntime({
+    transport,
     cloud: assistantCloud,
   });
 
   return (
     <AssistantRuntimeProvider runtime={runtime}>
-      <main className="chat-shell">
-        <aside className="chat-rail" aria-label="Chat navigation">
-          <a className="chat-rail__mark" href="https://miithii.in" aria-label="Miithii home">
-            <span className="chat-brand__dot" aria-hidden="true" />
-          </a>
-          <div className="chat-rail__tools">
-            <button className="chat-rail__button chat-rail__button--active" type="button" aria-label="New chat" onClick={() => runtime.thread.reset()}><Plus aria-hidden="true" /></button>
-            <button className="chat-rail__button" type="button" aria-label="Search chats"><Search aria-hidden="true" /></button>
-            <a className="chat-rail__button" href="https://voice.miithii.in" aria-label="Open voice chat"><AudioLines aria-hidden="true" /></a>
-          </div>
-          <button className="chat-rail__button chat-rail__settings" type="button" aria-label="Settings"><Settings2 aria-hidden="true" /></button>
-        </aside>
-        <ChatHeader onClear={() => runtime.thread.reset()} />
-
-        <ThreadPrimitive.Root className="chat-thread">
-          <ThreadPrimitive.Viewport className="chat-viewport" turnAnchor="top">
-            <div className="chat-content">
-              <AuiIf condition={state => state.thread.isEmpty}>
-                <Welcome onStart={prompt => runtime.thread.append(prompt)} />
-              </AuiIf>
-              <section className="chat-messages" aria-live="polite">
-                <ThreadPrimitive.Messages>{() => <ChatMessage />}</ThreadPrimitive.Messages>
-              </section>
-              <ThreadPrimitive.ViewportFooter className="chat-composer-wrap">
-                <Composer />
-                <p className="chat-disclaimer">Miithii can make mistakes. Avoid sharing sensitive information.</p>
-              </ThreadPrimitive.ViewportFooter>
-            </div>
-          </ThreadPrimitive.Viewport>
-        </ThreadPrimitive.Root>
-      </main>
+      <ThreadUrlSync />
+      <ChatShell />
     </AssistantRuntimeProvider>
   );
 }
 
-function ChatHeader({ onClear }: { onClear: () => void }) {
-  const isEmpty = useAuiState(state => state.thread.isEmpty);
+/**
+ * Synchronizes the active Assistant Cloud thread with the ?thread= URL query param.
+ * - Restores thread on initial page load if ?thread=<id> is present.
+ * - Updates the query param when the user switches or creates a thread.
+ * - Listens for browser Back/Forward navigation (popstate) to switch threads.
+ */
+function ThreadUrlSync() {
+  const aui = useAui();
+  const mainThreadId = useAuiState((s) => s.threads.mainThreadId);
+
+  // Restore thread from URL query param on mount
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const threadParam = params.get("thread");
+    if (threadParam && threadParam !== "main" && threadParam !== mainThreadId) {
+      aui.threads?.switchToThread?.(threadParam);
+    }
+  }, [aui]);
+
+  // Update URL query param when mainThreadId changes
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const url = new URL(window.location.href);
+    const currentParam = url.searchParams.get("thread");
+
+    if (mainThreadId && mainThreadId !== "main") {
+      if (currentParam !== mainThreadId) {
+        url.searchParams.set("thread", mainThreadId);
+        window.history.pushState({}, "", url.toString());
+      }
+    } else if (currentParam) {
+      url.searchParams.delete("thread");
+      window.history.replaceState({}, "", url.toString());
+    }
+  }, [mainThreadId]);
+
+  // Listen to browser Back/Forward popstate
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handlePopState = () => {
+      const params = new URLSearchParams(window.location.search);
+      const threadParam = params.get("thread");
+      if (threadParam && threadParam !== "main") {
+        aui.threads?.switchToThread?.(threadParam);
+      } else {
+        aui.threads?.switchToNewThread?.();
+      }
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [aui]);
+
+  return null;
+}
+
+function ChatShell() {
+  const aui = useAui();
+  const mainThreadId = useAuiState((s) => s.threads.mainThreadId);
+  const [desktopDrawerOpen, setDesktopDrawerOpen] = useState(false);
+  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+
+  // Close mobile drawer automatically when a thread is selected
+  useEffect(() => {
+    setMobileDrawerOpen(false);
+  }, [mainThreadId]);
+
+  const handleNewChat = useCallback(() => {
+    aui.threads?.switchToNewThread?.();
+    setMobileDrawerOpen(false);
+  }, [aui]);
+
   return (
-    <header className="chat-header">
-      <a className="chat-brand" href="https://miithii.in" aria-label="Miithii home">
-        <span className="chat-brand__dot" aria-hidden="true" />
-        <span>miithii</span>
-      </a>
-      <div className="chat-header__actions">
-        <a className="chat-voice-link" href="https://voice.miithii.in"><AudioLines aria-hidden="true" /><span>Voice</span></a>
-        <button className="chat-clear" type="button" onClick={onClear} disabled={isEmpty}>
-          <Trash2 aria-hidden="true" />
-          <span>Clear</span>
+    <main className="chat-shell">
+      {/* Desktop Left Rail (68px) */}
+      <aside className="chat-rail" aria-label="Navigation rail">
+        <a
+          className="chat-rail__mark"
+          href="https://miithii.in"
+          aria-label="Miithii home"
+          title="Miithii home"
+        >
+          <span className="chat-brand__dot" aria-hidden="true" />
+        </a>
+
+        <div className="chat-rail__tools">
+          <button
+            className="chat-rail__button"
+            type="button"
+            aria-label="New chat"
+            title="New chat"
+            onClick={handleNewChat}
+          >
+            <Plus aria-hidden="true" />
+          </button>
+          <button
+            className={cn(
+              "chat-rail__button",
+              desktopDrawerOpen && "chat-rail__button--active"
+            )}
+            type="button"
+            aria-label={desktopDrawerOpen ? "Close conversations" : "Open conversations"}
+            title="Conversations history"
+            onClick={() => setDesktopDrawerOpen((v) => !v)}
+          >
+            {desktopDrawerOpen ? (
+              <PanelLeftClose aria-hidden="true" />
+            ) : (
+              <PanelLeft aria-hidden="true" />
+            )}
+          </button>
+          <a
+            className="chat-rail__button"
+            href="https://voice.miithii.in"
+            aria-label="Open voice companion"
+            title="Voice companion"
+          >
+            <AudioLines aria-hidden="true" />
+          </a>
+        </div>
+
+        <button
+          className="chat-rail__button chat-rail__settings"
+          type="button"
+          aria-label="Settings"
+          title="Settings & info"
+          onClick={() => setSettingsOpen(true)}
+        >
+          <Settings2 aria-hidden="true" />
         </button>
+      </aside>
+
+      {/* Desktop Expandable Thread Drawer (280px) */}
+      <aside
+        className={cn(
+          "chat-drawer-desktop",
+          desktopDrawerOpen ? "chat-drawer-desktop--open" : "chat-drawer-desktop--closed"
+        )}
+        aria-label="Conversations drawer"
+      >
+        <div className="chat-drawer__header">
+          <span className="chat-drawer__title">Conversations</span>
+          <button
+            type="button"
+            className="chat-drawer__toggle-btn"
+            onClick={() => setDesktopDrawerOpen(false)}
+            aria-label="Collapse conversations panel"
+            title="Collapse panel"
+          >
+            <PanelLeftClose className="size-4" />
+          </button>
+        </div>
+        <div className="chat-drawer__content">
+          <ThreadList />
+        </div>
+      </aside>
+
+      {/* Main Conversation Area */}
+      <div className="chat-main-canvas">
+        {/* Mobile Top Header */}
+        <header className="chat-mobile-header">
+          <button
+            type="button"
+            className="chat-mobile-header__btn"
+            onClick={() => setMobileDrawerOpen(true)}
+            aria-label="Open conversations list"
+          >
+            <Menu className="size-5" />
+          </button>
+
+          <a
+            className="chat-brand"
+            href="https://miithii.in"
+            aria-label="Miithii home"
+          >
+            <span className="chat-brand__dot" aria-hidden="true" />
+            <span>miithii</span>
+          </a>
+
+          <div className="chat-mobile-header__actions">
+            <a
+              className="chat-mobile-header__btn"
+              href="https://voice.miithii.in"
+              aria-label="Open voice companion"
+            >
+              <AudioLines className="size-5" />
+            </a>
+            <button
+              type="button"
+              className="chat-mobile-header__btn"
+              onClick={handleNewChat}
+              aria-label="New chat"
+            >
+              <Plus className="size-5" />
+            </button>
+          </div>
+        </header>
+
+        {/* Runtime-Connected Assistant-UI Thread */}
+        <div className="chat-thread-container">
+          <Thread components={{ Welcome: MiithiiWelcome }} autoFocus />
+        </div>
       </div>
-    </header>
+
+      {/* Mobile Slide-Out Drawer / Sheet */}
+      {mobileDrawerOpen && (
+        <div
+          className="chat-mobile-drawer-overlay"
+          onClick={() => setMobileDrawerOpen(false)}
+          role="presentation"
+        >
+          <aside
+            className="chat-mobile-drawer"
+            onClick={(e) => e.stopPropagation()}
+            aria-label="Mobile conversation history"
+          >
+            <div className="chat-drawer__header">
+              <span className="chat-drawer__title">Conversations</span>
+              <button
+                type="button"
+                className="chat-drawer__toggle-btn"
+                onClick={() => setMobileDrawerOpen(false)}
+                aria-label="Close drawer"
+              >
+                <X className="size-5" />
+              </button>
+            </div>
+            <div className="chat-drawer__content">
+              <ThreadList />
+            </div>
+          </aside>
+        </div>
+      )}
+
+      {/* Settings & Info Modal */}
+      {settingsOpen && (
+        <SettingsDialog onClose={() => setSettingsOpen(false)} />
+      )}
+    </main>
   );
 }
 
-function Welcome({ onStart }: { onStart: (prompt: string) => void }) {
+/**
+ * Calm, centered Welcome view matching Miithii's brand.
+ * Includes fast starter chips that populate the composer.
+ */
+const MiithiiWelcome: FC = () => {
   return (
-    <section className="chat-welcome">
-      <span className="chat-welcome__mark" aria-hidden="true"><Sparkles /></span>
+    <section className="chat-welcome" aria-label="Welcome to Miithii">
+      <span className="chat-welcome__mark" aria-hidden="true">
+        <Sparkles className="size-5" />
+      </span>
       <p className="chat-eyebrow">YOUR ASSAMESE COMPANION</p>
       <h1>What&apos;s on your mind?</h1>
-      <p>Write naturally in English, Assamese, or a mix. Miithii replies in casual romanized Assamese.</p>
+      <p>
+        Write naturally in English, Assamese, or a mix. Miithii replies in
+        casual romanized Assamese.
+      </p>
       <div className="chat-starters" aria-label="Conversation starters">
-        <Starter prompt="Help me think through something" onStart={onStart} />
-        <Starter prompt="I need a quick idea" onStart={onStart} />
-        <Starter prompt="Let’s just talk" onStart={onStart} />
+        <Starter prompt="Help me think through something" />
+        <Starter prompt="I need a quick idea" />
+        <Starter prompt="Let’s just talk" />
+        <Starter prompt="kun tumi?" />
       </div>
     </section>
   );
-}
+};
 
-function Starter({ prompt, onStart }: { prompt: string; onStart: (prompt: string) => void }) {
+function Starter({ prompt }: { prompt: string }) {
+  const { setText } = unstable_useComposerInput();
+
   return (
-    <button type="button" className="chat-starter" onClick={() => onStart(prompt)}>
-      <MessageCirclePlus aria-hidden="true" />
-      {prompt}
+    <button
+      type="button"
+      className="chat-starter"
+      onClick={() => setText(prompt)}
+    >
+      <MessageCirclePlus className="size-3.5" aria-hidden="true" />
+      <span>{prompt}</span>
     </button>
   );
 }
 
-function ChatMessage() {
-  const role = useAuiState(state => state.message.role);
+function SettingsDialog({ onClose }: { onClose: () => void }) {
   return (
-    <MessagePrimitive.Root className={`chat-message chat-message--${role}`}>
-      {role === "assistant" ? <span className="chat-message__name">MIITHII</span> : null}
-      <div className="chat-message__bubble">
-        <MessagePrimitive.Parts />
+    <div
+      className="chat-mobile-drawer-overlay"
+      onClick={onClose}
+      role="presentation"
+    >
+      <div
+        className="chat-settings-modal"
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Settings and Information"
+      >
+        <div className="chat-drawer__header">
+          <span className="chat-drawer__title">Miithii Companion</span>
+          <button
+            type="button"
+            className="chat-drawer__toggle-btn"
+            onClick={onClose}
+            aria-label="Close dialog"
+          >
+            <X className="size-5" />
+          </button>
+        </div>
+        <div className="chat-settings-content">
+          <div className="chat-settings-item">
+            <strong>Architecture</strong>
+            <p>Assistant Cloud history persistence with Cloudflare API generation runtime (v2).</p>
+          </div>
+          <div className="chat-settings-item">
+            <strong>Usage Limit</strong>
+            <p>50 messages per day for anonymous guest sessions. Resets at midnight IST.</p>
+          </div>
+          <div className="chat-settings-item">
+            <strong>Voice Mode</strong>
+            <p>
+              Experience voice-first conversation at{" "}
+              <a
+                href="https://voice.miithii.in"
+                className="chat-settings-link inline-flex items-center gap-1 text-[#5a861d] underline"
+                target="_blank"
+                rel="noreferrer"
+              >
+                voice.miithii.in <ExternalLink className="size-3" />
+              </a>
+            </p>
+          </div>
+          <div className="chat-settings-item">
+            <strong>Session Privacy</strong>
+            <p>Conversations are stored anonymously in your browser profile.</p>
+          </div>
+        </div>
       </div>
-    </MessagePrimitive.Root>
-  );
-}
-
-function Composer() {
-  const running = useAuiState(state => state.thread.isRunning);
-  return (
-    <ComposerPrimitive.Root className="chat-composer">
-      <ComposerPrimitive.Input
-        aria-label="Message Miithii"
-        className="chat-composer__input"
-        placeholder="Message Miithii…"
-        rows={1}
-        autoFocus
-      />
-      {running ? (
-        <ComposerPrimitive.Cancel asChild>
-          <button className="chat-send chat-send--stop" type="button" aria-label="Stop generating">
-            <Square aria-hidden="true" />
-          </button>
-        </ComposerPrimitive.Cancel>
-      ) : (
-        <ComposerPrimitive.Send asChild>
-          <button className="chat-send" type="submit" aria-label="Send message">
-            <ArrowUp aria-hidden="true" />
-          </button>
-        </ComposerPrimitive.Send>
-      )}
-    </ComposerPrimitive.Root>
+    </div>
   );
 }

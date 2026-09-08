@@ -17,9 +17,9 @@ import {
   ReasoningFade,
   reasoningVariants,
   type ReasoningRootProps,
-} from "./reasoning";
+} from "@/components/reasoning";
 
-export type { ReasoningRootProps } from "./reasoning";
+export type { ReasoningRootProps } from "@/components/reasoning";
 
 /** `ReasoningRoot` with the thread viewport scroll locked during disclosure animations. */
 function ReasoningRoot({
