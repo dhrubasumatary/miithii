@@ -32,8 +32,10 @@ const assistantCloud = new AssistantCloud({
   anonymous: true,
 });
 
+const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "";
+
 const transport = new AssistantChatTransport({
-  api: "/api/chat/v2",
+  api: `${apiBaseUrl}/api/chat/v2`,
   credentials: "include",
 });
 

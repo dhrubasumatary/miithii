@@ -172,14 +172,15 @@ export default {
     const requestId = crypto.randomUUID();
     const origin = request.headers.get('origin');
     const headers = new Headers({ 'cache-control': 'no-store', 'x-content-type-options': 'nosniff', 'x-request-id': requestId, 'vary': 'Origin' });
-    if (origin === env.ALLOWED_ORIGIN) {
+    const isAllowedOrigin = origin === env.ALLOWED_ORIGIN || (origin && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin));
+    if (isAllowedOrigin) {
       headers.set('access-control-allow-origin', origin);
       headers.set('access-control-allow-credentials', 'true');
       headers.set('access-control-expose-headers', 'x-request-id,retry-after,x-vercel-ai-data-stream,x-ratelimit-remaining,x-ratelimit-reset');
     }
     const json = (body, status = 200) => Response.json(body, { status, headers });
     try {
-      if (origin && origin !== env.ALLOWED_ORIGIN) throw new HttpError(403, 'Origin not allowed');
+      if (origin && !isAllowedOrigin) throw new HttpError(403, 'Origin not allowed');
       const path = new URL(request.url).pathname;
       if (!['/', '/health', '/v1/models', '/v1/chat/completions', '/api/chat', '/api/chat/v2', '/chat', '/session'].includes(path)) throw new HttpError(404, 'Not found');
       if (request.method === 'OPTIONS') {
