@@ -1,0 +1,304 @@
+{
+  "result": [
+    {
+      "created_on": "2026-06-28T16:46:18.596882Z",
+      "modified_on": "2026-06-29T05:20:27.894877Z",
+      "id": "darshi-worker",
+      "tag": "cc138e4dc32541cfaf4eae16d355791e",
+      "tags": [],
+      "deployment_id": "",
+      "tail_consumers": null,
+      "logpush": false,
+      "has_assets": false,
+      "has_modules": true,
+      "etag": "d4795b6d2577c6b768506784c66dd6d621fd3173fb163b4eaac442e3259b22bf",
+      "handlers": [
+        "get",
+        "post",
+        "put",
+        "delete",
+        "options",
+        "patch",
+        "all",
+        "on",
+        "use",
+        "router",
+        "getPath",
+        "_basePath",
+        "routes",
+        "errorHandler",
+        "onError",
+        "notFound",
+        "fetch",
+        "request",
+        "fire",
+        "route",
+        "basePath",
+        "mount"
+      ],
+      "named_handlers": [
+        {
+          "name": "parsePagination",
+          "handlers": [
+            "class"
+          ]
+        }
+      ],
+      "last_deployed_from": "wrangler",
+      "compatibility_date": "2024-01-01",
+      "usage_model": "standard",
+      "routes": null
+    },
+    {
+      "created_on": "2026-06-09T18:57:13.652195Z",
+      "modified_on": "2026-06-09T18:59:29.788617Z",
+      "id": "dear-comrade-api",
+      "tag": "08f79bd5e5034dd1a59b2721572abcb0",
+      "tags": [],
+      "deployment_id": "",
+      "tail_consumers": null,
+      "logpush": false,
+      "observability": {
+        "enabled": true,
+        "head_sampling_rate": 1,
+        "redact_query_string": false,
+        "logs": {
+          "enabled": true,
+          "head_sampling_rate": 1,
+          "persist": true,
+          "invocation_logs": true
+        },
+        "traces": {
+          "enabled": false,
+          "persist": true,
+          "head_sampling_rate": 1
+        }
+      },
+      "has_assets": false,
+      "has_modules": true,
+      "etag": "0d640496d45cb510543ac11e11aaf35155b8f7852c7ae95390884b2c774756ed",
+      "handlers": [
+        "fetch",
+        "queue"
+      ],
+      "last_deployed_from": "wrangler",
+      "compatibility_date": "2026-06-01",
+      "compatibility_flags": [
+        "nodejs_compat"
+      ],
+      "usage_model": "standard",
+      "routes": null
+    },
+    {
+      "created_on": "2026-06-09T18:59:54.73703Z",
+      "modified_on": "2026-06-09T19:12:04.776042Z",
+      "id": "dear-comrade-web",
+      "tag": "b052372379bd4815a0719e29420436ba",
+      "tags": [],
+      "deployment_id": "",
+      "tail_consumers": null,
+      "logpush": false,
+      "observability": {
+        "enabled": true,
+        "head_sampling_rate": 1,
+        "redact_query_string": false,
+        "logs": {
+          "enabled": true,
+          "head_sampling_rate": 1,
+          "persist": true,
+          "invocation_logs": true
+        },
+        "traces": {
+          "enabled": false,
+          "persist": true,
+          "head_sampling_rate": 1
+        }
+      },
+      "has_assets": true,
+      "has_modules": true,
+      "etag": "8a185234da78afcccfe4e950968eaa458e3126ea7b5b1d317765974643347324",
+      "handlers": [
+        "fetch"
+      ],
+      "named_handlers": [
+        {
+          "name": "BucketCachePurge",
+          "handlers": [
+            "class"
+          ]
+        },
+        {
+          "name": "DOQueueHandler",
+          "handlers": [
+            "class"
+          ]
+        },
+        {
+          "name": "DOShardedTagCache",
+          "handlers": [
+            "class"
+          ]
+        }
+      ],
+      "last_deployed_from": "wrangler",
+      "compatibility_date": "2026-06-01",
+      "compatibility_flags": [
+        "nodejs_compat"
+      ],
+      "usage_model": "standard",
+      "routes": null
+    },
+    {
+      "created_on": "2026-07-11T12:45:33.739869Z",
+      "modified_on": "2026-07-11T13:29:55.252508Z",
+      "id": "littlebox-support-demo",
+      "tag": "35a6300dc4d045658c5c92d2624aae9e",
+      "tags": [],
+      "deployment_id": "",
+      "tail_consumers": null,
+      "logpush": false,
+      "has_assets": false,
+      "has_modules": true,
+      "etag": "1d85b1b3b3a815ca1bd427dedc61c4ff7edbb93354599ecf340424cfbad04cc0",
+      "handlers": [
+        "fetch"
+      ],
+      "last_deployed_from": "wrangler",
+      "compatibility_date": "2025-06-01",
+      "compatibility_flags": [
+        "nodejs_compat"
+      ],
+      "usage_model": "standard",
+      "routes": null
+    },
+    {
+      "created_on": "2026-08-17T23:11:11.050025Z",
+      "modified_on": "2026-08-18T08:41:42.205744Z",
+      "id": "miithii-apex-fresh",
+      "tag": "a431fea9e19b4720aa2be75ef1b12681",
+      "tags": [],
+      "deployment_id": "",
+      "tail_consumers": null,
+      "logpush": false,
+      "observability": {
+        "enabled": true,
+        "head_sampling_rate": 1,
+        "redact_query_string": false,
+        "logs": {
+          "enabled": true,
+          "head_sampling_rate": 1,
+          "persist": true,
+          "invocation_logs": true
+        },
+        "traces": {
+          "enabled": false,
+          "persist": true,
+          "head_sampling_rate": 1
+        }
+      },
+      "has_assets": false,
+      "has_modules": true,
+      "etag": "4de6f5cf22593658bfd7a482f3511d0d426e06b6b3c214316904f9d156647b03",
+      "handlers": [
+        "fetch"
+      ],
+      "last_deployed_from": "wrangler",
+      "compatibility_date": "2026-08-17",
+      "usage_model": "standard",
+      "routes": [
+        {
+          "id": "03c08bfe20e249d38e1bd9ec9321b1bb",
+          "pattern": "www.miithii.in/*",
+          "script": "miithii-apex-fresh",
+          "request_limit_fail_open": false
+        },
+        {
+          "id": "6a0bc39be9e9401498dc56cb7d0d986e",
+          "pattern": "miithii.in/*",
+          "script": "miithii-apex-fresh",
+          "request_limit_fail_open": false
+        }
+      ]
+    },
+    {
+      "created_on": "2026-06-19T23:40:10.278843Z",
+      "modified_on": "2026-06-22T12:47:52.265537Z",
+      "id": "miithii-api",
+      "tag": "3bddbf47a2954da6a90136a69fd2c32e",
+      "tags": [],
+      "deployment_id": "",
+      "tail_consumers": null,
+      "logpush": false,
+      "observability": {
+        "enabled": true,
+        "head_sampling_rate": 1,
+        "redact_query_string": false,
+        "logs": {
+          "enabled": true,
+          "head_sampling_rate": 1,
+          "persist": true,
+          "invocation_logs": true
+        },
+        "traces": {
+          "enabled": false,
+          "persist": true,
+          "head_sampling_rate": 1
+        }
+      },
+      "has_assets": false,
+      "has_modules": true,
+      "etag": "c9e0889a4db51341b6a5e616fa2c5a4268a76fe1223b8c0d7909f8e7b1e25b0d",
+      "handlers": [
+        "fetch"
+      ],
+      "last_deployed_from": "wrangler",
+      "compatibility_date": "2025-06-20",
+      "compatibility_flags": [
+        "nodejs_compat"
+      ],
+      "usage_model": "standard",
+      "routes": null
+    },
+    {
+      "created_on": "2026-08-17T20:07:00.567347Z",
+      "modified_on": "2026-08-17T20:07:00.567347Z",
+      "id": "miithii-suite-placeholder",
+      "tag": "60563bd4aa3747169f8b6d86bd02d2a0",
+      "tags": null,
+      "deployment_id": "",
+      "tail_consumers": null,
+      "logpush": false,
+      "has_assets": false,
+      "has_modules": true,
+      "etag": "eadc9fc1b15766f3ec47e6522cc842030b0e5499c09d3a54657074373cad0112",
+      "handlers": [
+        "fetch"
+      ],
+      "last_deployed_from": "api",
+      "usage_model": "standard",
+      "routes": [
+        {
+          "id": "318d3afb0e2a429db30a92a19b02e75a",
+          "pattern": "voice.miithii.in/*",
+          "script": "miithii-suite-placeholder",
+          "request_limit_fail_open": false
+        },
+        {
+          "id": "ad26787470984c869fbde327f2a18997",
+          "pattern": "chat.miithii.in/*",
+          "script": "miithii-suite-placeholder",
+          "request_limit_fail_open": false
+        },
+        {
+          "id": "e5fc9018a4de45bdbefe4da180567ff6",
+          "pattern": "subtitles.miithii.in/*",
+          "script": "miithii-suite-placeholder",
+          "request_limit_fail_open": false
+        }
+      ]
+    }
+  ],
+  "success": true,
+  "errors": [],
+  "messages": []
+}
