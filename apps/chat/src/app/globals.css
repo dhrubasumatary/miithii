@@ -217,6 +217,9 @@ html[data-theme-transition="shigure"]::view-transition-new(root) {
 .chat-shell--signed-out {
   position: relative;
 }
+.chat-shell--signed-out {
+  overflow-y: auto;
+}
 
 .chat-loading-card,
 .chat-signin-panel {
@@ -236,7 +239,7 @@ html[data-theme-transition="shigure"]::view-transition-new(root) {
 
 .chat-signin-panel {
   margin: auto;
-  padding: 48px 24px 64px;
+  padding: 96px 24px 72px;
 }
 
 .chat-signin-panel h1 {
@@ -257,9 +260,9 @@ html[data-theme-transition="shigure"]::view-transition-new(root) {
 }
 .chat-signin-copy {
   display: flex;
-  max-width: 390px;
+  max-width: 430px;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 .chat-signin-kicker {
   color: var(--mi-primary);
@@ -270,7 +273,7 @@ html[data-theme-transition="shigure"]::view-transition-new(root) {
 }
 .chat-signin-actions {
   display: flex;
-  width: min(100%, 300px);
+  width: min(100%, 320px);
   gap: 10px;
 }
 .chat-signin-actions .chat-auth-btn {
@@ -293,21 +296,170 @@ html[data-theme-transition="shigure"]::view-transition-new(root) {
   box-shadow: 0 0 0 2px #fff;
 }
 .chat-signin-panel .chat-signin-helper {
-  margin-top: -8px;
-  max-width: 300px;
+  margin-top: -10px;
+  max-width: 320px;
   color: var(--mi-text-faint);
   font-size: 11px;
 }
-.chat-signin-panel .chat-signin-note {
-  margin-top: -12px;
-  color: var(--mi-text-faint);
+.chat-signin-facts {
+  display: grid;
+  width: min(100%, 420px);
+  gap: 9px;
+  padding: 14px 16px;
+  border: 1px solid var(--mi-border);
+  border-radius: 15px;
+  background: color-mix(in srgb, var(--mi-surface) 58%, transparent);
+  text-align: left;
+}
+.chat-signin-fact {
+  display: grid;
+  grid-template-columns: 8px 1fr;
+  align-items: start;
+  gap: 10px;
+  color: var(--mi-text-muted);
   font-size: 12px;
+  line-height: 1.5;
+}
+.chat-signin-fact strong {
+  color: var(--mi-text-secondary);
+  font-weight: 700;
+}
+.chat-signin-fact__dot {
+  width: 6px;
+  height: 6px;
+  margin-top: 6px;
+  border-radius: 999px;
+  background: var(--mi-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--mi-primary) 12%, transparent);
 }
 .chat-signin-error {
   max-width: 320px;
   margin: -8px 0 -6px !important;
   color: var(--mi-danger) !important;
   font-size: 12px !important;
+}
+
+/* Account identity comes from Clerk, while the signed-in surface stays native
+   to Miithii instead of opening Clerk's stock account popover. */
+.chat-account-menu {
+  position: relative;
+  display: inline-flex;
+  min-width: 36px;
+  min-height: 36px;
+  align-items: center;
+  justify-content: center;
+}
+.chat-account-trigger {
+  display: inline-grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  cursor: pointer;
+  transition: border-color 150ms ease, background 150ms ease, transform 150ms ease;
+}
+.chat-account-trigger:hover,
+.chat-account-trigger:focus-visible,
+.chat-account-trigger[aria-expanded="true"] {
+  border-color: var(--mi-border);
+  background: var(--mi-hover);
+  outline: none;
+}
+.chat-account-trigger:active {
+  transform: scale(0.96);
+}
+.chat-account-avatar {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 999px;
+  object-fit: cover;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--mi-text) 10%, transparent);
+}
+.chat-account-avatar--initial {
+  background: var(--mi-primary);
+  color: var(--mi-on-primary);
+  font-size: 12px;
+  font-weight: 750;
+}
+.chat-account-popover {
+  position: absolute;
+  top: calc(100% + 9px);
+  right: 0;
+  z-index: 100;
+  width: min(280px, calc(100vw - 24px));
+  padding: 8px;
+  border: 1px solid var(--mi-border);
+  border-radius: 16px;
+  background: var(--mi-surface);
+  box-shadow: var(--mi-shadow-lg);
+  text-align: left;
+}
+.chat-account-summary {
+  display: grid;
+  gap: 3px;
+  padding: 10px 11px 11px;
+}
+.chat-account-name,
+.chat-account-email {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.chat-account-name {
+  color: var(--mi-text);
+  font-size: 13px;
+  font-weight: 700;
+}
+.chat-account-email {
+  color: var(--mi-text-muted);
+  font-size: 11px;
+}
+.chat-account-divider {
+  height: 1px;
+  margin: 1px 4px 5px;
+  background: var(--mi-border);
+}
+.chat-account-action {
+  display: flex;
+  width: 100%;
+  min-height: 38px;
+  align-items: center;
+  gap: 9px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--mi-text-secondary);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 140ms ease, color 140ms ease;
+}
+.chat-account-action svg {
+  width: 15px;
+  height: 15px;
+  color: var(--mi-text-muted);
+}
+.chat-account-action:hover,
+.chat-account-action:focus-visible {
+  background: var(--mi-hover);
+  color: var(--mi-text);
+  outline: none;
+}
+.chat-account-action--danger:hover,
+.chat-account-action--danger:focus-visible {
+  background: color-mix(in srgb, var(--mi-danger) 9%, transparent);
+  color: var(--mi-danger);
+}
+.chat-account-action--danger:hover svg,
+.chat-account-action--danger:focus-visible svg {
+  color: var(--mi-danger);
 }
 
 /* Shared Miithii product bar */
@@ -982,10 +1134,26 @@ html[data-theme-transition="shigure"]::view-transition-new(root) {
   }
   .chat-signin-panel {
     gap: 20px;
-    padding: 36px 20px max(36px, env(safe-area-inset-bottom));
+    padding: calc(84px + env(safe-area-inset-top)) 20px max(34px, env(safe-area-inset-bottom));
   }
   .chat-signin-actions { width: 100%; }
   .chat-signin-panel h1 { font-size: clamp(34px, 11vw, 46px); }
+  .chat-signin-facts {
+    width: 100%;
+    padding: 13px 14px;
+  }
+  .chat-signin-fact { font-size: 11.5px; }
+  .chat-account-menu,
+  .chat-account-trigger {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    min-height: 32px;
+  }
+  .chat-account-avatar {
+    width: 28px;
+    height: 28px;
+  }
 
   .chat-welcome {
     min-height: 35dvh;

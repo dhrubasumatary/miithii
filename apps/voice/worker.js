@@ -106,6 +106,14 @@ function normalizeSpeechText(text) {
     .trim();
 }
 
+function prepareSpeechText(text, language) {
+  // Keep the transcript/product spelling as “Miithii”. The speech provider is
+  // more reliable when the intended MEE-thee pronunciation is written in the
+  // selected language's script instead of asking an Indic voice to read IPA.
+  const spokenName = language === "brx" ? "मीथी" : "মীথী";
+  return normalizeSpeechText(text).replace(/Miithii/gi, spokenName);
+}
+
 function splitForSpeech(text, maxChars = 560) {
   const sentences = text
     .replace(/\s+/g, " ")
@@ -292,12 +300,11 @@ async function handleTts(request, env) {
   } catch {
     return json({ error: "Invalid speech request", code: "INVALID_MESSAGE" }, 400);
   }
-  const text = typeof body?.text === "string" ? normalizeSpeechText(body.text) : "";
-  if (!text) return json({ error: "Reply text is empty", code: "INVALID_MESSAGE" }, 400);
-  if (text.length > MAX_TEXT_CHARS) return json({ error: "Reply is too long to speak", code: "INVALID_MESSAGE" }, 413);
-
   const language = body.language ?? "as";
   if (!Object.hasOwn(LANGUAGES, language)) return json({ error: "Unsupported language" }, 400);
+  const text = typeof body?.text === "string" ? prepareSpeechText(body.text, language) : "";
+  if (!text) return json({ error: "Reply text is empty", code: "INVALID_MESSAGE" }, 400);
+  if (text.length > MAX_TEXT_CHARS) return json({ error: "Reply is too long to speak", code: "INVALID_MESSAGE" }, 413);
   const chunks = splitForSpeech(text);
   try {
     const audio = [];

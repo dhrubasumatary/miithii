@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { getProductUrl } from "@miithii/ui/product-links";
 
 const publishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ?? "";
 
@@ -16,21 +17,29 @@ type ClerkSignInResource = {
   }): Promise<void>;
 };
 
+type ClerkUser = {
+  fullName?: string | null;
+  firstName?: string | null;
+  username?: string | null;
+  imageUrl?: string | null;
+  primaryEmailAddress?: { emailAddress: string } | null;
+  emailAddresses?: Array<{ emailAddress: string }>;
+};
+
 type ClerkGlobal = {
   isSignedIn: boolean;
+  user?: ClerkUser | null;
   session?: ClerkSession | null;
   client?: { signIn?: ClerkSignInResource | null } | null;
   load(options?: Record<string, unknown>): Promise<void>;
   addListener(callback: () => void): () => void;
-  mountUserButton(node: HTMLDivElement, options?: Record<string, unknown>): void;
-  unmountUserButton(node: HTMLDivElement): void;
+  signOut(options?: { redirectUrl?: string }): Promise<void>;
   handleRedirectCallback(options?: Record<string, unknown>): Promise<void>;
 };
 
 declare global {
   interface Window {
     Clerk?: ClerkGlobal;
-    __internal_ClerkUICtor?: unknown;
   }
 }
 
@@ -80,13 +89,12 @@ export async function loadClerk() {
   if (!publishableKey) throw new Error("Missing Clerk publishable key");
   const domain = frontendDomain(publishableKey);
 
-  await loadScript("miithii-clerk-ui", `https://${domain}/npm/@clerk/ui@1/dist/ui.browser.js`);
   await loadScript("miithii-clerk-js", `https://${domain}/npm/@clerk/clerk-js@6/dist/clerk.browser.js`, {
     "data-clerk-publishable-key": publishableKey
   });
 
   if (!window.Clerk) throw new Error("Clerk did not initialize");
-  await window.Clerk.load({ ui: { ClerkUI: window.__internal_ClerkUICtor } });
+  await window.Clerk.load();
   return window.Clerk;
 }
 
@@ -165,16 +173,77 @@ export function ClerkSignIn() {
   );
 }
 
-export function ClerkUserButton() {
-  const ref = useRef<HTMLDivElement>(null);
+export function VoiceAccountMenu() {
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const [open, setOpen] = useState(false);
+  const [user, setUser] = useState<ClerkUser | null>(() =>
+    typeof window === "undefined" ? null : window.Clerk?.user ?? null
+  );
 
   useEffect(() => {
-    const node = ref.current;
     const clerk = window.Clerk;
-    if (!node || !clerk) return;
-    clerk.mountUserButton(node, { afterSignOutUrl: "/" });
-    return () => clerk.unmountUserButton(node);
+    if (!clerk) return;
+    const sync = () => setUser(clerk.user ?? null);
+    sync();
+    return clerk.addListener(sync);
   }, []);
 
-  return <div ref={ref} className="voice-user-button" />;
+  useEffect(() => {
+    if (!open) return;
+    const closeOnPointer = (event: PointerEvent) => {
+      if (!wrapperRef.current?.contains(event.target as Node)) setOpen(false);
+    };
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("pointerdown", closeOnPointer);
+    window.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.removeEventListener("pointerdown", closeOnPointer);
+      window.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [open]);
+
+  const name = user?.fullName?.trim() || user?.firstName?.trim() || user?.username?.trim() || "Miithii account";
+  const email = user?.primaryEmailAddress?.emailAddress || user?.emailAddresses?.[0]?.emailAddress || "";
+  const initial = name.charAt(0).toUpperCase() || "M";
+
+  return (
+    <div className="voice-account" ref={wrapperRef}>
+      <button
+        type="button"
+        className="voice-account__trigger"
+        onClick={() => setOpen(value => !value)}
+        aria-label="Open account menu"
+        aria-haspopup="menu"
+        aria-expanded={open}
+      >
+        {user?.imageUrl ? (
+          <img className="voice-account__avatar" src={user.imageUrl} alt="" />
+        ) : (
+          <span className="voice-account__avatar voice-account__avatar--initial" aria-hidden="true">{initial}</span>
+        )}
+      </button>
+      {open ? (
+        <div className="voice-account__menu" role="menu" aria-label="Account">
+          <div className="voice-account__identity">
+            <strong>{name}</strong>
+            {email ? <span>{email}</span> : null}
+          </div>
+          <div className="voice-account__rule" />
+          <a className="voice-account__action" href={getProductUrl("chat")} role="menuitem">
+            Chat & settings
+          </a>
+          <button
+            type="button"
+            className="voice-account__action voice-account__action--danger"
+            role="menuitem"
+            onClick={() => void window.Clerk?.signOut({ redirectUrl: "/" })}
+          >
+            Sign out
+          </button>
+        </div>
+      ) : null}
+    </div>
+  );
 }

@@ -3,23 +3,28 @@
   "private": true,
   "packageManager": "pnpm@11.19.0",
   "engines": {
-    "node": ">=22"
+    "node": ">=24 <25"
   },
   "scripts": {
+    "bootstrap": "pnpm install --frozen-lockfile && npm ci --prefix workers/api",
     "build": "turbo build",
-    "dev": "turbo dev --parallel",
-    "dev:all": "turbo dev --parallel",
+    "dev": "concurrently --names api,voice-api,web \"pnpm dev:api\" \"pnpm dev:voice-api\" \"pnpm dev:web\"",
+    "dev:all": "pnpm dev",
+    "dev:web": "turbo dev --parallel",
+    "dev:api": "npm --prefix workers/api run dev",
+    "dev:voice-api": "pnpm --dir apps/voice dev:api",
     "dev:hub": "pnpm --dir apps/hub dev",
     "dev:subtitles": "pnpm --dir apps/subtitles dev",
     "dev:chat": "pnpm --dir apps/chat dev",
     "dev:voice": "pnpm --dir apps/voice dev",
     "typecheck": "turbo typecheck",
-    "check": "pnpm typecheck && pnpm build",
+    "check": "pnpm typecheck && pnpm build && npm --prefix workers/api test && npm --prefix workers/api run build",
     "clean": "turbo clean"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "latest",
     "@types/node": "latest",
+    "concurrently": "^9.2.4",
     "rimraf": "latest",
     "tailwindcss": "latest",
     "turbo": "latest",

@@ -38,6 +38,7 @@ body {
 }
 
 .voice-auth-state p {
+  width: min(100%, 34rem);
   max-width: 34rem;
   color: var(--mi-color-text-muted);
   line-height: 1.6;
@@ -59,7 +60,7 @@ body {
 
 .voice-google-signin {
   display: grid;
-  width: min(100%, 320px);
+  width: min(320px, calc(100vw - 56px));
   gap: 8px;
   margin-top: 6px;
 }
@@ -104,11 +105,114 @@ body {
   font-size: 12px;
 }
 
-.voice-user-button {
+.voice-account {
+  position: relative;
+  display: inline-flex;
+}
+
+.voice-account__trigger {
   display: grid;
+  width: 34px;
+  height: 34px;
   place-items: center;
-  min-width: 32px;
-  min-height: 32px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--mi-color-text-primary);
+  cursor: pointer;
+}
+
+.voice-account__trigger:hover,
+.voice-account__trigger[aria-expanded="true"] {
+  border-color: var(--mi-color-border);
+  background: color-mix(in srgb, var(--mi-color-text-primary) 6%, transparent);
+}
+
+.voice-account__avatar {
+  display: grid;
+  width: 29px;
+  height: 29px;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 999px;
+  object-fit: cover;
+}
+
+.voice-account__avatar--initial {
+  background: var(--mi-color-primary);
+  color: var(--mi-color-on-primary);
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.voice-account__menu {
+  position: absolute;
+  top: calc(100% + 9px);
+  right: 0;
+  z-index: 100;
+  width: min(270px, calc(100vw - 24px));
+  padding: 8px;
+  border: 1px solid var(--mi-color-border);
+  border-radius: 16px;
+  background: var(--mi-color-surface);
+  box-shadow: var(--mi-shadow-lg);
+  text-align: left;
+}
+
+.voice-account__identity {
+  display: grid;
+  gap: 3px;
+  padding: 9px 10px 10px;
+}
+
+.voice-account__identity strong,
+.voice-account__identity span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.voice-account__identity strong {
+  font-size: 13px;
+}
+
+.voice-account__identity span {
+  color: var(--mi-color-text-muted);
+  font-size: 11px;
+}
+
+.voice-account__rule {
+  height: 1px;
+  margin: 1px 3px 5px;
+  background: var(--mi-color-border);
+}
+
+.voice-account__action {
+  display: flex;
+  width: 100%;
+  min-height: 38px;
+  align-items: center;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--mi-color-text-secondary);
+  cursor: pointer;
+  font-size: 12px;
+  text-decoration: none;
+}
+
+.voice-account__action:hover,
+.voice-account__action:focus-visible {
+  background: color-mix(in srgb, var(--mi-color-text-primary) 6%, transparent);
+  color: var(--mi-color-text-primary);
+}
+
+.voice-account__action--danger:hover,
+.voice-account__action--danger:focus-visible {
+  background: color-mix(in srgb, var(--mi-color-danger) 9%, transparent);
+  color: var(--mi-color-danger);
 }
 
 .voice-app {
@@ -155,13 +259,13 @@ body {
 }
 
 .voice-language {
-  display: grid;
-  justify-items: center;
-  gap: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--va-text-dim);
 }
 
 .voice-language__caption {
-  color: var(--va-text-dim);
   font-family: var(--font-mono);
   font-size: 10px;
   font-weight: 700;
@@ -169,72 +273,45 @@ body {
   text-transform: uppercase;
 }
 
-.voice-language__options {
-  display: flex;
-  gap: 4px;
-  padding: 4px;
-  border: 1px solid var(--va-border);
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--va-surface) 78%, transparent);
-  box-shadow: 0 12px 30px color-mix(in srgb, var(--mi-color-text-primary) 5%, transparent);
-  -webkit-backdrop-filter: blur(18px) saturate(130%);
-  backdrop-filter: blur(18px) saturate(130%);
+.voice-language__select-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
 }
 
-.voice-language__option {
-  display: flex;
-  min-width: 118px;
-  align-items: baseline;
-  justify-content: center;
-  gap: 7px;
-  min-height: 40px;
-  padding: 7px 13px;
+.voice-language select {
+  max-width: 220px;
+  appearance: none;
   border: 0;
-  border-radius: 999px;
+  border-bottom: 1px solid color-mix(in srgb, var(--va-text-dim) 42%, transparent);
+  border-radius: 0;
+  outline: none;
+  padding: 5px 22px 5px 2px;
   background: transparent;
-  color: var(--va-text-dim);
-  cursor: pointer;
-  transition: background 160ms ease, color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
-}
-
-.voice-language__option span {
-  font-size: 15px;
-  font-weight: 680;
-}
-
-.voice-language__option:first-child span {
-  font-family: var(--font-miithii-assamese), var(--font-body);
-}
-
-.voice-language__option:last-child span {
-  font-family: var(--font-miithii-bodo), var(--font-body);
-}
-
-.voice-language__option small {
-  color: inherit;
-  font-size: 10px;
-  font-weight: 650;
-  opacity: 0.72;
-}
-
-.voice-language__option[data-active="true"] {
-  background: var(--va-text);
-  color: var(--va-bg);
-  box-shadow: 0 5px 15px color-mix(in srgb, var(--mi-color-text-primary) 13%, transparent);
-}
-
-.voice-language__option:hover:not(:disabled):not([data-active="true"]) {
-  background: color-mix(in srgb, var(--va-text) 6%, transparent);
   color: var(--va-text);
+  cursor: pointer;
+  font-family: var(--font-miithii-assamese), var(--font-miithii-bodo), var(--font-body), sans-serif;
+  font-size: 14px;
+  font-weight: 650;
+  transition: border-color 150ms ease, opacity 150ms ease;
 }
 
-.voice-language__option:active:not(:disabled) {
-  transform: scale(0.98);
+.voice-language select:focus-visible {
+  border-bottom-color: var(--va-jade);
+  box-shadow: 0 2px 0 color-mix(in srgb, var(--va-jade) 45%, transparent);
 }
 
-.voice-language__option:disabled {
+.voice-language select:disabled {
   cursor: default;
   opacity: 0.55;
+}
+
+.voice-language__select-wrap svg {
+  position: absolute;
+  right: 0;
+  width: 16px;
+  height: 16px;
+  pointer-events: none;
 }
 
 .voice-orb {
@@ -369,6 +446,16 @@ body {
   font-family: var(--font-miithii-assamese), var(--font-miithii-bodo), var(--font-body);
 }
 
+.voice-first-use {
+  max-width: 31rem;
+  margin: -4px 0 0;
+  color: var(--va-text-dim);
+  font-size: 13px;
+  line-height: 1.55;
+  text-align: center;
+  text-wrap: balance;
+}
+
 /* ---- Dock ---- */
 
 .voice-dock {
@@ -494,17 +581,26 @@ body {
     padding-inline: 16px;
   }
 
-  .voice-language__option {
-    min-width: 104px;
-    padding-inline: 11px;
+  .voice-language {
+    gap: 7px;
   }
 
-  .voice-language__option small {
-    display: none;
+  .voice-language__caption {
+    font-size: 9px;
+  }
+
+  .voice-language select {
+    max-width: 190px;
+    font-size: 13px;
   }
 
   .voice-orb {
     width: min(62vw, 220px);
+  }
+
+  .voice-first-use {
+    max-width: 19rem;
+    font-size: 12px;
   }
 }
 

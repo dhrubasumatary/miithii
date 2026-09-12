@@ -25,6 +25,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   return (
     <ClerkProvider
       publishableKey={clerkPublishableKey}
+      afterSignOutUrl="/"
       appearance={{
         variables: {
           colorPrimary: "var(--mi-primary)",

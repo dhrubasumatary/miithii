@@ -4,7 +4,7 @@ import { LogoMark, ProductDock } from "@miithii/ui";
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 import { DEFAULT_LANGUAGE, VOICE_LANGUAGES, type VoiceLanguageCode } from "@/lib/languages";
 import { MicRecorder } from "@/lib/mic-recorder";
-import { ClerkSignIn, ClerkUserButton, useVoiceAuth } from "@/lib/clerk";
+import { ClerkSignIn, VoiceAccountMenu, useVoiceAuth } from "@/lib/clerk";
 
 const MAX_RECORD_SECONDS = 25; // transcription API caps clips at 30s
 const MIN_RECORD_SECONDS = 0.6;
@@ -51,6 +51,7 @@ export default function Page() {
   const stopPlaybackRef = useRef<() => void>(() => {});
   const mutedRef = useRef(false);
   const vadRef = useRef<VadState | null>(null);
+  const keyboardHoldRef = useRef(false);
 
   useEffect(() => {
     mutedRef.current = muted;
@@ -175,6 +176,7 @@ export default function Page() {
   const stopRecording = useCallback(() => {
     const recorder = recorderRef.current;
     if (!recorder) return;
+    keyboardHoldRef.current = false;
     recorderRef.current = null;
     vadRef.current = null;
     if (recorder.durationSeconds < MIN_RECORD_SECONDS) {
@@ -262,6 +264,10 @@ export default function Page() {
     try {
       recorderRef.current = recorder;
       await recorder.start(onLevel);
+      if (recorderRef.current !== recorder) {
+        await recorder.abort().catch(() => {});
+        return;
+      }
     } catch {
       recorderRef.current = null;
       vadRef.current = null;
@@ -287,24 +293,37 @@ export default function Page() {
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.code !== "Space" || event.repeat) return;
+      if (authStatus !== "signed-in") return;
       const target = event.target as HTMLElement;
       if (target.tagName === "BUTTON" || target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.tagName === "SELECT") return;
+      if (phase !== "idle") return;
       event.preventDefault();
       // Space remains true push-to-talk: releasing the key is the stop signal.
       // Tap/click recording uses VAD auto-stop instead.
-      if (phase === "idle") startRecording(false);
+      keyboardHoldRef.current = true;
+      startRecording(false);
     };
     const onKeyUp = (event: KeyboardEvent) => {
       if (event.code !== "Space") return;
-      if (phase === "listening") stopRecording();
+      if (!keyboardHoldRef.current) return;
+      event.preventDefault();
+      keyboardHoldRef.current = false;
+      if (recorderRef.current) stopRecording();
+    };
+    const onBlur = () => {
+      if (!keyboardHoldRef.current) return;
+      keyboardHoldRef.current = false;
+      if (recorderRef.current) stopRecording();
     };
     window.addEventListener("keydown", onKeyDown);
     window.addEventListener("keyup", onKeyUp);
+    window.addEventListener("blur", onBlur);
     return () => {
       window.removeEventListener("keydown", onKeyDown);
       window.removeEventListener("keyup", onKeyUp);
+      window.removeEventListener("blur", onBlur);
     };
-  }, [phase, startRecording, stopRecording]);
+  }, [authStatus, phase, startRecording, stopRecording]);
 
   const busy = phase === "transcribing" || phase === "thinking";
   const authReady = authStatus === "signed-in";
@@ -341,7 +360,7 @@ export default function Page() {
         <main className="voice-auth-state voice-auth-state--signin">
           <span className="voice-auth-state__eyebrow">Voice</span>
           <h1>Talk with Miithii.</h1>
-          <p>One account across Chat and Voice. Sign in with Google, then start speaking.</p>
+          <p>Speak in Assamese or Bodo. Sign in once, choose your language, then tap the mic and talk. Chat and Voice share 50 messages a day.</p>
           <ClerkSignIn />
         </main>
       </div>
@@ -378,28 +397,27 @@ export default function Page() {
 
   return (
     <div className="voice-app">
-      <ProductDock active="voice" account={<ClerkUserButton />} />
+      <ProductDock active="voice" account={<VoiceAccountMenu />} />
 
       <main className="voice-stage">
-        <div className="voice-language" aria-label="Voice language">
-          <span className="voice-language__caption">Speak in</span>
-          <div className="voice-language__options" role="group" aria-label="Choose a language">
-            {Object.entries(VOICE_LANGUAGES).map(([code, value]) => (
-              <button
-                type="button"
-                key={code}
-                className="voice-language__option"
-                data-active={language === code ? "true" : "false"}
-                aria-pressed={language === code}
-                disabled={phase !== "idle"}
-                onClick={() => changeLanguage(code as VoiceLanguageCode)}
-              >
-                <span>{value.label}</span>
-                <small>{value.english}</small>
-              </button>
-            ))}
-          </div>
-        </div>
+        <label className="voice-language">
+          <span className="voice-language__caption">Language</span>
+          <span className="voice-language__select-wrap">
+            <select
+              aria-label="Voice language"
+              value={language}
+              disabled={phase !== "idle"}
+              onChange={event => changeLanguage(event.target.value as VoiceLanguageCode)}
+            >
+              {Object.entries(VOICE_LANGUAGES).map(([code, value]) => (
+                <option key={code} value={code}>{value.label} · {value.english}</option>
+              ))}
+            </select>
+            <svg viewBox="0 0 20 20" aria-hidden="true">
+              <path d="m6.5 8 3.5 3.5L13.5 8" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </span>
+        </label>
         <div
           className="voice-orb"
           data-phase={phase}
@@ -420,6 +438,12 @@ export default function Page() {
             </span>
           ) : null}
         </p>
+
+        {turns.length === 0 && phase === "idle" ? (
+          <p className="voice-first-use">
+            Speak naturally in {VOICE_LANGUAGES[language].english}. Pause when you&apos;re done — Miithii sends automatically.
+          </p>
+        ) : null}
 
         {previewText && <p className="voice-preview">{previewText}</p>}
       </main>
@@ -487,7 +511,7 @@ export default function Page() {
           </button>
         </div>
         <p className="voice-hint">
-          Tap once and pause when you&apos;re done · or hold the <kbd>space bar</kbd>
+          Desktop: hold <kbd>Space</kbd> to talk, release to send
         </p>
       </footer>
 

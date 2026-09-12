@@ -13,16 +13,18 @@ import type { UIMessage } from "ai";
 import { Thread } from "@/components/thread.aui";
 import { ThreadList } from "@/components/thread-list.aui";
 import {
+  LogOut,
   Moon,
   PanelLeft,
   PanelLeftClose,
   Plus,
+  Settings,
   Sun,
   X,
 } from "lucide-react";
 import {
-  UserButton,
   useAuth,
+  useClerk,
   useSignIn,
   useUser,
 } from "@clerk/clerk-react";
@@ -186,10 +188,24 @@ function SignedOutChat() {
       <ProductDock active="chat" />
       <section className="chat-signin-panel" aria-label="Sign in required">
         <div className="chat-signin-copy">
-          <span className="chat-signin-kicker">Chat</span>
-          <h1>Pick up the conversation.</h1>
-          <p>Sign in once to keep your chats, daily allowance, and useful memory with you across Miithii.</p>
+          <span className="chat-signin-kicker">Miithii Chat</span>
+          <h1>Say it your way.</h1>
+          <p>
+            Ask questions, write, explain, or just talk in English, Assamese, or a mix of both.
+          </p>
         </div>
+
+        <div className="chat-signin-facts" aria-label="Chat access details">
+          <div className="chat-signin-fact">
+            <span className="chat-signin-fact__dot" aria-hidden="true" />
+            <span><strong>Sign in required</strong> so your chats stay with your account.</span>
+          </div>
+          <div className="chat-signin-fact">
+            <span className="chat-signin-fact__dot" aria-hidden="true" />
+            <span><strong>50 messages each day</strong> with a fresh allowance at midnight IST.</span>
+          </div>
+        </div>
+
         <div className="chat-signin-actions">
           <button
             type="button"
@@ -203,10 +219,91 @@ function SignedOutChat() {
           </button>
         </div>
         {authError && <p className="chat-signin-error" role="alert">{authError}</p>}
-        <p className="chat-signin-helper">New here? Your Miithii account is created automatically.</p>
-        <p className="chat-signin-note">50 messages per day · resets at midnight IST</p>
+        <p className="chat-signin-helper">New to Miithii? Google sign-in creates your account automatically.</p>
       </section>
     </main>
+  );
+}
+
+function AccountMenu({ onOpenSettings }: { onOpenSettings: () => void }) {
+  const { user } = useUser();
+  const { signOut } = useClerk();
+  const [open, setOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const handlePointerDown = (event: PointerEvent) => {
+      if (!menuRef.current?.contains(event.target as Node)) setOpen(false);
+    };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [open]);
+
+  const name = user?.fullName?.trim()
+    || user?.firstName?.trim()
+    || user?.username?.trim()
+    || "Miithii account";
+  const email = user?.primaryEmailAddress?.emailAddress
+    || user?.emailAddresses?.[0]?.emailAddress
+    || "";
+  const initial = name.charAt(0).toUpperCase() || "M";
+
+  return (
+    <div className="chat-account-menu" ref={menuRef}>
+      <button
+        type="button"
+        className="chat-account-trigger"
+        onClick={() => setOpen((value) => !value)}
+        aria-label="Open account menu"
+        aria-haspopup="dialog"
+        aria-expanded={open}
+      >
+        {user?.imageUrl ? (
+          <img src={user.imageUrl} alt="" className="chat-account-avatar" />
+        ) : (
+          <span className="chat-account-avatar chat-account-avatar--initial" aria-hidden="true">{initial}</span>
+        )}
+      </button>
+
+      {open && (
+        <div className="chat-account-popover" role="dialog" aria-label="Account">
+          <div className="chat-account-summary">
+            <span className="chat-account-name">{name}</span>
+            {email ? <span className="chat-account-email">{email}</span> : null}
+          </div>
+          <div className="chat-account-divider" />
+          <button
+            type="button"
+            className="chat-account-action"
+            onClick={() => {
+              setOpen(false);
+              onOpenSettings();
+            }}
+          >
+            <Settings aria-hidden="true" />
+            <span>Settings & appearance</span>
+          </button>
+          <button
+            type="button"
+            className="chat-account-action chat-account-action--danger"
+            onClick={() => void signOut({ redirectUrl: "/" })}
+          >
+            <LogOut aria-hidden="true" />
+            <span>Sign out</span>
+          </button>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -433,15 +530,7 @@ function ChatShell({
           </>
         }
         account={
-          <div className="chat-product-user">
-            <UserButton
-              appearance={{
-                elements: {
-                  userButtonAvatarBox: "size-8",
-                },
-              }}
-            />
-          </div>
+          <AccountMenu onOpenSettings={() => setSettingsOpen(true)} />
         }
       />
 

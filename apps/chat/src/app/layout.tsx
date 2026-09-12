@@ -8,8 +8,8 @@ const display = Space_Grotesk({ subsets: ["latin"], variable: "--font-miithii-di
 const body = Manrope({ subsets: ["latin"], variable: "--font-miithii-body", display: "swap" });
 
 export const metadata: Metadata = {
-  title: "Miithii — Assamese AI companion",
-  description: "Talk with Miithii in your own words.",
+  title: "Miithii Chat — Assamese & English AI companion",
+  description: "Chat with Miithii in English, Assamese, or a mix of both.",
   robots: { index: false, follow: false }
 };
 

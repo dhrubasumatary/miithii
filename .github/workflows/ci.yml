@@ -54,8 +54,17 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Install API Worker dependencies
+        run: npm ci --prefix workers/api
+
       - name: Typecheck
         run: pnpm typecheck
 
       - name: Build
         run: pnpm build
+
+      - name: Test API Worker
+        run: npm --prefix workers/api test
+
+      - name: Validate API Worker bundle
+        run: npm --prefix workers/api run build

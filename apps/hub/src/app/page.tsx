@@ -6,12 +6,12 @@ const productCopy = {
   chat: {
     eyebrow: "Text",
     title: "Talk naturally.",
-    body: "A quiet workspace for longer conversations, memory, and everyday questions."
+    body: "Sign in once, then keep conversations, memory, and your daily allowance with you."
   },
   voice: {
     eyebrow: "Voice",
     title: "Speak instead.",
-    body: "Press, talk, and hear Miithii answer back in Assamese."
+    body: "Tap the mic, speak Assamese or Bodo, then pause — Miithii listens, replies, and speaks back."
   },
   subtitles: {
     eyebrow: "Subtitles",
@@ -27,10 +27,10 @@ export default function Page() {
 
       <section className="hub-hero" id="top" aria-labelledby="hub-title">
         <div className="hub-hero__copy">
-          <p className="hub-kicker">Assamese, on your terms.</p>
+          <p className="hub-kicker">Assamese and Bodo, on your terms.</p>
           <h1 id="hub-title">How do you want to talk?</h1>
           <p className="hub-intro">
-            One Miithii across text and voice, with Assamese speech tools on the way. Pick a mode and get straight to it.
+            One account across Chat and Voice, with Assamese and Bodo speech built in. Pick a mode and get straight to it.
           </p>
           <div className="hub-hero__actions">
             <ProductLink className="hub-cta hub-cta--primary" product="chat">Start chatting <span aria-hidden="true">→</span></ProductLink>

@@ -28,7 +28,7 @@ export default function Page() {
         </p>
 
         <WaitlistForm />
-        <p className="subtitles-note">No spam. We&apos;ll email you when the first usable build is ready.</p>
+        <p className="subtitles-note">No account needed. No spam. We&apos;ll email you when the first usable build is ready.</p>
       </section>
 
       <footer className="subtitles-footer">
