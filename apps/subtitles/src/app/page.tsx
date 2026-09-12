@@ -23,12 +23,10 @@ export default function Page() {
             ))}
           </span>
         </h1>
-        <p className="subtitles-intro">
-          Turn spoken Assamese into clean captions you can review, edit, and publish without fighting the language.
-        </p>
+        <p className="subtitles-intro">Clean Assamese captions for video and audio.</p>
 
         <WaitlistForm />
-        <p className="subtitles-note">No account needed. No spam. We&apos;ll email you when the first usable build is ready.</p>
+        <p className="subtitles-note">No account needed. We&apos;ll email you when it&apos;s ready.</p>
       </section>
 
       <footer className="subtitles-footer">

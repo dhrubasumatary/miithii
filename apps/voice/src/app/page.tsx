@@ -361,7 +361,7 @@ export default function Page() {
           <div className="voice-auth-orb" aria-hidden="true"><span /></div>
           <span className="voice-auth-state__eyebrow">Miithii Voice</span>
           <h1>Speak naturally. Hear Miithii answer.</h1>
-          <p>Speak in any language. Choose Assamese or Bodo for Miithii&apos;s spoken reply.</p>
+          <p>Use the language you know. Choose Assamese or Bodo for Miithii&apos;s spoken reply.</p>
           <div className="voice-auth-state__languages" aria-label="Available reply languages">
             <span>অসমীয়া</span>
             <i aria-hidden="true">↔</i>
@@ -407,9 +407,6 @@ export default function Page() {
 
       <main className="voice-stage">
         <div className="voice-language" aria-label="Choose Miithii's reply language">
-          <span className="voice-pronunciation">
-            Miithii <span>/ˈmiː.θiː/</span>
-          </span>
           <span className="voice-language__caption">Reply language</span>
           <div className="voice-language__options" role="group" aria-label="Reply language">
             {Object.entries(VOICE_LANGUAGES).map(([code, value]) => (
@@ -471,7 +468,7 @@ export default function Page() {
         </p>
 
         {turns.length === 0 && phase === "idle" ? (
-          <p className="voice-first-use">Speak any language · pause to send</p>
+          <p className="voice-first-use">Use your language · pause to send</p>
         ) : null}
 
         {previewText && <p className="voice-preview">{previewText}</p>}

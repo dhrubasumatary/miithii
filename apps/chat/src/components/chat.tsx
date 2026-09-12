@@ -190,9 +190,7 @@ function SignedOutChat() {
         <div className="chat-signin-copy">
           <span className="chat-signin-kicker">Miithii Chat</span>
           <h1>Think in your language.</h1>
-          <p>
-            Ask, write, plan, or just talk. Use English, Assamese, or both. Miithii keeps useful context so you can keep going instead of starting over.
-          </p>
+          <p>Ask, write, plan, or talk. Use English, Assamese, or both. Useful context can follow you.</p>
         </div>
 
         <p className="chat-signin-languages">English <span>·</span> অসমীয়া <span>·</span> mix both</p>
@@ -210,7 +208,7 @@ function SignedOutChat() {
           </button>
         </div>
         {authError && <p className="chat-signin-error" role="alert">{authError}</p>}
-        <p className="chat-signin-helper">Sign in once · 50 messages/day · your conversations stay with you</p>
+        <p className="chat-signin-helper">Sign in once · 50 messages/day · conversations sync</p>
       </section>
     </main>
   );
