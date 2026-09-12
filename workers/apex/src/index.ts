@@ -238,7 +238,7 @@ const homepage = String.raw`<!doctype html>
           </a>
           <a class="product" href="https://voice.miithii.in/">
             <div class="product-top"><h2>Voice</h2><span class="product-arrow" aria-hidden="true">↗</span></div>
-            <p>Speak in Assamese or Bodo. Pause when you’re done and Miithii replies out loud.</p>
+            <p>Speak naturally. Choose Assamese or Bodo for Miithii’s reply, then pause when you’re done.</p>
             <small>Assamese · Bodo</small>
           </a>
           <a class="product" href="https://subtitles.miithii.in/">

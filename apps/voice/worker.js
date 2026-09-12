@@ -256,8 +256,6 @@ async function handleStt(request, env) {
   } catch {
     return json({ error: "Recording could not be read", code: "INVALID_AUDIO" }, 400);
   }
-  const language = form.get("language") ?? "as";
-  if (!Object.hasOwn(LANGUAGES, language)) return json({ error: "Unsupported language" }, 400);
   const file = form.get("file");
   if (!(file instanceof Blob) || file.size === 0) return json({ error: "Recording is empty", code: "INVALID_AUDIO" }, 400);
   if (file.size > MAX_AUDIO_BYTES) return json({ error: "Recording is too long", code: "INVALID_AUDIO" }, 413);
@@ -265,7 +263,6 @@ async function handleStt(request, env) {
   const upstreamForm = new FormData();
   upstreamForm.append("file", file, "recording.wav");
   upstreamForm.append("model", "indic-transcribe");
-  upstreamForm.append("language", language);
 
   try {
     const response = await fetch(`${BODHAN_BASE_URL}/audio/transcriptions`, {
@@ -281,7 +278,7 @@ async function handleStt(request, env) {
     const data = await response.json();
     const text = typeof data?.text === "string" ? data.text.trim() : "";
     if (!text) return json({ error: "I couldn't hear any words. Try again a little closer to the microphone.", code: "NO_SPEECH" }, 422);
-    return json({ text, language });
+    return json({ text });
   } catch (error) {
     if (error?.name === "AbortError") throw error;
     console.error(JSON.stringify({ event: "voice_stt_error", type: error?.name || "Error" }));

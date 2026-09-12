@@ -44,6 +44,7 @@ export default function Page() {
   const [recordSeconds, setRecordSeconds] = useState(0);
   const [muted, setMuted] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [languageSwitchCue, setLanguageSwitchCue] = useState(0);
 
   const recorderRef = useRef<MicRecorder | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -132,7 +133,6 @@ export default function Page() {
       const token = await getApiToken();
       const sttForm = new FormData();
       sttForm.append("file", audio, "recording.wav");
-      sttForm.append("language", language);
       const sttRes = await fetch("/api/stt", {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
@@ -360,7 +360,7 @@ export default function Page() {
         <main className="voice-auth-state voice-auth-state--signin">
           <span className="voice-auth-state__eyebrow">Voice</span>
           <h1>Talk with Miithii.</h1>
-          <p>Speak in Assamese or Bodo. Sign in once, choose your language, then tap the mic and talk. Chat and Voice share 50 messages a day.</p>
+          <p>Speak naturally in English or an Indian language. Choose Assamese or Bodo for Miithii&apos;s reply. Chat and Voice share 50 messages a day.</p>
           <ClerkSignIn />
         </main>
       </div>
@@ -386,9 +386,8 @@ export default function Page() {
     if (nextLanguage === language || phase !== "idle") return;
     stopPlayback();
     setLanguage(nextLanguage);
-    historyRef.current = [];
-    setTurns([]);
     setError(null);
+    setLanguageSwitchCue(value => value + 1);
   };
 
   const lastUser = [...turns].reverse().find(turn => turn.role === "user");
@@ -400,24 +399,31 @@ export default function Page() {
       <ProductDock active="voice" account={<VoiceAccountMenu />} />
 
       <main className="voice-stage">
-        <label className="voice-language">
-          <span className="voice-language__caption">Language</span>
-          <span className="voice-language__select-wrap">
-            <select
-              aria-label="Voice language"
-              value={language}
-              disabled={phase !== "idle"}
-              onChange={event => changeLanguage(event.target.value as VoiceLanguageCode)}
-            >
-              {Object.entries(VOICE_LANGUAGES).map(([code, value]) => (
-                <option key={code} value={code}>{value.label} · {value.english}</option>
-              ))}
-            </select>
-            <svg viewBox="0 0 20 20" aria-hidden="true">
-              <path d="m6.5 8 3.5 3.5L13.5 8" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </span>
-        </label>
+        <div className="voice-language" aria-label="Choose Miithii's reply language">
+          <span className="voice-language__caption">Miithii replies in</span>
+          <div className="voice-language__options" role="group" aria-label="Reply language">
+            {Object.entries(VOICE_LANGUAGES).map(([code, value]) => (
+              <button
+                type="button"
+                key={code}
+                className="voice-language__option"
+                data-active={language === code ? "true" : "false"}
+                aria-pressed={language === code}
+                aria-label={`Reply in ${value.english}`}
+                disabled={phase !== "idle"}
+                onClick={() => changeLanguage(code as VoiceLanguageCode)}
+              >
+                <span>{value.label}</span>
+                <small>{value.english}</small>
+              </button>
+            ))}
+          </div>
+          {languageSwitchCue > 0 ? (
+            <span className="sr-only" role="status" aria-live="polite">
+              Miithii will reply in {VOICE_LANGUAGES[language].english}.
+            </span>
+          ) : null}
+        </div>
         <div
           className="voice-orb"
           data-phase={phase}
@@ -428,6 +434,21 @@ export default function Page() {
           <span className="voice-orb__halo" />
           <span className="voice-orb__halo voice-orb__halo--late" />
           <span className="voice-orb__body" />
+          {languageSwitchCue > 0 ? (
+            <span
+              className="voice-language-change"
+              key={`${language}-${languageSwitchCue}`}
+              aria-hidden="true"
+            >
+              <span className="voice-language-change__bars">
+                <i />
+                <i />
+                <i />
+              </span>
+              <strong>{VOICE_LANGUAGES[language].label}</strong>
+              <small>{VOICE_LANGUAGES[language].english}</small>
+            </span>
+          ) : null}
         </div>
 
         <p className="voice-status" role="status">
@@ -441,7 +462,7 @@ export default function Page() {
 
         {turns.length === 0 && phase === "idle" ? (
           <p className="voice-first-use">
-            Speak naturally in {VOICE_LANGUAGES[language].english}. Pause when you&apos;re done — Miithii sends automatically.
+            Speak naturally in English or an Indian language. Miithii answers in {VOICE_LANGUAGES[language].english}. Pause when you&apos;re done — it sends automatically.
           </p>
         ) : null}
 

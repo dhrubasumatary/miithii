@@ -10,7 +10,7 @@ const products = [
   {
     key: "voice" as const,
     label: "Voice",
-    detail: "Speak in Assamese or Bodo. Pause when you’re done and Miithii replies out loud.",
+    detail: "Speak naturally. Choose Assamese or Bodo for Miithii’s reply, then pause when you’re done.",
     meta: "Assamese · Bodo"
   },
   {
