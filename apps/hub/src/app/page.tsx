@@ -1,73 +1,51 @@
-import { getProductLinks, ProductDock, ProductLink } from "@miithii/ui";
+import { ProductDock, ProductLink } from "@miithii/ui";
 
-const products = getProductLinks(["chat", "voice", "subtitles"]);
-
-const productCopy = {
-  chat: {
-    eyebrow: "Text",
-    title: "Talk naturally.",
-    body: "Sign in once, then keep conversations, memory, and your daily allowance with you."
+const products = [
+  {
+    key: "chat" as const,
+    label: "Chat",
+    detail: "Write, ask, think, or just talk. Sign in once and keep your conversations with you.",
+    meta: "50 messages / day"
   },
-  voice: {
-    eyebrow: "Voice",
-    title: "Speak instead.",
-    body: "Tap the mic, speak Assamese or Bodo, then pause — Miithii listens, replies, and speaks back."
+  {
+    key: "voice" as const,
+    label: "Voice",
+    detail: "Speak in Assamese or Bodo. Pause when you’re done and Miithii replies out loud.",
+    meta: "Assamese · Bodo"
   },
-  subtitles: {
-    eyebrow: "Subtitles",
-    title: "Subtitle your content.",
-    body: "Assamese captions for reels, podcasts, and shorts. Join the launch list."
+  {
+    key: "subtitles" as const,
+    label: "Subtitles",
+    detail: "Assamese captions for video and audio. Join the launch list while we finish the pipeline.",
+    meta: "Waitlist · no account"
   }
-} as const;
+];
 
 export default function Page() {
   return (
     <main className="hub-page" aria-label="Miithii home">
       <ProductDock active="home" />
 
-      <section className="hub-hero" id="top" aria-labelledby="hub-title">
-        <div className="hub-hero__copy">
-          <p className="hub-kicker">Assamese and Bodo, on your terms.</p>
-          <h1 id="hub-title">How do you want to talk?</h1>
-          <p className="hub-intro">
-            One account across Chat and Voice, with Assamese and Bodo speech built in. Pick a mode and get straight to it.
-          </p>
-          <div className="hub-hero__actions">
-            <ProductLink className="hub-cta hub-cta--primary" product="chat">Start chatting <span aria-hidden="true">→</span></ProductLink>
-            <ProductLink className="hub-cta" product="voice">Talk with voice</ProductLink>
-          </div>
-        </div>
-        <div className="hub-orbit" aria-hidden="true">
-          <span className="hub-orbit__ring" />
-          <span className="hub-orbit__ring hub-orbit__ring--two" />
-          <span className="hub-orbit__core" />
-        </div>
-      </section>
+      <section className="hub-launcher" aria-labelledby="hub-title">
+        <header className="hub-intro">
+          <p className="hub-pronunciation">Miithii <span>/ˈmiː.θiː/</span> · MEE-thee</p>
+          <h1 id="hub-title">Choose how you want to talk.</h1>
+          <p className="hub-summary">Chat, voice, and subtitles for everyday Assamese and Bodo use.</p>
+        </header>
 
-      <section className="hub-products" aria-label="Product surfaces">
-        {products.map((product, index) => {
-          const copy = productCopy[product.key as keyof typeof productCopy];
-          return (
+        <div className="hub-products" aria-label="Miithii products">
+          {products.map((product) => (
             <ProductLink className="hub-product" product={product.key} key={product.key}>
-              <div className="hub-product__index">0{index + 1}</div>
-              <div className="hub-product__copy">
-                <span className="hub-product__eyebrow">{copy.eyebrow}</span>
-                <h2>{copy.title}</h2>
-                <p>{copy.body}</p>
-                <span className="hub-product__action">
-                  {product.key === "subtitles" ? "Join the waitlist" : `Open ${product.label}`}
-                </span>
+              <div className="hub-product__top">
+                <h2>{product.label}</h2>
+                <span aria-hidden="true">↗</span>
               </div>
-              <span className="hub-product__arrow" aria-hidden="true">↗</span>
+              <p>{product.detail}</p>
+              <small>{product.meta}</small>
             </ProductLink>
-          );
-        })}
+          ))}
+        </div>
       </section>
-
-      <footer className="hub-footer">
-        <span>Miithii</span>
-        <span>Built for everyday Assamese conversation.</span>
-      </footer>
     </main>
   );
 }
