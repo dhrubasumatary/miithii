@@ -165,11 +165,16 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          curl --fail --silent --show-error --location https://miithii.in/ | grep -q "<title>Miithii"
-          curl --fail --silent --show-error --location https://chat.miithii.in/ | grep -qi "Miithii"
-          curl --fail --silent --show-error --location https://voice.miithii.in/ | grep -qi "Miithii"
-          curl --fail --silent --show-error --location https://subtitles.miithii.in/ | grep -qi "Miithii"
-          curl --fail --silent --show-error https://api.miithii.in/health | grep -q '"status":"ok"'
+          curl --fail --silent --show-error --location --output /tmp/apex.html https://miithii.in/
+          grep -q "<title>Miithii" /tmp/apex.html
+          curl --fail --silent --show-error --location --output /tmp/chat.html https://chat.miithii.in/
+          grep -qi "Miithii" /tmp/chat.html
+          curl --fail --silent --show-error --location --output /tmp/voice.html https://voice.miithii.in/
+          grep -qi "Miithii" /tmp/voice.html
+          curl --fail --silent --show-error --location --output /tmp/subtitles.html https://subtitles.miithii.in/
+          grep -qi "Miithii" /tmp/subtitles.html
+          curl --fail --silent --show-error --output /tmp/api-health.json https://api.miithii.in/health
+          grep -q '"status":"ok"' /tmp/api-health.json
           chat_api_status="$(curl --silent --output /tmp/chat-api.json --write-out "%{http_code}" https://chat.miithii.in/api/usage)"
           test "$chat_api_status" = "401"
           grep -q 'AUTH_REQUIRED' /tmp/chat-api.json
