@@ -37,11 +37,27 @@ body {
   font-size: clamp(26px, 5vw, 42px);
 }
 
+.voice-auth-state--signin h1 {
+  max-width: 680px;
+  font-size: clamp(40px, 6vw, 64px);
+  font-weight: 620;
+  letter-spacing: -0.055em;
+  line-height: 0.96;
+  text-wrap: balance;
+}
+
 .voice-auth-state p {
   width: min(100%, 34rem);
   max-width: 34rem;
   color: var(--mi-color-text-muted);
   line-height: 1.6;
+}
+
+.voice-auth-state--signin p {
+  max-width: 540px;
+  font-size: 14px;
+  line-height: 1.58;
+  text-wrap: balance;
 }
 
 .voice-auth-state__mark {
@@ -289,6 +305,71 @@ body {
   font-weight: 700;
   letter-spacing: 0.11em;
   text-transform: uppercase;
+}
+
+.voice-auth-orb {
+  position: relative;
+  display: grid;
+  width: 112px;
+  height: 112px;
+  place-items: center;
+  margin-bottom: 3px;
+}
+
+.voice-auth-orb::before,
+.voice-auth-orb::after {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border: 1px solid color-mix(in srgb, var(--mi-color-primary) 32%, transparent);
+  border-radius: 50%;
+  animation: voice-auth-ripple 2.8s ease-out infinite;
+}
+
+.voice-auth-orb::after {
+  animation-delay: 1.4s;
+}
+
+.voice-auth-orb span {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  background:
+    radial-gradient(55% 55% at 34% 26%, rgba(255,255,255,.42), transparent 65%),
+    radial-gradient(90% 90% at 50% 62%, var(--mi-color-primary) 0%, color-mix(in srgb, var(--mi-color-primary) 24%, #07130f) 100%);
+  box-shadow: 0 18px 46px color-mix(in srgb, var(--mi-color-primary) 22%, transparent), inset 0 -10px 28px rgba(0,0,0,.24);
+  animation: orb-idle 5s ease-in-out infinite;
+}
+
+@keyframes voice-auth-ripple {
+  0% { opacity: .52; transform: scale(.72); }
+  100% { opacity: 0; transform: scale(1.34); }
+}
+
+.voice-auth-state__languages {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  color: var(--mi-color-primary);
+  font-family: var(--font-miithii-assamese), var(--font-miithii-bodo), var(--font-body), sans-serif;
+  font-size: 15px;
+  font-weight: 750;
+}
+
+.voice-auth-state__languages i {
+  color: var(--mi-color-text-muted);
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 600;
+}
+
+.voice-auth-state__helper {
+  margin-top: -2px;
+  color: var(--mi-color-text-muted);
+  font-size: 10.5px;
+  font-weight: 600;
 }
 
 .voice-language__options {
@@ -682,6 +763,25 @@ body {
 }
 
 @media (max-width: 520px) {
+  .voice-auth-state--signin {
+    gap: 12px;
+    padding: calc(82px + env(safe-area-inset-top)) 22px max(28px, env(safe-area-inset-bottom));
+  }
+
+  .voice-auth-state--signin h1 {
+    font-size: clamp(40px, 12vw, 52px);
+  }
+
+  .voice-auth-orb {
+    width: 96px;
+    height: 96px;
+  }
+
+  .voice-auth-orb span {
+    width: 66px;
+    height: 66px;
+  }
+
   .voice-stage {
     gap: 16px;
     padding-inline: 16px;

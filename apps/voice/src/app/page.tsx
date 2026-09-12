@@ -141,7 +141,7 @@ export default function Page() {
       const sttData = await sttRes.json();
       if (!sttRes.ok) throw new Error(sttData.error ?? "Transcription failed");
       const heard = String(sttData.text ?? "");
-      if (!heard) throw new Error("Didn't catch that — try speaking a little closer");
+      if (!heard) throw new Error("Didn't catch that. Try speaking a little closer");
 
       const history = [...historyRef.current, { role: "user" as const, text: heard }];
       setTurns(history);
@@ -182,7 +182,7 @@ export default function Page() {
     if (recorder.durationSeconds < MIN_RECORD_SECONDS) {
       recorder.abort().catch(() => {});
       setPhase("idle");
-      setError("That was too short — try again");
+      setError("That was too short. Try again");
       return;
     }
     recorder
@@ -358,10 +358,17 @@ export default function Page() {
       <div className="voice-app voice-app--auth">
         <ProductDock active="voice" />
         <main className="voice-auth-state voice-auth-state--signin">
-          <span className="voice-auth-state__eyebrow">Voice</span>
-          <h1>Talk with Miithii.</h1>
-          <p>Speak any language. Choose Assamese or Bodo for the reply. Chat + Voice share 50 messages a day.</p>
+          <div className="voice-auth-orb" aria-hidden="true"><span /></div>
+          <span className="voice-auth-state__eyebrow">Miithii Voice</span>
+          <h1>Speak naturally. Hear Miithii answer.</h1>
+          <p>Speak in any language. Choose Assamese or Bodo for Miithii&apos;s spoken reply.</p>
+          <div className="voice-auth-state__languages" aria-label="Available reply languages">
+            <span>অসমীয়া</span>
+            <i aria-hidden="true">↔</i>
+            <span>बड़ो</span>
+          </div>
           <ClerkSignIn />
+          <small className="voice-auth-state__helper">Sign in once · 50 messages/day shared with Chat</small>
         </main>
       </div>
     );

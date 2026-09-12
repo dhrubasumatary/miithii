@@ -15,7 +15,7 @@ type ViewTransitionDocument = Document & {
   startViewTransition?: (update: () => void) => { finished: Promise<void> };
 };
 
-export const miithiiThemeInitScript = `(()=>{try{const k='${STORAGE_KEY}';const c=document.cookie.split('; ').find(v=>v.startsWith(k+'='))?.split('=')[1];const l=localStorage.getItem(k);const s=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';const t=(l==='light'||l==='dark')?l:((c==='light'||c==='dark')?c:s);document.documentElement.dataset.theme=t;document.documentElement.style.colorScheme=t;const n=document.cookie.split('; ').find(v=>v.startsWith('${PRODUCT_TRANSITION_COOKIE}='))?.split('=')[1];if(n)document.documentElement.dataset.productEntering=n;}catch{document.documentElement.dataset.theme='dark';document.documentElement.style.colorScheme='dark';}})();`;
+export const miithiiThemeInitScript = `(()=>{try{const k='${STORAGE_KEY}';const c=document.cookie.split('; ').find(v=>v.startsWith(k+'='))?.split('=')[1];const l=localStorage.getItem(k);const s=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';const t=(c==='light'||c==='dark')?c:((l==='light'||l==='dark')?l:s);document.documentElement.dataset.theme=t;document.documentElement.style.colorScheme=t;try{localStorage.setItem(k,t)}catch{}const n=document.cookie.split('; ').find(v=>v.startsWith('${PRODUCT_TRANSITION_COOKIE}='))?.split('=')[1];if(n)document.documentElement.dataset.productEntering=n;}catch{document.documentElement.dataset.theme='dark';document.documentElement.style.colorScheme='dark';}})();`;
 
 function readTheme(): MiithiiTheme {
   if (typeof document === "undefined") return "dark";

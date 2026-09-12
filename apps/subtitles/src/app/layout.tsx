@@ -24,18 +24,25 @@ const mono = Space_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "Miithii Subtitles",
+    default: "Miithii Subtitles | Assamese Captions for Video and Audio",
     template: "%s | Miithii Subtitles"
   },
-  description: "Join the waitlist for Assamese subtitles for Instagram reels, podcasts, and shorts.",
+  description: "Join the waitlist for Miithii Subtitles, an Assamese captioning tool for reels, podcasts, shorts, video, and audio.",
   metadataBase: new URL("https://subtitles.miithii.in"),
   alternates: { canonical: "/" },
+  robots: { index: true, follow: true },
   openGraph: {
-    title: "Miithii Subtitles",
-    description: "Assamese subtitles for reels, podcasts, and shorts — coming soon.",
+    title: "Miithii Subtitles | Assamese Captions for Video and Audio",
+    description: "Assamese subtitles for reels, podcasts, shorts, video, and audio. Join the waitlist.",
     url: "https://subtitles.miithii.in",
     siteName: "Miithii",
-    type: "website"
+    type: "website",
+    locale: "en_IN"
+  },
+  twitter: {
+    card: "summary",
+    title: "Miithii Subtitles | Assamese Captions for Video and Audio",
+    description: "Assamese subtitles for reels, podcasts, shorts, video, and audio. Join the waitlist."
   }
 };
 

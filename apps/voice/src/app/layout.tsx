@@ -10,15 +10,31 @@ const assamese = Noto_Sans_Bengali({ subsets: ["bengali"], variable: "--font-mii
 const bodo = Noto_Sans_Devanagari({ subsets: ["devanagari"], variable: "--font-miithii-bodo", display: "swap" });
 
 export const metadata: Metadata = {
-  title: "Miithii Voice",
-  description: "Have a spoken Assamese or Bodo conversation with Miithii."
+  metadataBase: new URL("https://voice.miithii.in"),
+  title: "Miithii Voice | Assamese and Bodo Voice AI",
+  description: "Speak naturally in English or an Indian language and hear Miithii reply in Assamese or Bodo.",
+  alternates: { canonical: "/" },
+  robots: { index: true, follow: true },
+  openGraph: {
+    title: "Miithii Voice | Assamese and Bodo Voice AI",
+    description: "Speak naturally and choose Assamese or Bodo for Miithii's spoken reply.",
+    url: "https://voice.miithii.in",
+    siteName: "Miithii",
+    type: "website",
+    locale: "en_IN"
+  },
+  twitter: {
+    card: "summary",
+    title: "Miithii Voice | Assamese and Bodo Voice AI",
+    description: "Speak naturally and choose Assamese or Bodo for Miithii's spoken reply."
+  }
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#f4f2ea"
+  themeColor: "#07130f"
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

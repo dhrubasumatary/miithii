@@ -166,13 +166,21 @@ jobs:
         run: |
           set -euo pipefail
           curl --fail --silent --show-error --location --output /tmp/apex.html https://miithii.in/
-          grep -q "<title>Miithii" /tmp/apex.html
+          grep -q '<title>Miithii | Assamese and Bodo AI Chat and Voice</title>' /tmp/apex.html
+          grep -q '<link rel="canonical" href="https://miithii.in"/>' /tmp/apex.html
+          grep -q 'application/ld+json' /tmp/apex.html
+          grep -q 'rel="icon"' /tmp/apex.html
+          curl --fail --silent --show-error --location --output /tmp/apex-icon.svg https://miithii.in/icon.svg
           curl --fail --silent --show-error --location --output /tmp/chat.html https://chat.miithii.in/
-          grep -qi "Miithii" /tmp/chat.html
+          grep -q '<title>Miithii Chat | Chat in Assamese and English</title>' /tmp/chat.html
+          grep -q '<link rel="canonical" href="https://chat.miithii.in"/>' /tmp/chat.html
+          ! grep -qi 'noindex' /tmp/chat.html
           curl --fail --silent --show-error --location --output /tmp/voice.html https://voice.miithii.in/
-          grep -qi "Miithii" /tmp/voice.html
+          grep -q '<title>Miithii Voice | Assamese and Bodo Voice AI</title>' /tmp/voice.html
+          grep -q '<link rel="canonical" href="https://voice.miithii.in"/>' /tmp/voice.html
           curl --fail --silent --show-error --location --output /tmp/subtitles.html https://subtitles.miithii.in/
-          grep -qi "Miithii" /tmp/subtitles.html
+          grep -q '<title>Miithii Subtitles | Assamese Captions for Video and Audio</title>' /tmp/subtitles.html
+          grep -q '<link rel="canonical" href="https://subtitles.miithii.in"/>' /tmp/subtitles.html
           curl --fail --silent --show-error --output /tmp/api-health.json https://api.miithii.in/health
           grep -q '"status":"ok"' /tmp/api-health.json
           chat_api_status="$(curl --silent --output /tmp/chat-api.json --write-out "%{http_code}" https://chat.miithii.in/api/usage)"

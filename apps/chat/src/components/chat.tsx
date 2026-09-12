@@ -189,22 +189,13 @@ function SignedOutChat() {
       <section className="chat-signin-panel" aria-label="Sign in required">
         <div className="chat-signin-copy">
           <span className="chat-signin-kicker">Miithii Chat</span>
-          <h1>Say it your way.</h1>
+          <h1>Think in your language.</h1>
           <p>
-            Ask questions, write, explain, or just talk in English, Assamese, or a mix of both.
+            Ask, write, plan, or just talk. Use English, Assamese, or both. Miithii keeps useful context so you can keep going instead of starting over.
           </p>
         </div>
 
-        <div className="chat-signin-facts" aria-label="Chat access details">
-          <div className="chat-signin-fact">
-            <span className="chat-signin-fact__dot" aria-hidden="true" />
-            <span><strong>Sign in required</strong> so your chats stay with your account.</span>
-          </div>
-          <div className="chat-signin-fact">
-            <span className="chat-signin-fact__dot" aria-hidden="true" />
-            <span><strong>50 messages each day</strong> with a fresh allowance at midnight IST.</span>
-          </div>
-        </div>
+        <p className="chat-signin-languages">English <span>·</span> অসমীয়া <span>·</span> mix both</p>
 
         <div className="chat-signin-actions">
           <button
@@ -219,7 +210,7 @@ function SignedOutChat() {
           </button>
         </div>
         {authError && <p className="chat-signin-error" role="alert">{authError}</p>}
-        <p className="chat-signin-helper">New to Miithii? Google sign-in creates your account automatically.</p>
+        <p className="chat-signin-helper">Sign in once · 50 messages/day · your conversations stay with you</p>
       </section>
     </main>
   );
@@ -642,9 +633,9 @@ const MiithiiWelcome: FC = () => {
   const { user } = useUser();
   const [dayGreeting, setDayGreeting] = useState("Hello");
   const starters = [
-    "Help me write something in Assamese",
-    "Explain something simply",
-    "Chat with me casually",
+    "Help me phrase this naturally in Assamese",
+    "Think through a decision with me",
+    "Explain this without jargon",
   ];
 
   const startWith = (text: string) => {
@@ -671,9 +662,9 @@ const MiithiiWelcome: FC = () => {
 
   return (
     <section className="chat-welcome" aria-label="Welcome to Miithii">
-      <span className="chat-welcome__eyebrow">Chat</span>
+      <span className="chat-welcome__eyebrow">Write naturally · context follows</span>
       <h1>{dayGreeting}{displayName ? `, ${displayName}` : ""}.</h1>
-      <p>What&apos;s on your mind? Write in English, Assamese, or mix them — Miithii will follow your lead.</p>
+      <p>Use English, Assamese, or both. Miithii can carry useful context forward, so you can keep going instead of starting from zero.</p>
       <div className="chat-welcome__starters" aria-label="Conversation starters">
         {starters.map((starter) => (
           <button key={starter} type="button" onClick={() => startWith(starter)}>
