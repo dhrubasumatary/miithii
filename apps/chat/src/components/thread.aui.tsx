@@ -34,6 +34,7 @@ import {
   ErrorPrimitive,
   groupPartByType,
   MessagePrimitive,
+  SelectionToolbarPrimitive,
   ThreadPrimitive,
   type FileMessagePartComponent,
   type ImageMessagePartComponent,
@@ -52,8 +53,12 @@ import {
   MoreHorizontalIcon,
   PaperclipIcon,
   PencilIcon,
+  QuoteIcon,
   RefreshCwIcon,
   SquareIcon,
+  ThumbsDownIcon,
+  ThumbsUpIcon,
+  XIcon,
 } from "lucide-react";
 import {
   createContext,
@@ -203,6 +208,12 @@ const ThreadRoot: FC<{ isEmpty: boolean; autoFocus: boolean; composerMeta?: Reac
           </ThreadPrimitive.ViewportFooter>
         </div>
       </ThreadPrimitive.Viewport>
+      <SelectionToolbarPrimitive.Root className="aui-selection-toolbar bg-popover text-popover-foreground z-50 flex items-center rounded-xl border p-1 shadow-lg">
+        <SelectionToolbarPrimitive.Quote className="hover:bg-accent inline-flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-xs font-semibold outline-none">
+          <QuoteIcon className="size-3.5" />
+          Quote
+        </SelectionToolbarPrimitive.Quote>
+      </SelectionToolbarPrimitive.Root>
     </ThreadPrimitive.Root>
   );
 };
@@ -245,6 +256,13 @@ const Composer: FC<{ autoFocus: boolean }> = ({ autoFocus }) => {
           />
         }
       >
+        <ComposerPrimitive.Quote className="aui-composer-quote border-border/70 bg-muted/45 mx-1 mb-1 flex items-center gap-2 rounded-xl border px-3 py-2 text-xs">
+          <QuoteIcon className="text-primary size-3.5 shrink-0" />
+          <ComposerPrimitive.QuoteText className="text-muted-foreground min-w-0 flex-1 truncate" />
+          <ComposerPrimitive.QuoteDismiss className="text-muted-foreground hover:text-foreground grid size-6 shrink-0 place-items-center rounded-full" aria-label="Dismiss quote">
+            <XIcon className="size-3.5" />
+          </ComposerPrimitive.QuoteDismiss>
+        </ComposerPrimitive.Quote>
         <ComposerAttachments />
         <ComposerPrimitive.Input
                       placeholder="Send a message..."
@@ -375,13 +393,20 @@ const MessageError: FC = () => {
 
   return (
     <MessagePrimitive.Error>
-      <ErrorPrimitive.Root className="aui-message-error-root border-destructive/40 bg-destructive/5 text-destructive mt-2 flex flex-col gap-1 rounded-lg border px-3 py-2.5 text-sm">
-        <span className="aui-message-error-message">{error.message}</span>
-        {error.requestId && (
-          <span className="text-muted-foreground text-[11px]">
-            Reference {error.requestId.slice(0, 8)}
-          </span>
-        )}
+      <ErrorPrimitive.Root className="aui-message-error-root border-destructive/30 bg-destructive/5 mt-2 flex items-center justify-between gap-3 rounded-xl border px-3 py-2.5 text-sm">
+        <div className="min-w-0">
+          <span className="aui-message-error-message text-destructive block">{error.message}</span>
+          {error.requestId && (
+            <span className="text-muted-foreground text-[11px]">
+              Reference {error.requestId.slice(0, 8)}
+            </span>
+          )}
+        </div>
+        <ActionBarPrimitive.Root>
+          <ActionBarPrimitive.Reload className="text-muted-foreground hover:bg-accent hover:text-foreground inline-flex h-8 shrink-0 items-center gap-1.5 rounded-lg px-2.5 text-xs font-semibold">
+            <RefreshCwIcon className="size-3.5" /> Retry
+          </ActionBarPrimitive.Reload>
+        </ActionBarPrimitive.Root>
       </ErrorPrimitive.Root>
     </MessagePrimitive.Error>
   );
@@ -406,6 +431,7 @@ const AssistantMessage: FC = () => {
     >
       <div
         data-slot="aui_assistant-message-content"
+        data-aui-quote-selectable=""
         className="text-foreground px-2 leading-relaxed wrap-break-word"
       >
         <MessagePrimitive.GroupedParts
@@ -472,10 +498,10 @@ const AssistantMessage: FC = () => {
                 return (
                   <span
                     data-slot="aui_assistant-message-indicator"
-                    className="animate-pulse font-sans"
+                    className="aui-working-dots inline-flex items-center gap-1 py-1"
                     aria-label="Assistant is working"
                   >
-                    {"●"}
+                    <i /><i /><i />
                   </span>
                 );
               default:
@@ -509,6 +535,8 @@ const AssistantActionBar: FC = () => {
                     </AuiIf><AuiIf condition={(s) => !s.message.isCopied}>
                       <CopyIcon className="animate-in zoom-in-75 fade-in duration-150" />
                     </AuiIf></ActionBarPrimitive.Copy>
+      <ActionBarPrimitive.FeedbackPositive render={<TooltipIconButton tooltip="Helpful" className="data-[submitted=true]:bg-accent data-[submitted=true]:text-primary" />}><ThumbsUpIcon /></ActionBarPrimitive.FeedbackPositive>
+      <ActionBarPrimitive.FeedbackNegative render={<TooltipIconButton tooltip="Not helpful" className="data-[submitted=true]:bg-accent data-[submitted=true]:text-destructive" />}><ThumbsDownIcon /></ActionBarPrimitive.FeedbackNegative>
       <ActionBarPrimitive.Reload render={<TooltipIconButton tooltip="Refresh" />}><RefreshCwIcon /></ActionBarPrimitive.Reload>
       <ActionBarMorePrimitive.Root>
         <ActionBarMorePrimitive.Trigger render={<TooltipIconButton tooltip="More" className="data-[state=open]:bg-accent" />}><MoreHorizontalIcon /></ActionBarMorePrimitive.Trigger>
@@ -546,6 +574,15 @@ const UserMessage: FC = () => {
       data-role="user"
     >
       <UserMessageAttachments />
+
+      <MessagePrimitive.Quote>
+        {(quote) => (
+          <div className="aui-user-quote border-border/70 text-muted-foreground col-start-2 mb-1 flex max-w-[85%] items-start gap-2 rounded-xl border px-3 py-2 text-xs">
+            <QuoteIcon className="text-primary mt-0.5 size-3.5 shrink-0" />
+            <span className="line-clamp-2">{quote.text}</span>
+          </div>
+        )}
+      </MessagePrimitive.Quote>
 
       <div className="aui-user-message-content-wrapper relative col-start-2 min-w-0">
         <div className="aui-user-message-content peer bg-muted text-foreground rounded-xl px-4 py-2 wrap-break-word empty:hidden">

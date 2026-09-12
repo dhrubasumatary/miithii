@@ -13,6 +13,7 @@ import type { UIMessage } from "ai";
 import { Thread } from "@/components/thread.aui";
 import { ThreadList } from "@/components/thread-list.aui";
 import {
+  ArrowUp,
   LogOut,
   Moon,
   PanelLeft,
@@ -245,7 +246,7 @@ function SignedOutChat() {
               <div className="chat-preview-composer__footer">
                 <span>50 messages/day after sign in</span>
                 <button type="submit" className="chat-preview-send" disabled={!draft.trim()} aria-label="Send message">
-                  ↑
+                  <ArrowUp aria-hidden="true" />
                 </button>
               </div>
             </div>
@@ -256,10 +257,19 @@ function SignedOutChat() {
       {signInOpen && (
         <div className="chat-auth-overlay" role="presentation" onClick={() => !isRedirecting && setSignInOpen(false)}>
           <section className="chat-auth-sheet" role="dialog" aria-modal="true" aria-label="Sign in to continue" onClick={(event) => event.stopPropagation()}>
-            <button type="button" className="chat-auth-sheet__close" onClick={() => setSignInOpen(false)} disabled={isRedirecting} aria-label="Close sign in">×</button>
-            <span className="chat-signin-kicker">Keep going</span>
-            <h2>{draft.trim() ? "Your message is ready." : "Sign in to Miithii."}</h2>
-            <p>{draft.trim() ? "Sign in once. Miithii will send it automatically and keep the conversation with your account." : "Your conversations and useful context stay with your account."}</p>
+            <span className="chat-auth-sheet__handle" aria-hidden="true" />
+            <button type="button" className="chat-auth-sheet__close" onClick={() => setSignInOpen(false)} disabled={isRedirecting} aria-label="Close sign in"><X aria-hidden="true" /></button>
+            <div className="chat-auth-sheet__copy">
+              <span className="chat-signin-kicker">{draft.trim() ? "Ready to send" : "Miithii account"}</span>
+              <h2>{draft.trim() ? "Sign in to send." : "Sign in to continue."}</h2>
+              <p>{draft.trim() ? "Your message stays right here and sends automatically after Google sign-in." : "Keep your conversations and useful context with your account."}</p>
+            </div>
+            {draft.trim() ? (
+              <div className="chat-auth-sheet__draft" aria-label="Message waiting to send">
+                <span>First message</span>
+                <p>{draft.trim()}</p>
+              </div>
+            ) : null}
             <button
               type="button"
               className="chat-auth-btn chat-auth-btn--primary chat-auth-sheet__google"
@@ -271,7 +281,7 @@ function SignedOutChat() {
               <span>{isRedirecting ? "Opening Google…" : "Continue with Google"}</span>
             </button>
             {authError && <p className="chat-signin-error" role="alert">{authError}</p>}
-            <small>50 messages/day · conversations sync</small>
+            <small>50 messages/day · one account across Chat + Voice</small>
           </section>
         </div>
       )}

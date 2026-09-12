@@ -6,6 +6,7 @@ import { streamText, convertToModelMessages, tool, isStepCount } from 'ai';
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
 import OpenAI from 'openai';
 import { z } from 'zod';
+import { injectQuoteContext } from './quote-context.js';
 
 import {
   HttpError,
@@ -302,7 +303,7 @@ async function chatV2(env, headers, request, uiMessages, principal, threadId, ct
   const result = streamText({
     model: upstream(env.UPSTREAM_MODEL),
     system,
-    messages: await convertToModelMessages(uiMessages),
+    messages: await convertToModelMessages(injectQuoteContext(uiMessages)),
     maxOutputTokens: 8192,
     maxRetries: 0,
     stopWhen: isStepCount(3),
