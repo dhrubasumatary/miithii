@@ -494,7 +494,7 @@ html[data-theme-transition="shigure"]::view-transition-new(root) {
   color: var(--mi-text);
 }
 
-.chat-auth-sheet__google {
+.chat-auth-sheet .chat-auth-sheet__google {
   width: 100%;
   height: 44px;
   gap: 10px;
@@ -505,7 +505,7 @@ html[data-theme-transition="shigure"]::view-transition-new(root) {
   box-shadow: var(--mi-shadow-sm);
 }
 
-.chat-auth-sheet__google:hover:not(:disabled) {
+.chat-auth-sheet .chat-auth-sheet__google:hover:not(:disabled) {
   border-color: color-mix(in srgb, var(--mi-primary) 35%, var(--mi-border));
   background: var(--mi-hover);
   color: var(--mi-text);
