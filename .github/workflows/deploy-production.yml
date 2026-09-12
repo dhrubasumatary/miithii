@@ -123,6 +123,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Install API Worker dependencies
+        run: npm ci --prefix workers/api
+
       - name: Build production apps
         run: pnpm build
 
