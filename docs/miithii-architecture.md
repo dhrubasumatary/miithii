@@ -36,6 +36,7 @@ miithii/
 - `workers/api` owns authenticated API behavior, daily quota, model routing, upload handling, and memory policy.
 - `workers/chat` serves the exported Chat app and forwards same-origin API requests to `workers/api`.
 - `apps/voice/worker.js` serves the exported Voice app, handles STT/TTS, and forwards account/chat calls to `workers/api`.
+- `apps/subtitles/worker.js` serves the exported Subtitles waitlist and its same-origin submission endpoint.
 - `workers/apex` currently owns `miithii.in` and `www.miithii.in` in production.
 - `apps/hub` is the Next.js hub source and remains part of workspace typecheck/build even while the apex Worker is the active production edge.
 

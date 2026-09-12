@@ -1,6 +1,8 @@
 node_modules
 .pnpm-store
 .turbo
+.wrangler
+.wrangler-dry-run
 .codex/*.log
 .vercel
 

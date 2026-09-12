@@ -21,8 +21,13 @@ export function WaitlistForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email })
       });
-      const payload = await response.json().catch(() => null) as { message?: string } | null;
-      if (!response.ok) throw new Error(payload?.message || "Could not join the waitlist");
+      const contentType = response.headers.get("content-type") ?? "";
+      const payload = contentType.includes("application/json")
+        ? await response.json().catch(() => null) as { message?: string } | null
+        : null;
+      if (!response.ok || payload?.message !== "Joined") {
+        throw new Error(payload?.message || "Could not join the waitlist");
+      }
       setState("success");
       setMessage("You’re on the list. We’ll let you know when it’s ready.");
       setEmail("");

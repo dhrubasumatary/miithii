@@ -1,0 +1,17 @@
+{
+  "rules": [
+    {
+      "id": "expire-chat-attachments-after-24h",
+      "enabled": true,
+      "conditions": {
+        "prefix": "images/"
+      },
+      "deleteObjectsTransition": {
+        "condition": {
+          "type": "Age",
+          "maxAge": 86400
+        }
+      }
+    }
+  ]
+}

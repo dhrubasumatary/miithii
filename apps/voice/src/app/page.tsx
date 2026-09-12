@@ -1,7 +1,7 @@
 "use client";
 
 import { LogoMark, ProductDock } from "@miithii/ui";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 import { DEFAULT_LANGUAGE, VOICE_LANGUAGES, type VoiceLanguageCode } from "@/lib/languages";
 import { MicRecorder } from "@/lib/mic-recorder";
 import { ClerkSignIn, ClerkUserButton, useVoiceAuth } from "@/lib/clerk";
@@ -363,6 +363,15 @@ export default function Page() {
     setSheetOpen(false);
   };
 
+  const changeLanguage = (nextLanguage: VoiceLanguageCode) => {
+    if (nextLanguage === language || phase !== "idle") return;
+    stopPlayback();
+    setLanguage(nextLanguage);
+    historyRef.current = [];
+    setTurns([]);
+    setError(null);
+  };
+
   const lastUser = [...turns].reverse().find(turn => turn.role === "user");
   const lastReply = [...turns].reverse().find(turn => turn.role === "assistant");
   const previewText = phase === "speaking" && lastReply ? lastReply.text : phase === "listening" || busy ? lastUser?.text : undefined;
@@ -372,12 +381,32 @@ export default function Page() {
       <ProductDock active="voice" account={<ClerkUserButton />} />
 
       <main className="voice-stage">
-        <label className="voice-language">Language
-          <select aria-label="Voice language" value={language} disabled={phase !== "idle"} onChange={event => { setLanguage(event.target.value as VoiceLanguageCode); historyRef.current = []; setTurns([]); }}>
-            {Object.entries(VOICE_LANGUAGES).map(([code, value]) => <option key={code} value={code}>{value.label} · {value.english}</option>)}
-          </select>
-        </label>
-        <div className="voice-orb" data-phase={phase} aria-hidden="true">
+        <div className="voice-language" aria-label="Voice language">
+          <span className="voice-language__caption">Speak in</span>
+          <div className="voice-language__options" role="group" aria-label="Choose a language">
+            {Object.entries(VOICE_LANGUAGES).map(([code, value]) => (
+              <button
+                type="button"
+                key={code}
+                className="voice-language__option"
+                data-active={language === code ? "true" : "false"}
+                aria-pressed={language === code}
+                disabled={phase !== "idle"}
+                onClick={() => changeLanguage(code as VoiceLanguageCode)}
+              >
+                <span>{value.label}</span>
+                <small>{value.english}</small>
+              </button>
+            ))}
+          </div>
+        </div>
+        <div
+          className="voice-orb"
+          data-phase={phase}
+          data-language={language}
+          style={{ "--level": Math.min(1, level * 14) } as CSSProperties}
+          aria-hidden="true"
+        >
           <span className="voice-orb__halo" />
           <span className="voice-orb__halo voice-orb__halo--late" />
           <span className="voice-orb__body" />
@@ -458,7 +487,7 @@ export default function Page() {
           </button>
         </div>
         <p className="voice-hint">
-          You can also hold the <kbd>space bar</kbd> to talk
+          Tap once and pause when you&apos;re done · or hold the <kbd>space bar</kbd>
         </p>
       </footer>
 

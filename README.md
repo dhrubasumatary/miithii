@@ -13,7 +13,7 @@ Miithii is one product suite under `miithii.in`, with separate web surfaces and 
 
 - `packages/ui` - Pulse design system, logo, tokens, shared components
 
-Auth, quota, model routing, uploads, and memory behavior are owned by the active app/Worker code rather than the deleted Supabase/Razorpay-era shared packages.
+Auth, quota, model routing, uploads, and memory behavior are owned by the active apps and Workers.
 
 ## Workers
 

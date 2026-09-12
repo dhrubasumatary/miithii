@@ -1,0 +1,192 @@
+name: Deploy Production
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - apps/**
+      - packages/**
+      - workers/**
+      - pnpm-lock.yaml
+      - pnpm-workspace.yaml
+      - package.json
+      - .github/workflows/deploy-production.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: miithii-production
+  cancel-in-progress: false
+
+env:
+  CI: true
+  NEXT_TELEMETRY_DISABLED: 1
+  TURBO_TELEMETRY_DISABLED: 1
+
+jobs:
+  verify:
+    name: Verify release
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ vars.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+          run_install: false
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Check deployment configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}"
+
+      - name: Install app dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install API Worker dependencies
+        run: npm ci --prefix workers/api
+
+      - name: Typecheck apps
+        run: pnpm typecheck
+
+      - name: Build apps
+        run: pnpm build
+
+      - name: Test API Worker
+        run: npm --prefix workers/api test
+
+      - name: Validate Worker bundles
+        shell: bash
+        run: |
+          set -euo pipefail
+          pnpm dlx wrangler@4.129.1 deploy --config workers/api/wrangler.jsonc --dry-run --outdir .wrangler-dry-run/api
+          pnpm dlx wrangler@4.129.1 deploy --config workers/chat/wrangler.jsonc --dry-run --outdir .wrangler-dry-run/chat
+          pnpm dlx wrangler@4.129.1 deploy --config apps/voice/wrangler.jsonc --dry-run --outdir .wrangler-dry-run/voice
+          pnpm dlx wrangler@4.129.1 deploy --config apps/subtitles/wrangler.jsonc --dry-run --outdir .wrangler-dry-run/subtitles
+          pnpm dlx wrangler@4.129.1 deploy --config workers/apex/wrangler.jsonc --dry-run --outdir .wrangler-dry-run/apex
+
+  deploy:
+    name: Deploy production suite
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment:
+      name: production
+      url: https://miithii.in
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ vars.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+      UPSTREAM_API_KEY: ${{ secrets.UPSTREAM_API_KEY }}
+      SUPERMEMORY_API_KEY: ${{ secrets.SUPERMEMORY_API_KEY }}
+      BODHAN_API_KEY: ${{ secrets.BODHAN_API_KEY }}
+      BODHAN_TTS_API_KEY: ${{ secrets.BODHAN_TTS_API_KEY }}
+      WAITLIST_KEY: ${{ secrets.WAITLIST_KEY }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+          run_install: false
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Check deployment credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${CLOUDFLARE_API_TOKEN}"
+          test -n "${CLOUDFLARE_ACCOUNT_ID}"
+          test -n "${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}"
+          test -n "${UPSTREAM_API_KEY}"
+          test -n "${BODHAN_API_KEY}"
+          test -n "${BODHAN_TTS_API_KEY}"
+          test -n "${WAITLIST_KEY}"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build production apps
+        run: pnpm build
+
+      - name: Ensure attachment storage policy
+        shell: bash
+        run: |
+          set -euo pipefail
+          bucket="miithii-chat-uploads"
+          if ! pnpm dlx wrangler@4.129.1 r2 bucket list | grep -Fq "$bucket"; then
+            pnpm dlx wrangler@4.129.1 r2 bucket create "$bucket"
+          fi
+          pnpm dlx wrangler@4.129.1 r2 bucket lifecycle set "$bucket" --file workers/api/r2-lifecycle.json --force
+
+      - name: Prepare runtime secrets
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          printf 'UPSTREAM_API_KEY=%s\n' "$UPSTREAM_API_KEY" > "$RUNNER_TEMP/api-secrets.env"
+          if [ -n "${SUPERMEMORY_API_KEY:-}" ]; then
+            printf 'SUPERMEMORY_API_KEY=%s\n' "$SUPERMEMORY_API_KEY" >> "$RUNNER_TEMP/api-secrets.env"
+          fi
+          printf 'BODHAN_API_KEY=%s\nBODHAN_TTS_API_KEY=%s\n' "$BODHAN_API_KEY" "$BODHAN_TTS_API_KEY" > "$RUNNER_TEMP/voice-secrets.env"
+          printf 'WAITLIST_KEY=%s\n' "$WAITLIST_KEY" > "$RUNNER_TEMP/subtitles-secrets.env"
+
+      - name: Deploy API Worker
+        run: pnpm dlx wrangler@4.129.1 deploy --config workers/api/wrangler.jsonc --minify --secrets-file "$RUNNER_TEMP/api-secrets.env"
+
+      - name: Deploy Chat Worker
+        run: pnpm dlx wrangler@4.129.1 deploy --config workers/chat/wrangler.jsonc --minify
+
+      - name: Deploy Voice Worker
+        run: pnpm dlx wrangler@4.129.1 deploy --config apps/voice/wrangler.jsonc --minify --secrets-file "$RUNNER_TEMP/voice-secrets.env"
+
+      - name: Deploy Subtitles Worker
+        run: pnpm dlx wrangler@4.129.1 deploy --config apps/subtitles/wrangler.jsonc --minify --secrets-file "$RUNNER_TEMP/subtitles-secrets.env"
+
+      - name: Deploy Apex Worker
+        run: pnpm dlx wrangler@4.129.1 deploy --config workers/apex/wrangler.jsonc --minify
+
+      - name: Verify production
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --location https://miithii.in/ | grep -q "<title>Miithii"
+          curl --fail --silent --show-error --location https://chat.miithii.in/ | grep -qi "Miithii"
+          curl --fail --silent --show-error --location https://voice.miithii.in/ | grep -qi "Miithii"
+          curl --fail --silent --show-error --location https://subtitles.miithii.in/ | grep -qi "Miithii"
+          curl --fail --silent --show-error https://api.miithii.in/health | grep -q '"status":"ok"'
+          chat_api_status="$(curl --silent --output /tmp/chat-api.json --write-out "%{http_code}" https://chat.miithii.in/api/usage)"
+          test "$chat_api_status" = "401"
+          grep -q 'AUTH_REQUIRED' /tmp/chat-api.json
+          voice_api_status="$(curl --silent --output /tmp/voice-api.json --write-out "%{http_code}" https://voice.miithii.in/api/usage)"
+          test "$voice_api_status" = "401"
+          grep -q 'AUTH_REQUIRED' /tmp/voice-api.json
+          waitlist_status="$(curl --silent --output /tmp/waitlist.json --write-out "%{http_code}" -H 'content-type: application/json' -d '{"email":"invalid"}' https://subtitles.miithii.in/api/waitlist)"
+          test "$waitlist_status" = "400"
+          grep -q 'valid email' /tmp/waitlist.json
+          status="$(curl --silent --output /dev/null --write-out "%{http_code}" --head https://www.miithii.in/)"
+          test "$status" = "301" || test "$status" = "308"

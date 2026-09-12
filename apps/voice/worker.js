@@ -106,7 +106,7 @@ function normalizeSpeechText(text) {
     .trim();
 }
 
-function splitForSpeech(text, maxChars = 180) {
+function splitForSpeech(text, maxChars = 560) {
   const sentences = text
     .replace(/\s+/g, " ")
     .split(/(?<=[।?!.,])\s*/)
@@ -318,6 +318,13 @@ async function handleTts(request, env) {
       });
       if (!response.ok) {
         console.error(JSON.stringify({ event: "voice_tts_error", status: response.status }));
+        if (response.status === 429) {
+          return json(
+            { error: "Voice playback is busy for a moment. You can still read the reply.", code: "TTS_RATE_LIMIT" },
+            429,
+            response.headers.get("retry-after") ? { "retry-after": response.headers.get("retry-after") } : {}
+          );
+        }
         return json({ error: "Could not prepare the spoken reply", code: "TTS_UNAVAILABLE" }, 502);
       }
       audio.push(bytesToBase64(await response.arrayBuffer()));
