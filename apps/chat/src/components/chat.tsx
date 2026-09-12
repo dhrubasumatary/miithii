@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo, useRef, type FC } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef, type FC, type FormEvent, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import {
   AssistantRuntimeProvider,
   AssistantCloud,
@@ -45,6 +45,7 @@ const assistantBaseUrl =
   process.env.NEXT_PUBLIC_ASSISTANT_BASE_URL ??
   "https://proj-00s8iick8y6c.assistant-api.com";
 const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "";
+const PENDING_FIRST_MESSAGE_KEY = "miithii:pending-first-message";
 
 const GoogleMark: FC = () => (
   <svg viewBox="0 0 18 18" aria-hidden="true" className="chat-google-mark">
@@ -141,6 +142,7 @@ function AuthenticatedChat({
 
   return (
     <AssistantRuntimeProvider runtime={runtime}>
+      <PendingFirstMessage />
       <ThreadUrlSync />
       <ThreadTitleSync />
       <ChatShell theme={theme} onThemeChange={onThemeChange} />
@@ -161,15 +163,23 @@ function ChatLoadingShell() {
 
 function SignedOutChat() {
   const { isLoaded: isSignInLoaded, signIn } = useSignIn();
+  const [draft, setDraft] = useState("");
+  const [signInOpen, setSignInOpen] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
 
-  const continueWithGoogle = async () => {
+  const continueWithGoogle = async (message = draft) => {
     if (!isSignInLoaded || !signIn || isRedirecting) return;
     setAuthError(null);
     setIsRedirecting(true);
 
     try {
+      const normalized = message.trim();
+      if (normalized) {
+        sessionStorage.setItem(PENDING_FIRST_MESSAGE_KEY, normalized);
+      } else {
+        sessionStorage.removeItem(PENDING_FIRST_MESSAGE_KEY);
+      }
       const completeUrl = `${window.location.pathname}${window.location.search}${window.location.hash}`;
       await signIn.authenticateWithRedirect({
         strategy: "oauth_google",
@@ -183,35 +193,135 @@ function SignedOutChat() {
     }
   };
 
+  const requestSend = () => {
+    if (!draft.trim()) return;
+    setSignInOpen(true);
+  };
+
+  const submitDraft = (event: FormEvent) => {
+    event.preventDefault();
+    requestSend();
+  };
+
+  const handleDraftKeyDown = (event: ReactKeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.nativeEvent.isComposing) return;
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      requestSend();
+    }
+  };
+
   return (
-    <main className="chat-shell chat-shell--signed-out">
-      <ProductDock active="chat" />
-      <section className="chat-signin-panel" aria-label="Sign in required">
-        <div className="chat-signin-copy">
-          <span className="chat-signin-kicker">Miithii Chat</span>
-          <h1>Think in your language.</h1>
-          <p>Ask, write, plan, or talk. Use English, Assamese, or both. Useful context can follow you.</p>
-        </div>
-
-        <p className="chat-signin-languages">English <span>·</span> অসমীয়া <span>·</span> mix both</p>
-
-        <div className="chat-signin-actions">
-          <button
-            type="button"
-            className="chat-auth-btn chat-auth-btn--primary"
-            onClick={continueWithGoogle}
-            disabled={!isSignInLoaded || isRedirecting}
-            aria-busy={isRedirecting}
-          >
-            <GoogleMark />
-            <span>{isRedirecting ? "Opening Google…" : "Continue with Google"}</span>
+    <main className="chat-shell chat-shell--signed-out chat-shell--preview">
+      <ProductDock
+        active="chat"
+        actions={
+          <button type="button" className="chat-preview-signin" onClick={() => setSignInOpen(true)}>
+            Sign in
           </button>
+        }
+      />
+
+      <div className="chat-main-canvas">
+        <div className="chat-thread-container chat-thread-container--preview">
+          <section className="chat-preview-welcome" aria-label="Try Miithii Chat">
+            <span className="chat-welcome__eyebrow">Miithii Chat</span>
+            <h1>Think in your language.</h1>
+            <p>Write naturally in English, Assamese, or both.</p>
+            <p className="chat-preview-languages">English <span>·</span> অসমীয়া <span>·</span> mix both</p>
+          </section>
+
+          <form className="chat-preview-composer" onSubmit={submitDraft}>
+            <div data-slot="aui_composer-shell" className="chat-preview-composer__shell">
+              <textarea
+                value={draft}
+                onChange={(event) => setDraft(event.target.value)}
+                onKeyDown={handleDraftKeyDown}
+                placeholder="Send a message..."
+                rows={1}
+                enterKeyHint="send"
+                aria-label="Message input"
+              />
+              <div className="chat-preview-composer__footer">
+                <span>50 messages/day after sign in</span>
+                <button type="submit" className="chat-preview-send" disabled={!draft.trim()} aria-label="Send message">
+                  ↑
+                </button>
+              </div>
+            </div>
+          </form>
         </div>
-        {authError && <p className="chat-signin-error" role="alert">{authError}</p>}
-        <p className="chat-signin-helper">Sign in once · 50 messages/day · conversations sync</p>
-      </section>
+      </div>
+
+      {signInOpen && (
+        <div className="chat-auth-overlay" role="presentation" onClick={() => !isRedirecting && setSignInOpen(false)}>
+          <section className="chat-auth-sheet" role="dialog" aria-modal="true" aria-label="Sign in to continue" onClick={(event) => event.stopPropagation()}>
+            <button type="button" className="chat-auth-sheet__close" onClick={() => setSignInOpen(false)} disabled={isRedirecting} aria-label="Close sign in">×</button>
+            <span className="chat-signin-kicker">Keep going</span>
+            <h2>{draft.trim() ? "Your message is ready." : "Sign in to Miithii."}</h2>
+            <p>{draft.trim() ? "Sign in once. Miithii will send it automatically and keep the conversation with your account." : "Your conversations and useful context stay with your account."}</p>
+            <button
+              type="button"
+              className="chat-auth-btn chat-auth-btn--primary chat-auth-sheet__google"
+              onClick={() => void continueWithGoogle()}
+              disabled={!isSignInLoaded || isRedirecting}
+              aria-busy={isRedirecting}
+            >
+              <GoogleMark />
+              <span>{isRedirecting ? "Opening Google…" : "Continue with Google"}</span>
+            </button>
+            {authError && <p className="chat-signin-error" role="alert">{authError}</p>}
+            <small>50 messages/day · conversations sync</small>
+          </section>
+        </div>
+      )}
     </main>
   );
+}
+
+function PendingFirstMessage() {
+  const aui = useAui();
+  const threadsLoading = useAuiState((s) => s.threads.isLoading);
+  const threadLoading = useAuiState((s) => s.thread.isLoading);
+  const mainThreadId = useAuiState((s) => s.threads.mainThreadId);
+  const newThreadId = useAuiState((s) => s.threads.newThreadId);
+  const sentRef = useRef(false);
+  const switchRequestedRef = useRef(false);
+
+  useEffect(() => {
+    if (sentRef.current || threadsLoading || threadLoading) return;
+    const pending = sessionStorage.getItem(PENDING_FIRST_MESSAGE_KEY)?.trim();
+    if (!pending) return;
+    if (!newThreadId) return;
+
+    if (mainThreadId !== newThreadId) {
+      if (switchRequestedRef.current) return;
+      switchRequestedRef.current = true;
+      Promise.resolve(aui.threads?.switchToNewThread?.()).catch((error) => {
+        console.error("Unable to open a fresh conversation after sign in", error);
+        switchRequestedRef.current = false;
+      });
+      return;
+    }
+
+    sentRef.current = true;
+    sessionStorage.removeItem(PENDING_FIRST_MESSAGE_KEY);
+
+    const sendPending = async () => {
+      try {
+        aui.composer.setText(pending);
+        await Promise.resolve(aui.composer.send());
+      } catch (error) {
+        console.error("Unable to send the message saved before sign in", error);
+        sessionStorage.setItem(PENDING_FIRST_MESSAGE_KEY, pending);
+        sentRef.current = false;
+      }
+    };
+
+    void sendPending();
+  }, [aui, mainThreadId, newThreadId, threadLoading, threadsLoading]);
+
+  return null;
 }
 
 function AccountMenu({ onOpenSettings }: { onOpenSettings: () => void }) {

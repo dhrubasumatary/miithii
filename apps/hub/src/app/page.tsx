@@ -54,7 +54,6 @@ export default function Page() {
             <span>Assamese captions · waitlist</span>
             <b aria-hidden="true">↗</b>
           </ProductLink>
-          <p className="hub-next"><span>Next</span> Mising · Manipuri · Karbi · Dimasa</p>
         </footer>
       </section>
     </main>

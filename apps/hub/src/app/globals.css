@@ -220,7 +220,7 @@ body {
   display: flex;
   min-width: 0;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 24px;
 }
 
@@ -243,24 +243,6 @@ body {
   color: var(--mi-color-primary);
   font-size: 12px;
   font-weight: 500;
-}
-
-.hub-next {
-  margin: 0;
-  color: var(--mi-color-text-muted);
-  font-size: 9px;
-  font-weight: 600;
-  text-align: right;
-}
-
-.hub-next span {
-  margin-right: 8px;
-  color: var(--mi-color-primary);
-  font-family: var(--font-miithii-mono), ui-monospace, monospace;
-  font-size: 8px;
-  font-weight: 700;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
 }
 
 @media (max-width: 860px) {
@@ -324,7 +306,6 @@ body {
   .hub-signin-note { padding-block: 9px; font-size: 8.5px; }
 
   .hub-footer {
-    gap: 14px;
     align-self: end;
   }
 
@@ -375,9 +356,7 @@ body {
   .hub-action__copy strong { font-size: 16px; }
   .hub-action__copy small { font-size: 8.5px; }
   .hub-signin-note { padding-block: 7px; font-size: 8px; }
-  .hub-footer { gap: 10px; }
   .hub-subtitles { font-size: 10px; }
-  .hub-next { font-size: 8px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
