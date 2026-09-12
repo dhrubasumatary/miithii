@@ -16,14 +16,11 @@ Set these in the GitHub repo before relying on deployment:
 - Repository secret: `CLOUDFLARE_API_TOKEN`
 - Repository variable: `CLOUDFLARE_ACCOUNT_ID`
 - Repository variable: `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` (production `pk_live` key)
-- Repository secret: `UPSTREAM_API_KEY`
-- Repository secret: `SUPERMEMORY_API_KEY`
-- Repository secrets: `BODHAN_API_KEY`, `BODHAN_TTS_API_KEY`
 - Repository secret: `WAITLIST_KEY`
 
 The Cloudflare token must be able to deploy Workers/routes, read the `miithii.in` zone, and create/read/configure R2 buckets because the release workflow enforces attachment retention policy.
 
-The release writes runtime secrets to temporary runner files and passes them to Wrangler. `SUPERMEMORY_API_KEY` is optional only for an already-configured API Worker; set it in GitHub before rebuilding production from a blank Cloudflare account.
+The existing API and Voice Worker secrets stay in Cloudflare and Wrangler preserves them across deployments. GitHub therefore does not need duplicate copies of the model, Supermemory, or Bodhan secrets for normal releases. `WAITLIST_KEY` is stored in GitHub because the Subtitles Worker is created and configured by this repository.
 
 Optional later, for faster Turborepo builds:
 

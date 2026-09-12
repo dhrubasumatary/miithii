@@ -93,10 +93,6 @@ jobs:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
       NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ vars.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
-      UPSTREAM_API_KEY: ${{ secrets.UPSTREAM_API_KEY }}
-      SUPERMEMORY_API_KEY: ${{ secrets.SUPERMEMORY_API_KEY }}
-      BODHAN_API_KEY: ${{ secrets.BODHAN_API_KEY }}
-      BODHAN_TTS_API_KEY: ${{ secrets.BODHAN_TTS_API_KEY }}
       WAITLIST_KEY: ${{ secrets.WAITLIST_KEY }}
 
     steps:
@@ -122,9 +118,6 @@ jobs:
           test -n "${CLOUDFLARE_API_TOKEN}"
           test -n "${CLOUDFLARE_ACCOUNT_ID}"
           test -n "${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}"
-          test -n "${UPSTREAM_API_KEY}"
-          test -n "${BODHAN_API_KEY}"
-          test -n "${BODHAN_TTS_API_KEY}"
           test -n "${WAITLIST_KEY}"
 
       - name: Install dependencies
@@ -148,21 +141,16 @@ jobs:
         run: |
           set -euo pipefail
           umask 077
-          printf 'UPSTREAM_API_KEY=%s\n' "$UPSTREAM_API_KEY" > "$RUNNER_TEMP/api-secrets.env"
-          if [ -n "${SUPERMEMORY_API_KEY:-}" ]; then
-            printf 'SUPERMEMORY_API_KEY=%s\n' "$SUPERMEMORY_API_KEY" >> "$RUNNER_TEMP/api-secrets.env"
-          fi
-          printf 'BODHAN_API_KEY=%s\nBODHAN_TTS_API_KEY=%s\n' "$BODHAN_API_KEY" "$BODHAN_TTS_API_KEY" > "$RUNNER_TEMP/voice-secrets.env"
           printf 'WAITLIST_KEY=%s\n' "$WAITLIST_KEY" > "$RUNNER_TEMP/subtitles-secrets.env"
 
       - name: Deploy API Worker
-        run: pnpm dlx wrangler@4.129.1 deploy --config workers/api/wrangler.jsonc --minify --secrets-file "$RUNNER_TEMP/api-secrets.env"
+        run: pnpm dlx wrangler@4.129.1 deploy --config workers/api/wrangler.jsonc --minify
 
       - name: Deploy Chat Worker
         run: pnpm dlx wrangler@4.129.1 deploy --config workers/chat/wrangler.jsonc --minify
 
       - name: Deploy Voice Worker
-        run: pnpm dlx wrangler@4.129.1 deploy --config apps/voice/wrangler.jsonc --minify --secrets-file "$RUNNER_TEMP/voice-secrets.env"
+        run: pnpm dlx wrangler@4.129.1 deploy --config apps/voice/wrangler.jsonc --minify
 
       - name: Deploy Subtitles Worker
         run: pnpm dlx wrangler@4.129.1 deploy --config apps/subtitles/wrangler.jsonc --minify --secrets-file "$RUNNER_TEMP/subtitles-secrets.env"
