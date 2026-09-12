@@ -33,10 +33,18 @@ async function joinWaitlist(request, env) {
   }
 
   try {
+    const requestUrl = new URL(request.url);
+    const formOrigin = request.headers.get("origin") || requestUrl.origin;
+    const referer = request.headers.get("referer") || `${formOrigin}/`;
     const response = await fetch(`https://waitlister.me/s/${encodeURIComponent(env.WAITLIST_KEY)}`, {
       method: "POST",
-      headers: { "content-type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({ email }),
+      headers: {
+        "accept": "application/json",
+        "content-type": "application/json",
+        "origin": formOrigin,
+        "referer": referer
+      },
+      body: JSON.stringify({ email }),
       signal: AbortSignal.timeout(10_000)
     });
     if (!response.ok) {

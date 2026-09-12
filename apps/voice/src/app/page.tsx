@@ -27,11 +27,11 @@ type VadState = {
 };
 
 const statusText: Record<Phase, string> = {
-  idle: "Tap the mic to talk",
-  listening: "Listening…",
-  transcribing: "Writing it down…",
+  idle: "Tap to talk",
+  listening: "Listening",
+  transcribing: "Got it",
   thinking: "Thinking…",
-  speaking: "Speaking…"
+  speaking: "Replying…"
 };
 
 export default function Page() {
@@ -360,7 +360,7 @@ export default function Page() {
         <main className="voice-auth-state voice-auth-state--signin">
           <span className="voice-auth-state__eyebrow">Voice</span>
           <h1>Talk with Miithii.</h1>
-          <p>Speak naturally in English or an Indian language. Choose Assamese or Bodo for Miithii&apos;s reply. Chat and Voice share 50 messages a day.</p>
+          <p>Speak any language. Choose Assamese or Bodo for the reply. Chat + Voice share 50 messages a day.</p>
           <ClerkSignIn />
         </main>
       </div>
@@ -400,7 +400,10 @@ export default function Page() {
 
       <main className="voice-stage">
         <div className="voice-language" aria-label="Choose Miithii's reply language">
-          <span className="voice-language__caption">Miithii replies in</span>
+          <span className="voice-pronunciation">
+            Miithii <span>/ˈmiː.θiː/</span>
+          </span>
+          <span className="voice-language__caption">Reply language</span>
           <div className="voice-language__options" role="group" aria-label="Reply language">
             {Object.entries(VOICE_LANGUAGES).map(([code, value]) => (
               <button
@@ -413,7 +416,7 @@ export default function Page() {
                 disabled={phase !== "idle"}
                 onClick={() => changeLanguage(code as VoiceLanguageCode)}
               >
-                <span>{value.label}</span>
+                <span className="voice-language__native">{value.label}</span>
                 <small>{value.english}</small>
               </button>
             ))}
@@ -461,9 +464,7 @@ export default function Page() {
         </p>
 
         {turns.length === 0 && phase === "idle" ? (
-          <p className="voice-first-use">
-            Speak naturally in English or an Indian language. Miithii answers in {VOICE_LANGUAGES[language].english}. Pause when you&apos;re done — it sends automatically.
-          </p>
+          <p className="voice-first-use">Speak any language · pause to send</p>
         ) : null}
 
         {previewText && <p className="voice-preview">{previewText}</p>}
@@ -531,9 +532,6 @@ export default function Page() {
             </svg>
           </button>
         </div>
-        <p className="voice-hint">
-          Desktop: hold <kbd>Space</kbd> to talk, release to send
-        </p>
       </footer>
 
       {sheetOpen && (

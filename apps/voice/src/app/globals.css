@@ -254,79 +254,95 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 20px;
+  gap: 18px;
   padding: 90px 24px 12px;
 }
 
 .voice-language {
   display: grid;
   justify-items: center;
-  gap: 8px;
+  gap: 6px;
   color: var(--va-text-dim);
+}
+
+.voice-pronunciation {
+  margin-bottom: 2px;
+  color: var(--va-text);
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.voice-pronunciation span {
+  margin-left: 5px;
+  color: var(--va-text-dim);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0;
 }
 
 .voice-language__caption {
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 700;
-  letter-spacing: 0.09em;
+  letter-spacing: 0.11em;
   text-transform: uppercase;
 }
 
 .voice-language__options {
   display: flex;
-  gap: 4px;
-  padding: 4px;
-  border: 1px solid var(--va-border);
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--va-surface) 76%, transparent);
-  box-shadow: 0 10px 28px color-mix(in srgb, var(--va-text) 5%, transparent);
-  -webkit-backdrop-filter: blur(18px) saturate(125%);
-  backdrop-filter: blur(18px) saturate(125%);
+  gap: 24px;
+  margin-top: 1px;
 }
 
 .voice-language__option {
+  position: relative;
   display: inline-flex;
-  min-height: 38px;
-  align-items: baseline;
+  min-width: 76px;
+  min-height: 43px;
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 7px 13px;
+  gap: 0;
+  padding: 3px 3px 8px;
   border: 0;
-  border-radius: 999px;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
   background: transparent;
   color: var(--va-text-dim);
   cursor: pointer;
-  transition: color 150ms ease, background 150ms ease, transform 150ms ease, box-shadow 150ms ease;
+  transition: color 150ms ease, border-color 150ms ease, transform 150ms ease;
 }
 
-.voice-language__option span {
+.voice-language__native {
   font-family: var(--font-miithii-assamese), var(--font-miithii-bodo), var(--font-body), sans-serif;
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 15px;
+  font-weight: 750;
+  line-height: 1.35;
 }
 
 .voice-language__option small {
   color: inherit;
-  font-size: 10px;
-  font-weight: 700;
-  opacity: 0.72;
+  font-size: 9px;
+  font-weight: 650;
+  line-height: 1.2;
+  opacity: 0.68;
 }
 
 .voice-language__option[data-active="true"] {
-  background: var(--va-jade);
-  color: var(--mi-color-on-primary);
-  box-shadow: 0 6px 16px color-mix(in srgb, var(--va-jade) 24%, transparent);
+  border-bottom-color: var(--va-jade);
+  color: var(--va-jade);
 }
 
 .voice-language__option:hover:not(:disabled):not([data-active="true"]) {
-  background: color-mix(in srgb, var(--va-text) 6%, transparent);
   color: var(--va-text);
 }
 
 .voice-language__option:focus-visible {
-  outline: 2px solid color-mix(in srgb, var(--va-jade) 44%, transparent);
-  outline-offset: 2px;
+  outline: 2px solid color-mix(in srgb, var(--va-jade) 40%, transparent);
+  outline-offset: 4px;
 }
 
 .voice-language__option:active:not(:disabled) {
@@ -558,11 +574,13 @@ body {
 }
 
 .voice-first-use {
-  max-width: 31rem;
+  max-width: 24rem;
   margin: -4px 0 0;
   color: var(--va-text-dim);
-  font-size: 13px;
-  line-height: 1.55;
+  font-size: 12px;
+  font-weight: 550;
+  letter-spacing: 0.005em;
+  line-height: 1.4;
   text-align: center;
   text-wrap: balance;
 }
@@ -663,29 +681,6 @@ body {
   border-color: rgba(255, 122, 89, 0.4);
 }
 
-.voice-hint {
-  display: none;
-  margin: 0;
-  font-size: 13px;
-  color: var(--va-text-dim);
-}
-
-.voice-hint kbd {
-  padding: 1px 6px;
-  border: 1px solid var(--va-border);
-  border-bottom-width: 2px;
-  border-radius: 4px;
-  background: color-mix(in srgb, var(--va-surface) 66%, transparent);
-  font-family: var(--font-mono);
-  font-size: 11px;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .voice-hint {
-    display: block;
-  }
-}
-
 @media (max-width: 520px) {
   .voice-stage {
     gap: 16px;
@@ -700,13 +695,17 @@ body {
     font-size: 9px;
   }
 
-  .voice-language__option {
-    min-height: 36px;
-    gap: 5px;
-    padding: 6px 10px;
+  .voice-pronunciation {
+    font-size: 12px;
   }
 
-  .voice-language__option span {
+  .voice-language__option {
+    min-width: 68px;
+    min-height: 40px;
+    padding-bottom: 7px;
+  }
+
+  .voice-language__native {
     font-size: 13px;
   }
 
