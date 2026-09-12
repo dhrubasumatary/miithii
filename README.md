@@ -1,6 +1,6 @@
 # Miithii
 
-Miithii is being built as one AI product suite under `miithii.in`.
+Miithii is one product suite under `miithii.in`, with separate web surfaces and Cloudflare Workers sharing identity and API behavior.
 
 ## Apps
 
@@ -9,37 +9,29 @@ Miithii is being built as one AI product suite under `miithii.in`.
 - `apps/chat` -> `chat.miithii.in`
 - `apps/voice` -> `voice.miithii.in`
 
-## Shared packages
+## Shared package
 
 - `packages/ui` - Pulse design system, logo, tokens, shared components
-- `packages/auth` - Supabase Auth wrapper
-- `packages/db` - Supabase client and shared schema types
-- `packages/llm-router` - provider routing for OpenRouter, AIMLAPI, and Sarvam
-- `packages/memory` - supermemory.ai wrapper
-- `packages/uploads` - UploadThing wrapper boundary
-- `packages/billing` - Razorpay entitlements boundary
 
-## First build target
+Auth, quota, model routing, uploads, and memory behavior are owned by the active app/Worker code rather than the deleted Supabase/Razorpay-era shared packages.
 
-Start with `apps/subtitles`. It is the first real app because the subtitle prototype is the most proven. The other apps are thin shells until their product logic is ready.
+## Workers
+
+- `workers/api` - shared authenticated API, quota, model routing, uploads, and memory policy
+- `workers/chat` - `chat.miithii.in` static assets plus same-origin API forwarding
+- `workers/apex` - current `miithii.in` / `www.miithii.in` production Worker
+- `apps/voice/worker.js` - `voice.miithii.in` static assets, voice STT/TTS, and API forwarding
 
 ## Local commands
 
 ```bash
 pnpm install
-pnpm dev:subtitles
-pnpm build
 pnpm typecheck
+pnpm build
+pnpm dev
 ```
 
 ## Deployment shape
 
-Each app should become its own Vercel project with the root directory set to its app folder:
-
-- `apps/hub`
-- `apps/subtitles`
-- `apps/chat`
-- `apps/voice`
-
-Cloudflare already owns the product subdomains. Until each Vercel project is ready, the new subdomains can stay parked behind the placeholder Worker.
+Cloudflare is the active production edge. `workers/apex` serves the apex domain, `workers/chat` serves the chat static export and proxies its API paths, `apps/voice/worker.js` serves the voice static export and voice endpoints, and `workers/api` is the shared API service. `apps/hub`, `apps/subtitles`, `apps/chat`, and `apps/voice` remain the Turborepo web applications checked by CI.
 

@@ -1,15 +1,30 @@
 "use client";
 
-import { LogoMark } from "@miithii/ui";
+import { LogoMark, ProductDock } from "@miithii/ui";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { DEFAULT_LANGUAGE, VOICE_LANGUAGES } from "@/lib/languages";
+import { DEFAULT_LANGUAGE, VOICE_LANGUAGES, type VoiceLanguageCode } from "@/lib/languages";
 import { MicRecorder } from "@/lib/mic-recorder";
+import { ClerkSignIn, ClerkUserButton, useVoiceAuth } from "@/lib/clerk";
 
 const MAX_RECORD_SECONDS = 25; // transcription API caps clips at 30s
 const MIN_RECORD_SECONDS = 0.6;
+const VAD_WARMUP_MS = 350;
+const VAD_SPEECH_CONFIRM_MS = 180;
+const VAD_SILENCE_MS = 1800;
+const VAD_START_FLOOR = 0.012;
+const VAD_CONTINUE_FLOOR = 0.008;
 
 type Turn = { role: "user" | "assistant"; text: string };
 type Phase = "idle" | "listening" | "transcribing" | "thinking" | "speaking";
+type VadState = {
+  startedAt: number;
+  noiseFloor: number;
+  smoothedLevel: number;
+  candidateStartedAt: number | null;
+  heardSpeech: boolean;
+  lastVoiceAt: number | null;
+  autoStop: boolean;
+};
 
 const statusText: Record<Phase, string> = {
   idle: "Tap the mic to talk",
@@ -19,13 +34,9 @@ const statusText: Record<Phase, string> = {
   speaking: "Speaking…"
 };
 
-const navItems = [
-  { href: "https://miithii.in", label: "Hub" },
-  { href: "https://subtitles.miithii.in", label: "Subtitles" },
-  { href: "https://chat.miithii.in", label: "Chat" }
-];
-
 export default function Page() {
+  const { status: authStatus, getApiToken } = useVoiceAuth();
+  const [language, setLanguage] = useState<VoiceLanguageCode>(DEFAULT_LANGUAGE);
   const [phase, setPhase] = useState<Phase>("idle");
   const [turns, setTurns] = useState<Turn[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -39,6 +50,7 @@ export default function Page() {
   const historyRef = useRef<Turn[]>([]);
   const stopPlaybackRef = useRef<() => void>(() => {});
   const mutedRef = useRef(false);
+  const vadRef = useRef<VadState | null>(null);
 
   useEffect(() => {
     mutedRef.current = muted;
@@ -66,10 +78,14 @@ export default function Page() {
         };
         (async () => {
           try {
+            const token = await getApiToken();
             const res = await fetch("/api/tts", {
               method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ text, language: DEFAULT_LANGUAGE })
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`
+              },
+              body: JSON.stringify({ text, language })
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error ?? "Speech failed");
@@ -105,17 +121,22 @@ export default function Page() {
           }
         })();
       }),
-    []
+    [getApiToken, language]
   );
 
   const runTurn = useCallback(async (audio: Blob) => {
     setError(null);
     setPhase("transcribing");
     try {
+      const token = await getApiToken();
       const sttForm = new FormData();
       sttForm.append("file", audio, "recording.wav");
-      sttForm.append("language", DEFAULT_LANGUAGE);
-      const sttRes = await fetch("/api/stt", { method: "POST", body: sttForm });
+      sttForm.append("language", language);
+      const sttRes = await fetch("/api/stt", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: sttForm
+      });
       const sttData = await sttRes.json();
       if (!sttRes.ok) throw new Error(sttData.error ?? "Transcription failed");
       const heard = String(sttData.text ?? "");
@@ -127,8 +148,11 @@ export default function Page() {
 
       const chatRes = await fetch("/api/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: history.map(({ role, text }) => ({ role, content: text })) })
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ language, turnId: crypto.randomUUID(), messages: history.map(({ role, text }) => ({ role, content: text })) })
       });
       const chatData = await chatRes.json();
       if (!chatRes.ok) throw new Error(chatData.error ?? "The assistant is unavailable right now");
@@ -146,16 +170,17 @@ export default function Page() {
       setError(err instanceof Error ? err.message : "Something went wrong");
       setPhase("idle");
     }
-  }, [speak]);
+  }, [getApiToken, speak, language]);
 
   const stopRecording = useCallback(() => {
     const recorder = recorderRef.current;
     if (!recorder) return;
     recorderRef.current = null;
+    vadRef.current = null;
     if (recorder.durationSeconds < MIN_RECORD_SECONDS) {
       recorder.abort().catch(() => {});
       setPhase("idle");
-      setError("Tap and hold while you speak");
+      setError("That was too short — try again");
       return;
     }
     recorder
@@ -167,21 +192,84 @@ export default function Page() {
       });
   }, [runTurn]);
 
-  const startRecording = useCallback(async () => {
+  const startRecording = useCallback(async (autoStop = true) => {
     stopPlayback();
     setError(null);
     setLevel(0);
     setRecordSeconds(0);
     const recorder = new MicRecorder();
+    vadRef.current = {
+      startedAt: performance.now(),
+      noiseFloor: 0.004,
+      smoothedLevel: 0,
+      candidateStartedAt: null,
+      heardSpeech: false,
+      lastVoiceAt: null,
+      autoStop
+    };
+
+    const onLevel = (nextLevel: number) => {
+      setLevel(nextLevel);
+      const vad = vadRef.current;
+      if (!vad || !vad.autoStop || recorderRef.current !== recorder) return;
+
+      const now = performance.now();
+      const elapsed = now - vad.startedAt;
+      vad.smoothedLevel = vad.smoothedLevel * 0.72 + nextLevel * 0.28;
+      const observedLevel = vad.smoothedLevel;
+
+      // Track the room floor only while we have not committed to speech. It
+      // rises very slowly so an immediate first word is not learned as noise,
+      // but drops quickly enough to adapt to a quiet microphone.
+      if (!vad.heardSpeech) {
+        const bounded = Math.min(observedLevel, 0.025);
+        vad.noiseFloor = bounded < vad.noiseFloor
+          ? vad.noiseFloor * 0.8 + bounded * 0.2
+          : vad.noiseFloor * 0.98 + bounded * 0.02;
+      }
+
+      if (elapsed < VAD_WARMUP_MS) return;
+
+      const speechThreshold = Math.max(VAD_START_FLOOR, vad.noiseFloor * 2.8);
+      const continuationThreshold = Math.max(VAD_CONTINUE_FLOOR, vad.noiseFloor * 1.7);
+
+      if (!vad.heardSpeech) {
+        if (observedLevel >= speechThreshold) {
+          vad.candidateStartedAt ??= now;
+          if (now - vad.candidateStartedAt >= VAD_SPEECH_CONFIRM_MS) {
+            vad.heardSpeech = true;
+            vad.lastVoiceAt = now;
+          }
+        } else {
+          vad.candidateStartedAt = null;
+        }
+        return;
+      }
+
+      if (observedLevel >= continuationThreshold) {
+        vad.lastVoiceAt = now;
+        return;
+      }
+
+      // A long continuous pause after confirmed speech is treated as the end
+      // of the utterance. 1.8s is deliberately conservative so sentence-level
+      // pauses and slower speech do not get clipped.
+      if (vad.lastVoiceAt && now - vad.lastVoiceAt >= VAD_SILENCE_MS) {
+        stopRecording();
+      }
+    };
+
     try {
-      await recorder.start(setLevel);
+      recorderRef.current = recorder;
+      await recorder.start(onLevel);
     } catch {
+      recorderRef.current = null;
+      vadRef.current = null;
       setError("Microphone access is required to talk");
       return;
     }
-    recorderRef.current = recorder;
     setPhase("listening");
-  }, [stopPlayback]);
+  }, [stopPlayback, stopRecording]);
 
   // Auto-stop before the 30s API cap.
   useEffect(() => {
@@ -200,9 +288,11 @@ export default function Page() {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.code !== "Space" || event.repeat) return;
       const target = event.target as HTMLElement;
-      if (target.tagName === "BUTTON" || target.tagName === "INPUT" || target.tagName === "TEXTAREA") return;
+      if (target.tagName === "BUTTON" || target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.tagName === "SELECT") return;
       event.preventDefault();
-      if (phase === "idle") startRecording();
+      // Space remains true push-to-talk: releasing the key is the stop signal.
+      // Tap/click recording uses VAD auto-stop instead.
+      if (phase === "idle") startRecording(false);
     };
     const onKeyUp = (event: KeyboardEvent) => {
       if (event.code !== "Space") return;
@@ -217,6 +307,46 @@ export default function Page() {
   }, [phase, startRecording, stopRecording]);
 
   const busy = phase === "transcribing" || phase === "thinking";
+  const authReady = authStatus === "signed-in";
+
+  if (authStatus === "loading") {
+    return (
+      <div className="voice-app voice-app--auth">
+        <ProductDock active="voice" />
+        <main className="voice-auth-state" aria-busy="true">
+          <LogoMark className="voice-auth-state__mark" />
+          <p>Loading Miithii Voice…</p>
+        </main>
+      </div>
+    );
+  }
+
+  if (authStatus === "missing" || authStatus === "error") {
+    return (
+      <div className="voice-app voice-app--auth">
+        <ProductDock active="voice" />
+        <main className="voice-auth-state">
+          <LogoMark className="voice-auth-state__mark" />
+          <h1>Voice sign-in is not configured</h1>
+          <p>Add the Clerk publishable key to the voice app environment before testing authenticated voice.</p>
+        </main>
+      </div>
+    );
+  }
+
+  if (!authReady) {
+    return (
+      <div className="voice-app voice-app--auth">
+        <ProductDock active="voice" />
+        <main className="voice-auth-state voice-auth-state--signin">
+          <span className="voice-auth-state__eyebrow">Voice</span>
+          <h1>Talk with Miithii.</h1>
+          <p>One account across Chat and Voice. Sign in with Google, then start speaking.</p>
+          <ClerkSignIn />
+        </main>
+      </div>
+    );
+  }
 
   const toggleMic = () => {
     if (phase === "listening") stopRecording();
@@ -239,21 +369,14 @@ export default function Page() {
 
   return (
     <div className="voice-app">
-      <header className="voice-bar">
-        <a className="voice-brand" href="https://miithii.in" aria-label="Miithii">
-          <LogoMark className="voice-brand__mark" />
-          <span className="voice-brand__text">miithii</span>
-        </a>
-        <nav className="voice-nav" aria-label="Products">
-          {navItems.map(item => (
-            <a key={item.href} href={item.href}>
-              {item.label}
-            </a>
-          ))}
-        </nav>
-      </header>
+      <ProductDock active="voice" account={<ClerkUserButton />} />
 
       <main className="voice-stage">
+        <label className="voice-language">Language
+          <select aria-label="Voice language" value={language} disabled={phase !== "idle"} onChange={event => { setLanguage(event.target.value as VoiceLanguageCode); historyRef.current = []; setTurns([]); }}>
+            {Object.entries(VOICE_LANGUAGES).map(([code, value]) => <option key={code} value={code}>{value.label} · {value.english}</option>)}
+          </select>
+        </label>
         <div className="voice-orb" data-phase={phase} aria-hidden="true">
           <span className="voice-orb__halo" />
           <span className="voice-orb__halo voice-orb__halo--late" />

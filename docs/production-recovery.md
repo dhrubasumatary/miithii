@@ -2,6 +2,8 @@
 
 Date: 2026-08-18
 
+> Historical recovery record. For the current deployment shape, use `docs/ci-cd.md` and the active Wrangler configs. Do not treat the DNS/Vercel state below as current without re-verifying it.
+
 ## Current State
 
 - `miithii.in` and `www.miithii.in` still resolve to Vercel DNS.

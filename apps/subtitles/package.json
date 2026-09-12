@@ -10,13 +10,7 @@
     "clean": "rimraf .next"
   },
   "dependencies": {
-    "@miithii/auth": "workspace:*",
-    "@miithii/billing": "workspace:*",
-    "@miithii/db": "workspace:*",
-    "@miithii/llm-router": "workspace:*",
     "@miithii/ui": "workspace:*",
-    "@miithii/uploads": "workspace:*",
-    "lucide-react": "latest",
     "next": "latest",
     "react": "latest",
     "react-dom": "latest"

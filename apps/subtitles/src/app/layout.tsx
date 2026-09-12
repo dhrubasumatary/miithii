@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Manrope, Space_Grotesk, Space_Mono } from "next/font/google";
+import { miithiiThemeInitScript } from "@miithii/ui";
 import "./globals.css";
 
 const display = Space_Grotesk({
@@ -26,22 +27,31 @@ export const metadata: Metadata = {
     default: "Miithii Subtitles",
     template: "%s | Miithii Subtitles"
   },
-  description: "Generate captions, transcripts, and translations with Miithii.",
-  robots: {
-    index: false,
-    follow: false
+  description: "Join the waitlist for Assamese subtitles for Instagram reels, podcasts, and shorts.",
+  metadataBase: new URL("https://subtitles.miithii.in"),
+  alternates: { canonical: "/" },
+  openGraph: {
+    title: "Miithii Subtitles",
+    description: "Assamese subtitles for reels, podcasts, and shorts — coming soon.",
+    url: "https://subtitles.miithii.in",
+    siteName: "Miithii",
+    type: "website"
   }
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#081F1C"
+  viewportFit: "cover",
+  themeColor: "#07130f"
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" data-theme="light" className={`${display.variable} ${body.variable} ${mono.variable}`}>
+    <html lang="en" data-theme="dark" suppressHydrationWarning className={`${display.variable} ${body.variable} ${mono.variable}`}>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: miithiiThemeInitScript }} />
+      </head>
       <body>{children}</body>
     </html>
   );

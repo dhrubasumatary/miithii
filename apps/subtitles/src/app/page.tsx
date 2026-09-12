@@ -1,44 +1,40 @@
-import { ProductNav, LogoWordmark, StatusBadge } from "@miithii/ui";
-import { SubtitleWorkspace } from "./subtitle-workspace";
+import { ProductDock } from "@miithii/ui";
+import type { CSSProperties } from "react";
+import { WaitlistForm } from "./waitlist-form";
 
-const navItems = [
-  { href: "https://miithii.in", label: "Hub" },
-  { href: "https://subtitles.miithii.in", label: "Subtitles", active: true },
-  { href: "https://chat.miithii.in", label: "Chat" },
-  { href: "https://voice.miithii.in", label: "Voice" }
-];
+const rotatingWords = ["Instagram reels", "podcasts", "shorts"];
 
 export default function Page() {
   return (
-    <div className="subtitles-shell">
-      <header className="subtitles-header">
-        <LogoWordmark />
-        <ProductNav items={navItems} />
-      </header>
-      <main className="subtitles-main">
-        <aside className="subtitles-sidebar">
-          <StatusBadge tone="accent">Subtitles first</StatusBadge>
-          <section className="sidebar-section">
-            <h2>Recent jobs</h2>
-            <div className="job-list">
-              <div className="job-row">
-                <strong>Assamese lab note</strong>
-                <span>00:06:42 - draft</span>
-              </div>
-              <div className="job-row">
-                <strong>Product demo clip</strong>
-                <span>00:01:18 - ready</span>
-              </div>
-              <div className="job-row">
-                <strong>Voice sample</strong>
-                <span>00:00:54 - queued</span>
-              </div>
-            </div>
-          </section>
-        </aside>
-        <SubtitleWorkspace />
-      </main>
-    </div>
+    <main className="subtitles-waitlist" aria-labelledby="subtitles-title">
+      <ProductDock active="subtitles" />
+
+      <section className="subtitles-hero">
+        <div className="subtitles-wave" aria-hidden="true">
+          {Array.from({ length: 19 }, (_, index) => <span key={index} />)}
+        </div>
+
+        <p className="subtitles-kicker">Subtitles · coming soon</p>
+        <h1 id="subtitles-title">
+          Assamese subtitles for your
+          <span className="subtitles-rotator" aria-label="Instagram reels, podcasts, or shorts">
+            {rotatingWords.map((word, index) => (
+              <span key={word} style={{ "--word-index": index } as CSSProperties}>{word}</span>
+            ))}
+          </span>
+        </h1>
+        <p className="subtitles-intro">
+          Turn spoken Assamese into clean captions you can review, edit, and publish without fighting the language.
+        </p>
+
+        <WaitlistForm />
+        <p className="subtitles-note">No spam. We&apos;ll email you when the first usable build is ready.</p>
+      </section>
+
+      <footer className="subtitles-footer">
+        <span>Miithii Subtitles</span>
+        <span>Built for Assamese creators.</span>
+      </footer>
+    </main>
   );
 }
-

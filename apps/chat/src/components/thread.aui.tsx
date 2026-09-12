@@ -1,12 +1,10 @@
 "use client";
 
 import {
-  ComposerAddAttachment,
   ComposerAttachments,
   UserMessageAttachments,
 } from "@/components/assistant-ui/elements/attachment.aui";
 import { File } from "@/components/file";
-import { ThreadFollowupSuggestions } from "@/components/assistant-ui/elements/follow-up-suggestions.aui";
 import { Image } from "@/components/image";
 import { MarkdownText } from "@/components/markdown-text";
 import {
@@ -36,7 +34,6 @@ import {
   ErrorPrimitive,
   groupPartByType,
   MessagePrimitive,
-  SuggestionPrimitive,
   ThreadPrimitive,
   type FileMessagePartComponent,
   type ImageMessagePartComponent,
@@ -53,6 +50,7 @@ import {
   DownloadIcon,
   MicIcon,
   MoreHorizontalIcon,
+  PaperclipIcon,
   PencilIcon,
   RefreshCwIcon,
   SquareIcon,
@@ -63,6 +61,7 @@ import {
   type ComponentType,
   type FC,
   type PropsWithChildren,
+  type ReactNode,
 } from "react";
 
 export type ThreadGroupPart = MessagePrimitive.GroupedParts.GroupPart;
@@ -89,6 +88,7 @@ export type ThreadComponents = {
 export type ThreadProps = {
   components?: ThreadComponents | undefined;
   autoFocus?: boolean | undefined;
+  composerMeta?: ReactNode;
 };
 
 const EMPTY_COMPONENTS: ThreadComponents = {};
@@ -96,18 +96,21 @@ const EMPTY_COMPONENTS: ThreadComponents = {};
 const ThreadComponentsContext =
   createContext<ThreadComponents>(EMPTY_COMPONENTS);
 
-// Startup exposes a loading placeholder thread; treat it as a new chat so
-// the composer mounts centered. Loads after startup keep the docked layout.
+// Only a fully resolved, genuinely empty thread is a new chat. Treating the
+// startup placeholder as empty causes the welcome/composer to flash before a
+// deep-linked or persisted thread finishes loading.
 const isNewChatView = (s: AssistantState) =>
   s.thread.messages.length === 0 &&
-  (!s.thread.isLoading || s.threads.isLoading);
+  !s.thread.isLoading &&
+  !s.threads.isLoading &&
+  !s.thread.isDisabled;
 
-// A switched thread that is still fetching its history: skeleton, not welcome.
+// Account/thread-list startup and switched-thread history both reserve stable
+// transcript geometry with a skeleton instead of briefly rendering welcome.
 const isHistoryLoadingView = (s: AssistantState) =>
   s.thread.messages.length === 0 &&
-  s.thread.isLoading &&
-  !s.thread.isDisabled &&
-  !s.threads.isLoading;
+  (s.thread.isLoading || s.threads.isLoading) &&
+  !s.thread.isDisabled;
 
 const ThreadHistorySkeleton: FC = () => (
   <div
@@ -132,20 +135,22 @@ const ThreadHistorySkeleton: FC = () => (
 
 export const Thread: FC<ThreadProps> = ({
   components = EMPTY_COMPONENTS,
-  autoFocus = true,
+  autoFocus = false,
+  composerMeta,
 }) => {
   const isEmpty = useAuiState(isNewChatView);
 
   return (
     <ThreadComponentsContext.Provider value={components}>
-      <ThreadRoot isEmpty={isEmpty} autoFocus={autoFocus} />
+      <ThreadRoot isEmpty={isEmpty} autoFocus={autoFocus} composerMeta={composerMeta} />
     </ThreadComponentsContext.Provider>
   );
 };
 
-const ThreadRoot: FC<{ isEmpty: boolean; autoFocus: boolean }> = ({
+const ThreadRoot: FC<{ isEmpty: boolean; autoFocus: boolean; composerMeta?: ReactNode }> = ({
   isEmpty,
   autoFocus,
+  composerMeta,
 }) => {
   const { Welcome = ThreadWelcome } = useContext(ThreadComponentsContext);
 
@@ -160,9 +165,8 @@ const ThreadRoot: FC<{ isEmpty: boolean; autoFocus: boolean }> = ({
       }}
     >
       <ThreadPrimitive.Viewport
-        turnAnchor="top"
         data-slot="aui_thread-viewport"
-        className="relative flex flex-1 flex-col overflow-x-auto overflow-y-scroll scroll-smooth"
+        className="relative flex flex-1 flex-col overflow-x-auto overflow-y-scroll"
       >
         <div
           className={cn(
@@ -194,11 +198,8 @@ const ThreadRoot: FC<{ isEmpty: boolean; autoFocus: boolean }> = ({
             )}
           >
             <ThreadScrollToBottom />
-            <ThreadFollowupSuggestions />
+            {composerMeta}
             <Composer autoFocus={autoFocus} />
-            <AuiIf condition={(s) => isNewChatView(s) && s.composer.isEmpty}>
-              <ThreadSuggestions />
-            </AuiIf>
           </ThreadPrimitive.ViewportFooter>
         </div>
       </ThreadPrimitive.Viewport>
@@ -233,68 +234,154 @@ const ThreadWelcome: FC = () => {
   );
 };
 
-const ThreadSuggestions: FC = () => {
-  return (
-    <div className="aui-thread-welcome-suggestions flex w-full flex-wrap items-center justify-center gap-2 px-4">
-      <ThreadPrimitive.Suggestions>
-        {() => <ThreadSuggestionItem />}
-      </ThreadPrimitive.Suggestions>
-    </div>
-  );
-};
-
-const ThreadSuggestionItem: FC = () => {
-  return (
-    <div className="aui-thread-welcome-suggestion-display fade-in slide-in-from-bottom-2 animate-in fill-mode-both duration-200">
-      <SuggestionPrimitive.Trigger send render={<Button variant="ghost" className="aui-thread-welcome-suggestion text-foreground hover:bg-muted border-border/60 h-auto gap-1.5 rounded-full border px-3.5 py-1.5 text-sm font-normal whitespace-nowrap transition-colors" />}><SuggestionPrimitive.Title className="aui-thread-welcome-suggestion-text-1" /><SuggestionPrimitive.Description className="aui-thread-welcome-suggestion-text-2 empty:hidden" /></SuggestionPrimitive.Trigger>
-    </div>
-  );
-};
-
 const Composer: FC<{ autoFocus: boolean }> = ({ autoFocus }) => {
   return (
     <ComposerPrimitive.Root className="aui-composer-root relative flex w-full flex-col">
-      <ComposerPrimitive.AttachmentDropzone render={<div data-slot="aui_composer-shell" className="border-border/60 data-[dragging=true]:border-ring focus-within:border-border dark:border-muted-foreground/15 dark:focus-within:border-muted-foreground/30 flex w-full cursor-text flex-col gap-2 rounded-(--composer-radius) border bg-(--composer-bg) p-(--composer-padding) transition-[border-color] data-[dragging=true]:border-dashed data-[dragging=true]:bg-[color-mix(in_oklab,var(--color-accent)_50%,var(--color-background))]" />}><ComposerAttachments /><ComposerPrimitive.Input
+      <ComposerPrimitive.AttachmentDropzone
+        render={
+          <div
+            data-slot="aui_composer-shell"
+            className="border-border/60 focus-within:border-border dark:border-muted-foreground/15 dark:focus-within:border-muted-foreground/30 data-[dragging=true]:border-primary data-[dragging=true]:ring-primary/20 flex w-full cursor-text flex-col gap-2 rounded-(--composer-radius) border bg-(--composer-bg) p-(--composer-padding) transition-[border-color,box-shadow] data-[dragging=true]:ring-2"
+          />
+        }
+      >
+        <ComposerAttachments />
+        <ComposerPrimitive.Input
                       placeholder="Send a message..."
                       className="aui-composer-input caret-primary placeholder:text-muted-foreground/60 max-h-48 min-h-10 w-full resize-none bg-transparent px-2.5 py-1 text-base leading-6 outline-none"
                       rows={1}
                       autoFocus={autoFocus}
                       enterKeyHint="send"
                       aria-label="Message input"
-                    /><ComposerAction /></ComposerPrimitive.AttachmentDropzone>
+                    />
+        <ComposerAction />
+      </ComposerPrimitive.AttachmentDropzone>
     </ComposerPrimitive.Root>
   );
 };
 
 const ComposerAction: FC = () => {
   return (
-    <div className="aui-composer-action-wrapper relative flex items-center justify-between">
-      <ComposerAddAttachment />
-      <div className="flex items-center gap-1.5">
+    <div className="aui-composer-action-wrapper relative flex items-center justify-between gap-2 px-0.5 pb-0.5">
+      <div className="flex min-h-9 items-center gap-1.5">
+        <AuiIf condition={(s) => s.thread.capabilities.attachments}>
+          <ComposerPrimitive.AddAttachment
+            render={
+              <TooltipIconButton
+                tooltip="Add image"
+                side="bottom"
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="aui-composer-add-attachment text-muted-foreground hover:text-foreground size-9 rounded-full"
+                aria-label="Add image"
+              />
+            }
+          >
+            <PaperclipIcon className="aui-composer-add-attachment-icon size-[17px]" />
+          </ComposerPrimitive.AddAttachment>
+        </AuiIf>
         <AuiIf condition={(s) => s.thread.capabilities.dictation}>
           <AuiIf condition={(s) => s.composer.dictation == null}>
-            <ComposerPrimitive.Dictate render={<TooltipIconButton tooltip="Voice input" side="bottom" type="button" variant="ghost" size="icon" className="aui-composer-dictate text-muted-foreground hover:text-foreground size-7 rounded-full" aria-label="Start voice input" />}><MicIcon className="aui-composer-dictate-icon size-4" /></ComposerPrimitive.Dictate>
+            <ComposerPrimitive.Dictate render={<TooltipIconButton tooltip="Voice input" side="bottom" type="button" variant="ghost" size="icon" className="aui-composer-dictate text-muted-foreground hover:text-foreground size-9 rounded-full" aria-label="Start voice input" />}><MicIcon className="aui-composer-dictate-icon size-[17px]" /></ComposerPrimitive.Dictate>
           </AuiIf>
           <AuiIf condition={(s) => s.composer.dictation != null}>
-            <ComposerPrimitive.StopDictation render={<TooltipIconButton tooltip="Stop dictation" side="bottom" type="button" variant="ghost" size="icon" className="aui-composer-stop-dictation text-destructive size-7 rounded-full" aria-label="Stop voice input" />}><SquareIcon className="aui-composer-stop-dictation-icon size-3.5 animate-pulse fill-current" /></ComposerPrimitive.StopDictation>
+            <ComposerPrimitive.StopDictation render={<TooltipIconButton tooltip="Stop dictation" side="bottom" type="button" variant="ghost" size="icon" className="aui-composer-stop-dictation text-destructive size-9 rounded-full" aria-label="Stop voice input" />}><SquareIcon className="aui-composer-stop-dictation-icon size-3.5 animate-pulse fill-current" /></ComposerPrimitive.StopDictation>
           </AuiIf>
         </AuiIf>
+      </div>
+      <div className="flex min-h-9 items-center justify-end">
         <AuiIf condition={(s) => !s.thread.isRunning}>
-          <ComposerPrimitive.Send render={<TooltipIconButton tooltip="Send message" side="bottom" type="button" variant="default" size="icon" className="aui-composer-send size-7 rounded-full" aria-label="Send message" />}><ArrowUpIcon className="aui-composer-send-icon size-4" /></ComposerPrimitive.Send>
+          <ComposerPrimitive.Send render={<TooltipIconButton tooltip="Send message" side="bottom" type="button" variant="default" size="icon" className="aui-composer-send size-9 rounded-full" aria-label="Send message" />}><ArrowUpIcon className="aui-composer-send-icon size-[18px]" /></ComposerPrimitive.Send>
         </AuiIf>
         <AuiIf condition={(s) => s.thread.isRunning}>
-          <ComposerPrimitive.Cancel render={<Button type="button" variant="default" size="icon" className="aui-composer-cancel size-7 rounded-full" aria-label="Stop generating" />}><SquareIcon className="aui-composer-cancel-icon size-3.5 fill-current" /></ComposerPrimitive.Cancel>
+          <ComposerPrimitive.Cancel render={<Button type="button" variant="default" size="icon" className="aui-composer-cancel size-9 rounded-full" aria-label="Stop generating" />}><SquareIcon className="aui-composer-cancel-icon size-3.5 fill-current" /></ComposerPrimitive.Cancel>
         </AuiIf>
       </div>
     </div>
   );
 };
 
+type FriendlyMessageError = {
+  message: string;
+  requestId?: string;
+};
+
+const friendlyMessageError = (error: unknown): FriendlyMessageError => {
+  const raw =
+    error instanceof Error
+      ? error.message
+      : typeof error === "string"
+        ? error
+        : "";
+
+  let code = "";
+  let requestId: string | undefined;
+  if (raw.trim().startsWith("{")) {
+    try {
+      const parsed = JSON.parse(raw) as {
+        error?: { code?: unknown; request_id?: unknown };
+      };
+      if (typeof parsed.error?.code === "string") code = parsed.error.code;
+      if (typeof parsed.error?.request_id === "string") {
+        requestId = parsed.error.request_id;
+      }
+    } catch {
+      // A non-JSON transport error falls through to the safe generic copy.
+    }
+  }
+
+  switch (code) {
+    case "DAILY_LIMIT":
+      return {
+        message: "You’ve reached today’s message limit. Try again after midnight IST.",
+        requestId,
+      };
+    case "AUTH_REQUIRED":
+      return {
+        message: "Your session needs to be refreshed. Sign in again, then retry.",
+        requestId,
+      };
+    case "INVALID_MESSAGE":
+      return {
+        message: "That message couldn’t be sent. Edit it and try again.",
+        requestId,
+      };
+    case "INTERNAL":
+    case "SERVICE_UNAVAILABLE":
+    case "UPSTREAM_BUSY":
+    case "UPSTREAM_ERROR":
+    case "UPSTREAM_TIMEOUT":
+      return {
+        message: "Miithii couldn’t reply right now. Please try again.",
+        requestId,
+      };
+    default:
+      return {
+        message: "Something went wrong while replying. Please try again.",
+        requestId,
+      };
+  }
+};
+
 const MessageError: FC = () => {
+  const rawError = useAuiState((s) =>
+    s.message.status?.type === "incomplete" &&
+    s.message.status.reason === "error"
+      ? s.message.status.error
+      : undefined,
+  );
+  const error = friendlyMessageError(rawError);
+
   return (
     <MessagePrimitive.Error>
-      <ErrorPrimitive.Root className="aui-message-error-root border-destructive bg-destructive/10 text-destructive dark:bg-destructive/5 mt-2 rounded-md border p-3 text-sm dark:text-red-200">
-        <ErrorPrimitive.Message className="aui-message-error-message line-clamp-2" />
+      <ErrorPrimitive.Root className="aui-message-error-root border-destructive/40 bg-destructive/5 text-destructive mt-2 flex flex-col gap-1 rounded-lg border px-3 py-2.5 text-sm">
+        <span className="aui-message-error-message">{error.message}</span>
+        {error.requestId && (
+          <span className="text-muted-foreground text-[11px]">
+            Reference {error.requestId.slice(0, 8)}
+          </span>
+        )}
       </ErrorPrimitive.Root>
     </MessagePrimitive.Error>
   );

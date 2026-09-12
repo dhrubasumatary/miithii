@@ -2,7 +2,7 @@
 @source "../../../../packages/ui/src";
 @import "@miithii/ui/styles.css";
 
-/* Immersive dark voice console — mobile-first, app-like. */
+/* Immersive voice console — same Miithii shell/theme as Chat and Hub. */
 
 html,
 body {
@@ -14,24 +14,119 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
+.voice-auth-state {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 14px;
+  padding: 28px;
+  background: transparent;
+  color: var(--mi-color-text-primary);
+  text-align: center;
+  font-family: var(--font-body);
+}
+
+.voice-auth-state h1,
+.voice-auth-state p {
+  margin: 0;
+}
+
+.voice-auth-state h1 {
+  font-family: var(--font-display);
+  font-size: clamp(26px, 5vw, 42px);
+}
+
+.voice-auth-state p {
+  max-width: 34rem;
+  color: var(--mi-color-text-muted);
+  line-height: 1.6;
+}
+
+.voice-auth-state__mark {
+  width: 44px;
+  height: 44px;
+}
+
+.voice-auth-state__eyebrow {
+  color: var(--mi-color-primary);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.voice-google-signin {
+  display: grid;
+  width: min(100%, 320px);
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.voice-google-signin button {
+  display: inline-flex;
+  width: 100%;
+  height: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  border: 1px solid var(--mi-color-primary);
+  border-radius: 12px;
+  background: var(--mi-color-primary);
+  color: var(--mi-color-on-primary);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 750;
+  box-shadow: 0 12px 34px color-mix(in srgb, var(--mi-color-primary) 22%, transparent);
+  transition: transform 150ms ease, background 150ms ease;
+}
+
+.voice-google-signin button:hover:not(:disabled) {
+  background: var(--mi-color-primary-hover);
+  transform: translateY(-1px);
+}
+
+.voice-google-signin button:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+
+.voice-google-signin button svg {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+}
+
+.voice-google-signin p {
+  margin: 0;
+  color: var(--mi-color-danger);
+  font-size: 12px;
+}
+
+.voice-user-button {
+  display: grid;
+  place-items: center;
+  min-width: 32px;
+  min-height: 32px;
+}
+
 .voice-app {
-  --va-bg: #07130f;
-  --va-surface: #0c201a;
-  --va-border: rgba(255, 255, 255, 0.09);
-  --va-text: #e8f2ee;
-  --va-text-dim: #8aa59c;
-  --va-jade: #35c696;
+  --va-bg: var(--mi-color-bg);
+  --va-surface: var(--mi-color-surface);
+  --va-border: var(--mi-color-border);
+  --va-text: var(--mi-color-text-primary);
+  --va-text-dim: var(--mi-color-text-muted);
+  --va-jade: var(--mi-color-primary);
   --va-lime: #c6ff3d;
-  --va-coral: #ff7a59;
+  --va-coral: var(--mi-color-danger);
 
   display: flex;
   flex-direction: column;
   position: fixed;
   inset: 0;
   overflow: hidden;
-  background:
-    radial-gradient(120% 90% at 50% -10%, #10362c 0%, rgba(16, 54, 44, 0) 60%),
-    var(--va-bg);
+  background: var(--mi-page-bg);
   color: var(--va-text);
   font-family: var(--font-body);
   touch-action: manipulation;
@@ -39,57 +134,12 @@ body {
   -webkit-user-select: none;
 }
 
+.voice-app--auth {
+  position: fixed;
+  inset: 0;
+}
+
 /* ---- Top bar ---- */
-
-.voice-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: calc(12px + env(safe-area-inset-top)) 18px 12px;
-}
-
-.voice-brand {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  text-decoration: none;
-  color: var(--va-text);
-}
-
-.voice-brand__mark [fill] {
-  fill: var(--va-jade);
-}
-
-.voice-brand__text {
-  font-family: var(--font-display);
-  font-size: 20px;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-}
-
-.voice-nav {
-  display: none;
-  gap: 4px;
-}
-
-.voice-nav a {
-  padding: 6px 12px;
-  border-radius: 999px;
-  color: var(--va-text-dim);
-  text-decoration: none;
-  font-size: 14px;
-}
-
-.voice-nav a:hover {
-  color: var(--va-text);
-  background: rgba(255, 255, 255, 0.06);
-}
-
-@media (min-width: 720px) {
-  .voice-nav {
-    display: flex;
-  }
-}
 
 /* ---- Stage: orb + status ---- */
 
@@ -101,7 +151,7 @@ body {
   align-items: center;
   justify-content: center;
   gap: 20px;
-  padding: 12px 24px;
+  padding: 90px 24px 12px;
 }
 
 .voice-orb {
@@ -117,8 +167,8 @@ body {
   border-radius: 50%;
   background:
     radial-gradient(55% 55% at 34% 26%, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0) 65%),
-    radial-gradient(90% 90% at 50% 62%, var(--va-jade) 0%, #0b3b36 100%);
-  box-shadow: 0 24px 70px rgba(53, 198, 150, 0.22), inset 0 -14px 40px rgba(0, 0, 0, 0.35);
+    radial-gradient(90% 90% at 50% 62%, var(--va-jade) 0%, color-mix(in srgb, var(--va-jade) 24%, #07130f) 100%);
+  box-shadow: 0 24px 70px color-mix(in srgb, var(--va-jade) 22%, transparent), inset 0 -14px 40px rgba(0, 0, 0, 0.28);
   animation: orb-idle 5s ease-in-out infinite;
   will-change: transform;
 }
@@ -145,7 +195,7 @@ body {
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  border: 1px solid rgba(53, 198, 150, 0.45);
+  border: 1px solid color-mix(in srgb, var(--va-jade) 45%, transparent);
   opacity: 0;
   pointer-events: none;
 }
@@ -253,8 +303,8 @@ body {
   height: 82px;
   border: none;
   border-radius: 50%;
-  background: linear-gradient(180deg, var(--va-jade), #149a72);
-  color: #04140f;
+  background: linear-gradient(180deg, var(--va-jade), var(--mi-color-primary-hover));
+  color: var(--mi-color-on-primary);
   cursor: pointer;
   box-shadow: 0 14px 36px rgba(53, 198, 150, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.35);
   transition: transform 0.15s ease, box-shadow 0.2s ease, background 0.2s ease;
@@ -305,7 +355,7 @@ body {
   height: 52px;
   border: 1px solid var(--va-border);
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.04);
+  background: color-mix(in srgb, var(--va-surface) 62%, transparent);
   color: var(--va-text-dim);
   cursor: pointer;
   transition: color 0.15s ease, background 0.15s ease;
@@ -314,7 +364,7 @@ body {
 
 .voice-side:hover:not(:disabled) {
   color: var(--va-text);
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--va-surface);
 }
 
 .voice-side:disabled {
@@ -339,7 +389,7 @@ body {
   border: 1px solid var(--va-border);
   border-bottom-width: 2px;
   border-radius: 4px;
-  background: rgba(255, 255, 255, 0.05);
+  background: color-mix(in srgb, var(--va-surface) 66%, transparent);
   font-family: var(--font-mono);
   font-size: 11px;
 }
@@ -374,8 +424,10 @@ body {
   border-radius: 20px 20px 0 0;
   border: 1px solid var(--va-border);
   border-bottom: none;
-  background: var(--va-surface);
-  box-shadow: 0 -20px 60px rgba(0, 0, 0, 0.45);
+  background: color-mix(in srgb, var(--va-surface) 94%, transparent);
+  box-shadow: var(--mi-shadow-lg);
+  -webkit-backdrop-filter: blur(24px) saturate(135%);
+  backdrop-filter: blur(24px) saturate(135%);
   animation: sheet-up 0.22s ease-out;
   z-index: 10;
 }
@@ -423,7 +475,7 @@ body {
 
 .voice-sheet__actions button:hover {
   color: var(--va-text);
-  background: rgba(255, 255, 255, 0.06);
+  background: color-mix(in srgb, var(--va-text) 6%, transparent);
 }
 
 .voice-sheet__list {
@@ -450,13 +502,13 @@ body {
 
 .voice-turn--user {
   justify-self: end;
-  background: rgba(255, 255, 255, 0.07);
+  background: color-mix(in srgb, var(--va-text) 7%, transparent);
 }
 
 .voice-turn--assistant {
   justify-self: start;
-  background: rgba(53, 198, 150, 0.12);
-  border: 1px solid rgba(53, 198, 150, 0.25);
+  background: color-mix(in srgb, var(--va-jade) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--va-jade) 25%, transparent);
 }
 
 .voice-turn__who {

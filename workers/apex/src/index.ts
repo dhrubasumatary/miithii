@@ -1,583 +1,789 @@
 const homepage = String.raw`<!doctype html>
-<html lang="en" data-theme="dark">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Miithii — High-Performance AI Product Suite</title>
-    <meta name="description" content="Miithii is a focused suite of high-performance AI tools for conversation, frame-accurate subtitles, and real-time voice." />
+    <title>Miithii — Chat, subtitles and voice for Indian languages</title>
+    <meta name="description" content="Miithii builds focused language tools for conversation, subtitles and voice, starting with Assamese." />
     <link rel="canonical" href="https://miithii.in/" />
-    <meta name="theme-color" content="#081F1C" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <meta name="theme-color" content="#f4f4ed" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Miithii — Chat, subtitles and voice" />
+    <meta property="og:description" content="Focused language tools for conversation, subtitles and voice, starting with Assamese." />
+    <meta property="og:url" content="https://miithii.in/" />
+    <meta name="twitter:card" content="summary" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
     <style>
       :root {
-        --teal-950: #081f1c;
-        --teal-900: #0b3b36;
-        --teal-800: #124842;
-        --surface: #0e302b;
-        --surface-hover: #143e38;
-        --border: #1d4d44;
-        --border-light: rgba(198, 255, 61, 0.15);
-        --cream: #f2f5f1;
-        --muted: #9fc2b7;
+        --paper: #f4f4ed;
+        --paper-deep: #e9ece5;
+        --ink: #092b26;
+        --ink-soft: #24443d;
+        --muted: #637b74;
+        --line: #cdd8d2;
+        --line-strong: #aebfb7;
         --jade: #1d9e75;
-        --jade-bright: #35c696;
+        --jade-dark: #14765a;
         --lime: #c6ff3d;
-        --lime-soft: rgba(198, 255, 61, 0.1);
-        --coral: #ff7a59;
+        --night: #071f1c;
+        --night-soft: #123a33;
+        --white: #f8faf6;
       }
 
       * {
         box-sizing: border-box;
-        margin: 0;
-        padding: 0;
       }
 
-      html, body {
+      html {
+        scroll-behavior: smooth;
+        background: var(--paper);
+      }
+
+      body {
         min-height: 100%;
-        background-color: var(--teal-950);
-        color: var(--cream);
-        font-family: "Manrope", system-ui, -apple-system, sans-serif;
-        line-height: 1.6;
+        margin: 0;
+        background: var(--paper);
+        color: var(--ink);
+        font-family: "Manrope", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        line-height: 1.55;
         -webkit-font-smoothing: antialiased;
-        overflow-x: hidden;
+        text-rendering: optimizeLegibility;
       }
 
-      /* Ambient background glow */
-      body::before {
-        content: "";
+      a {
+        color: inherit;
+      }
+
+      a:focus-visible {
+        outline: 3px solid rgba(29, 158, 117, 0.34);
+        outline-offset: 4px;
+        border-radius: 4px;
+      }
+
+      .skip-link {
         position: fixed;
-        top: -150px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: min(1000px, 100vw);
-        height: 600px;
-        background: radial-gradient(circle at center, rgba(29, 158, 117, 0.18) 0%, rgba(198, 255, 61, 0.05) 35%, transparent 70%);
-        pointer-events: none;
-        z-index: 0;
+        left: 16px;
+        top: 12px;
+        z-index: 1000;
+        transform: translateY(-160%);
+        background: var(--night);
+        color: var(--white);
+        padding: 9px 12px;
+        text-decoration: none;
       }
 
-      .container {
-        max-width: 1160px;
+      .skip-link:focus {
+        transform: translateY(0);
+      }
+
+      .shell {
+        width: min(1240px, calc(100% - 48px));
         margin: 0 auto;
-        padding: 0 24px;
-        position: relative;
-        z-index: 1;
       }
 
-      /* Header */
       header {
         position: sticky;
         top: 0;
-        backdrop-filter: blur(14px);
-        -webkit-backdrop-filter: blur(14px);
-        background: rgba(8, 31, 28, 0.75);
-        border-bottom: 1px solid rgba(29, 77, 68, 0.4);
-        z-index: 100;
+        z-index: 50;
+        background: rgba(244, 244, 237, 0.96);
+        border-bottom: 1px solid var(--line);
       }
 
-      .nav-bar {
+      .nav {
+        min-height: 76px;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        height: 72px;
+        gap: 28px;
       }
 
       .brand {
         display: inline-flex;
         align-items: center;
-        gap: 12px;
+        gap: 10px;
+        color: var(--ink);
         text-decoration: none;
-        color: var(--cream);
+        flex: 0 0 auto;
       }
 
-      .brand-logo {
-        width: 38px;
-        height: 32px;
+      .brand svg {
+        width: 36px;
+        height: 30px;
       }
 
-      .brand-name {
-        font-family: "Space Grotesk", sans-serif;
-        font-size: 24px;
-        font-weight: 700;
-        letter-spacing: -0.5px;
+      .brand strong {
+        font-family: "Space Grotesk", system-ui, sans-serif;
+        font-size: 23px;
+        line-height: 1;
+        letter-spacing: -0.04em;
       }
 
-      .nav-links {
+      .nav-group {
         display: flex;
         align-items: center;
-        gap: 28px;
+        justify-content: flex-end;
+        gap: 8px;
+      }
+
+      .nav-link,
+      .nav-chat {
+        min-height: 40px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 13px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 650;
+        text-decoration: none;
       }
 
       .nav-link {
-        color: var(--muted);
-        text-decoration: none;
-        font-size: 15px;
-        font-weight: 500;
-        transition: color 0.2s ease;
+        color: var(--ink-soft);
       }
 
       .nav-link:hover {
-        color: var(--lime);
+        background: var(--paper-deep);
       }
 
-      .nav-cta {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        background: var(--lime);
-        color: #081f1c;
-        padding: 10px 18px;
-        border-radius: 999px;
-        font-size: 14px;
-        font-weight: 700;
-        text-decoration: none;
-        transition: transform 0.15s ease, box-shadow 0.15s ease;
+      .nav-chat {
+        margin-left: 6px;
+        background: var(--ink);
+        color: var(--white);
       }
 
-      .nav-cta:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 18px rgba(198, 255, 61, 0.35);
+      .nav-chat:hover {
+        background: var(--jade-dark);
       }
 
-      /* Hero Section */
-      .hero {
-        padding: 96px 0 64px;
-        text-align: center;
-      }
-
-      .badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        padding: 6px 14px;
-        background: var(--lime-soft);
-        border: 1px solid var(--border-light);
-        border-radius: 999px;
-        font-size: 13px;
-        font-weight: 600;
-        color: var(--lime);
-        margin-bottom: 28px;
-        letter-spacing: 0.2px;
-      }
-
-      .badge-dot {
-        width: 7px;
-        height: 7px;
-        background: var(--lime);
-        border-radius: 50%;
-        box-shadow: 0 0 8px var(--lime);
-        animation: pulse 2s infinite ease-in-out;
-      }
-
-      @keyframes pulse {
-        0%, 100% { opacity: 1; transform: scale(1); }
-        50% { opacity: 0.5; transform: scale(0.85); }
-      }
-
-      .hero h1 {
-        font-family: "Space Grotesk", sans-serif;
-        font-size: clamp(38px, 6vw, 68px);
-        font-weight: 700;
-        line-height: 1.1;
-        letter-spacing: -1.5px;
-        margin-bottom: 24px;
-        color: var(--cream);
-      }
-
-      .hero h1 span {
-        background: linear-gradient(135deg, var(--cream) 40%, var(--lime) 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-      }
-
-      .hero-sub {
-        font-size: clamp(17px, 2.2vw, 20px);
-        color: var(--muted);
-        max-width: 680px;
-        margin: 0 auto 40px;
-        font-weight: 400;
-      }
-
-      .hero-actions {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 16px;
-      }
-
-      .btn-primary {
-        display: inline-flex;
-        align-items: center;
-        gap: 10px;
-        background: var(--lime);
-        color: #081f1c;
-        font-size: 16px;
-        font-weight: 700;
-        padding: 14px 28px;
-        border-radius: 12px;
-        text-decoration: none;
-        transition: all 0.2s ease;
-      }
-
-      .btn-primary:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 24px rgba(198, 255, 61, 0.4);
-      }
-
-      .btn-secondary {
-        display: inline-flex;
-        align-items: center;
-        gap: 10px;
-        background: var(--surface);
-        color: var(--cream);
-        border: 1px solid var(--border);
-        font-size: 16px;
-        font-weight: 600;
-        padding: 14px 26px;
-        border-radius: 12px;
-        text-decoration: none;
-        transition: all 0.2s ease;
-      }
-
-      .btn-secondary:hover {
-        background: var(--surface-hover);
-        border-color: var(--jade);
-        transform: translateY(-2px);
-      }
-
-      /* Suite Apps Grid */
-      .section-title {
-        text-align: center;
-        margin: 72px 0 40px;
-      }
-
-      .section-title h2 {
-        font-family: "Space Grotesk", sans-serif;
-        font-size: 32px;
-        font-weight: 700;
-        letter-spacing: -0.5px;
-        margin-bottom: 8px;
-      }
-
-      .section-title p {
-        color: var(--muted);
-        font-size: 16px;
-      }
-
-      .grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-        gap: 24px;
-        margin-bottom: 80px;
-      }
-
-      .card {
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 16px;
-        padding: 32px;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        text-decoration: none;
-        color: inherit;
-        transition: all 0.25s ease;
-        position: relative;
+      main {
         overflow: hidden;
       }
 
-      .card::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 3px;
-        background: transparent;
-        transition: background 0.25s ease;
-      }
-
-      .card:hover {
-        transform: translateY(-4px);
-        border-color: var(--jade);
-        box-shadow: 0 16px 36px rgba(8, 31, 28, 0.6);
-      }
-
-      .card.featured {
-        border-color: rgba(198, 255, 61, 0.4);
-        background: linear-gradient(180deg, rgba(14, 48, 43, 0.95) 0%, rgba(11, 37, 33, 0.95) 100%);
-      }
-
-      .card.featured::before {
-        background: var(--lime);
-      }
-
-      .card-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        margin-bottom: 20px;
-      }
-
-      .card-icon {
-        width: 48px;
-        height: 48px;
-        border-radius: 12px;
-        background: rgba(29, 158, 117, 0.2);
+      .hero {
+        padding: clamp(72px, 9vw, 132px) 0 72px;
         display: grid;
-        place-items: center;
-        color: var(--lime);
-        font-size: 22px;
+        grid-template-columns: minmax(0, 1.8fr) minmax(260px, 0.7fr);
+        align-items: end;
+        gap: clamp(48px, 8vw, 112px);
       }
 
-      .card-pill {
-        font-size: 11px;
+      .kicker,
+      .section-kicker,
+      .product-number,
+      .status,
+      .fact-label {
+        font-family: "Space Grotesk", system-ui, sans-serif;
+        font-size: 12px;
         font-weight: 700;
+        line-height: 1.2;
+        letter-spacing: 0.1em;
         text-transform: uppercase;
-        letter-spacing: 0.8px;
-        padding: 4px 10px;
-        border-radius: 999px;
-        background: rgba(29, 158, 117, 0.25);
-        color: var(--jade-bright);
-        border: 1px solid rgba(29, 158, 117, 0.3);
       }
 
-      .card-pill.hot {
-        background: var(--lime-soft);
-        color: var(--lime);
-        border-color: var(--border-light);
+      .kicker {
+        margin: 0 0 22px;
+        color: var(--jade-dark);
       }
 
-      .card-title {
-        font-family: "Space Grotesk", sans-serif;
-        font-size: 22px;
-        font-weight: 700;
-        margin-bottom: 10px;
-        color: var(--cream);
+      .hero h1 {
+        max-width: 900px;
+        margin: 0;
+        font-family: "Space Grotesk", system-ui, sans-serif;
+        font-size: clamp(48px, 7.8vw, 96px);
+        font-weight: 600;
+        line-height: 0.95;
+        letter-spacing: -0.065em;
+        text-wrap: balance;
       }
 
-      .card-desc {
-        color: var(--muted);
-        font-size: 15px;
-        line-height: 1.6;
-        margin-bottom: 28px;
+      .hero h1 em {
+        color: var(--jade-dark);
+        font-style: normal;
       }
 
-      .card-link {
+      .hero-intro {
+        padding-top: 10px;
+        border-top: 1px solid var(--line-strong);
+      }
+
+      .hero-intro p {
+        margin: 0;
+        color: var(--ink-soft);
+        font-size: clamp(17px, 2vw, 21px);
+        line-height: 1.55;
+      }
+
+      .hero-intro a {
         display: inline-flex;
         align-items: center;
-        gap: 6px;
-        font-size: 14px;
+        gap: 10px;
+        margin-top: 30px;
+        color: var(--ink);
         font-weight: 700;
+        text-decoration: none;
+      }
+
+      .hero-intro a span {
+        transition: transform 160ms ease;
+      }
+
+      .hero-intro a:hover span {
+        transform: translateX(4px);
+      }
+
+      .manifesto {
+        border-top: 1px solid var(--line);
+        border-bottom: 1px solid var(--line);
+      }
+
+      .manifesto-grid {
+        min-height: 112px;
+        display: grid;
+        grid-template-columns: 0.7fr 1.3fr;
+        align-items: center;
+        gap: 32px;
+      }
+
+      .manifesto strong {
+        font-family: "Space Grotesk", system-ui, sans-serif;
+        font-size: 18px;
+        letter-spacing: -0.025em;
+      }
+
+      .manifesto p {
+        margin: 0;
+        max-width: 720px;
+        color: var(--muted);
+        font-size: 15px;
+      }
+
+      .products {
+        padding: 112px 0 124px;
+      }
+
+      .section-head {
+        display: grid;
+        grid-template-columns: 0.7fr 1.3fr;
+        gap: 32px;
+        align-items: start;
+        margin-bottom: 38px;
+      }
+
+      .section-kicker {
+        margin: 8px 0 0;
+        color: var(--muted);
+      }
+
+      .section-head h2 {
+        margin: 0;
+        max-width: 760px;
+        font-family: "Space Grotesk", system-ui, sans-serif;
+        font-size: clamp(36px, 5vw, 60px);
+        font-weight: 600;
+        line-height: 1.02;
+        letter-spacing: -0.055em;
+      }
+
+      .product-list {
+        border-top: 1px solid var(--ink);
+      }
+
+      .product {
+        display: grid;
+        grid-template-columns: 88px minmax(210px, 0.72fr) minmax(0, 1.28fr);
+        gap: 32px;
+        padding: 42px 0 46px;
+        border-bottom: 1px solid var(--line-strong);
+      }
+
+      .product-number {
+        color: var(--muted);
+        padding-top: 7px;
+      }
+
+      .product-name {
+        margin: 0;
+        font-family: "Space Grotesk", system-ui, sans-serif;
+        font-size: clamp(28px, 3vw, 40px);
+        font-weight: 600;
+        line-height: 1.05;
+        letter-spacing: -0.045em;
+      }
+
+      .status {
+        display: block;
+        width: fit-content;
+        margin-top: 13px;
+        color: var(--jade-dark);
+      }
+
+      .product-copy {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 28px;
+        align-items: end;
+      }
+
+      .product-copy p {
+        max-width: 650px;
+        margin: 0;
+        color: var(--ink-soft);
+        font-size: 17px;
+        line-height: 1.65;
+      }
+
+      .product-copy a {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        min-height: 42px;
+        white-space: nowrap;
+        color: var(--ink);
+        font-size: 14px;
+        font-weight: 750;
+        text-decoration: none;
+        border-bottom: 1px solid var(--ink);
+      }
+
+      .product-copy a:hover {
+        color: var(--jade-dark);
+        border-color: var(--jade-dark);
+      }
+
+      .story {
+        background: var(--night);
+        color: var(--white);
+      }
+
+      .story-inner {
+        padding: clamp(76px, 9vw, 120px) 0;
+        display: grid;
+        grid-template-columns: 0.8fr 1.2fr;
+        gap: clamp(48px, 8vw, 120px);
+      }
+
+      .story .section-kicker {
+        color: #9fc2b7;
+      }
+
+      .story h2 {
+        margin: 0;
+        max-width: 480px;
+        font-family: "Space Grotesk", system-ui, sans-serif;
+        font-size: clamp(38px, 5vw, 64px);
+        font-weight: 600;
+        line-height: 1;
+        letter-spacing: -0.055em;
+      }
+
+      .story-copy {
+        display: grid;
+        gap: 32px;
+      }
+
+      .story-copy > p {
+        max-width: 690px;
+        margin: 0;
+        color: #c6d8d2;
+        font-size: clamp(18px, 2.2vw, 22px);
+        line-height: 1.62;
+      }
+
+      .facts {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        border-top: 1px solid #34534c;
+      }
+
+      .fact {
+        min-height: 126px;
+        padding: 24px 22px 0 0;
+      }
+
+      .fact + .fact {
+        padding-left: 22px;
+        border-left: 1px solid #34534c;
+      }
+
+      .fact-label {
+        display: block;
+        margin-bottom: 10px;
         color: var(--lime);
       }
 
-      .card:hover .card-link {
+      .fact p {
+        margin: 0;
+        color: #b7ccc5;
+        font-size: 14px;
+        line-height: 1.55;
+      }
+
+      .entry {
+        padding: clamp(78px, 9vw, 118px) 0;
+        display: grid;
+        grid-template-columns: 1.2fr 0.8fr;
+        gap: 60px;
+        align-items: end;
+      }
+
+      .entry h2 {
+        margin: 0;
+        max-width: 760px;
+        font-family: "Space Grotesk", system-ui, sans-serif;
+        font-size: clamp(42px, 6vw, 76px);
+        font-weight: 600;
+        line-height: 0.98;
+        letter-spacing: -0.06em;
+      }
+
+      .entry-actions {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
         gap: 10px;
       }
 
-      /* Features banner */
-      .banner {
-        background: linear-gradient(135deg, rgba(14, 48, 43, 0.6) 0%, rgba(8, 31, 28, 0.8) 100%);
-        border: 1px solid var(--border);
-        border-radius: 20px;
-        padding: 44px 36px;
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        gap: 32px;
-        margin-bottom: 96px;
-      }
-
-      .banner-item h3 {
-        font-family: "Space Grotesk", sans-serif;
-        font-size: 18px;
-        font-weight: 700;
-        margin-bottom: 8px;
-        color: var(--cream);
-      }
-
-      .banner-item p {
-        font-size: 14px;
-        color: var(--muted);
-        line-height: 1.5;
-      }
-
-      /* Footer */
-      footer {
-        border-top: 1px solid rgba(29, 77, 68, 0.4);
-        padding: 40px 0;
-        color: var(--muted);
-        font-size: 14px;
-      }
-
-      .footer-wrap {
-        display: flex;
-        justify-content: space-between;
+      .button {
+        min-height: 48px;
+        display: inline-flex;
         align-items: center;
-        flex-wrap: wrap;
-        gap: 20px;
+        justify-content: center;
+        gap: 9px;
+        border: 1px solid var(--ink);
+        border-radius: 8px;
+        padding: 0 18px;
+        font-size: 14px;
+        font-weight: 750;
+        text-decoration: none;
+      }
+
+      .button-primary {
+        background: var(--ink);
+        color: var(--white);
+      }
+
+      .button-primary:hover {
+        background: var(--jade-dark);
+        border-color: var(--jade-dark);
+      }
+
+      .button-secondary:hover {
+        background: var(--paper-deep);
+      }
+
+      footer {
+        border-top: 1px solid var(--line);
+      }
+
+      .footer-inner {
+        min-height: 92px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+        color: var(--muted);
+        font-size: 13px;
       }
 
       .footer-links {
         display: flex;
-        gap: 24px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 18px;
       }
 
       .footer-links a {
-        color: var(--muted);
         text-decoration: none;
-        transition: color 0.2s ease;
       }
 
       .footer-links a:hover {
-        color: var(--lime);
+        color: var(--ink);
       }
 
-      @media (max-width: 640px) {
-        .nav-links {
+      @media (max-width: 900px) {
+        .hero,
+        .story-inner,
+        .entry {
+          grid-template-columns: 1fr;
+        }
+
+        .hero {
+          gap: 48px;
+        }
+
+        .hero-intro {
+          max-width: 620px;
+        }
+
+        .manifesto-grid,
+        .section-head {
+          grid-template-columns: 1fr;
+          gap: 14px;
+        }
+
+        .product {
+          grid-template-columns: 58px minmax(190px, 0.7fr) minmax(0, 1.3fr);
+          gap: 22px;
+        }
+
+        .product-copy {
+          grid-template-columns: 1fr;
+        }
+
+        .product-copy a {
+          width: fit-content;
+        }
+
+        .entry-actions {
+          justify-content: flex-start;
+        }
+      }
+
+      @media (max-width: 700px) {
+        .shell {
+          width: min(100% - 32px, 1240px);
+        }
+
+        .nav {
+          min-height: 68px;
+        }
+
+        .nav-link {
           display: none;
         }
+
+        .nav-chat {
+          margin-left: 0;
+          min-height: 38px;
+          padding: 0 12px;
+        }
+
         .hero {
-          padding: 64px 0 40px;
+          padding: 62px 0 52px;
+        }
+
+        .hero h1 {
+          font-size: clamp(46px, 15vw, 68px);
+        }
+
+        .manifesto-grid {
+          padding: 24px 0;
+        }
+
+        .products {
+          padding: 76px 0 86px;
+        }
+
+        .product {
+          grid-template-columns: 44px minmax(0, 1fr);
+          padding: 31px 0 34px;
+        }
+
+        .product-copy {
+          grid-column: 2;
+        }
+
+        .story-inner {
+          padding: 74px 0;
+        }
+
+        .facts {
+          grid-template-columns: 1fr;
+        }
+
+        .fact {
+          min-height: auto;
+          padding: 22px 0;
+          border-bottom: 1px solid #34534c;
+        }
+
+        .fact + .fact {
+          padding-left: 0;
+          border-left: 0;
+        }
+
+        .entry {
+          padding: 76px 0;
+        }
+
+        .footer-inner {
+          min-height: 118px;
+          align-items: flex-start;
+          flex-direction: column;
+          justify-content: center;
+        }
+
+        .footer-links {
+          justify-content: flex-start;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+
+        *,
+        *::before,
+        *::after {
+          transition-duration: 0.01ms !important;
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
         }
       }
     </style>
   </head>
   <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+
     <header>
-      <div class="container nav-bar">
+      <div class="shell nav">
         <a href="https://miithii.in/" class="brand" aria-label="Miithii home">
-          <svg class="brand-logo" viewBox="0 0 58 48" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Miithii">
-            <rect x="4" y="17" width="6" height="14" rx="3" fill="var(--jade)" />
-            <rect x="15" y="12" width="6" height="24" rx="3" fill="var(--jade)" />
-            <rect x="26" y="6" width="6" height="36" rx="3" fill="var(--lime)" />
-            <rect x="37" y="12" width="6" height="24" rx="3" fill="var(--jade)" />
-            <rect x="48" y="17" width="6" height="14" rx="3" fill="var(--jade)" />
+          <svg viewBox="0 0 58 48" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <rect x="4" y="17" width="6" height="14" rx="3" fill="#1d9e75" />
+            <rect x="15" y="12" width="6" height="24" rx="3" fill="#1d9e75" />
+            <rect x="26" y="6" width="6" height="36" rx="3" fill="#c6ff3d" />
+            <rect x="37" y="12" width="6" height="24" rx="3" fill="#1d9e75" />
+            <rect x="48" y="17" width="6" height="14" rx="3" fill="#1d9e75" />
           </svg>
-          <span class="brand-name">miithii</span>
+          <strong>miithii</strong>
         </a>
-        <nav class="nav-links">
-          <a href="https://chat.miithii.in/" class="nav-link">Chat</a>
-          <a href="https://subtitles.miithii.in/" class="nav-link">Subtitles</a>
-          <a href="https://voice.miithii.in/" class="nav-link">Voice</a>
-          <a href="https://chat.miithii.in/" class="nav-cta">Open Chat App →</a>
+
+        <nav class="nav-group" aria-label="Products">
+          <a class="nav-link" href="https://subtitles.miithii.in/">Subtitles</a>
+          <a class="nav-link" href="https://voice.miithii.in/">Voice</a>
+          <a class="nav-chat" href="https://chat.miithii.in/">Open Chat <span aria-hidden="true">↗</span></a>
         </nav>
       </div>
     </header>
 
-    <main>
-      <div class="container hero">
-        <div class="badge">
-          <span class="badge-dot"></span>
-          Unified AI Product Suite
+    <main id="main">
+      <section class="shell hero" aria-labelledby="hero-title">
+        <div>
+          <p class="kicker">Miithii / chat · subtitles · voice</p>
+          <h1 id="hero-title">Language tools for <em>real conversations.</em></h1>
         </div>
-        <h1>Intelligence that moves<br /><span>at your speed.</span></h1>
-        <p class="hero-sub">
-          A focused ecosystem of high-performance AI tools for thought, localized translation, and voice synthesis.
-        </p>
-        <div class="hero-actions">
-          <a href="https://chat.miithii.in/" class="btn-primary">
-            Launch Miithii Chat
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-          </a>
-          <a href="https://subtitles.miithii.in/" class="btn-secondary">
-            Explore Subtitles
-          </a>
+        <div class="hero-intro">
+          <p>
+            Miithii is a small set of focused tools for talking, listening, and working with language — starting with Assamese.
+          </p>
+          <a href="#products">See the products <span aria-hidden="true">↓</span></a>
+        </div>
+      </section>
+
+      <section class="manifesto" aria-label="Product approach">
+        <div class="shell manifesto-grid">
+          <strong>One name. Three distinct jobs.</strong>
+          <p>
+            Chat is for text conversations. Voice is for speaking. Subtitles is for media. We keep the experiences separate so each one can stay simple and honest about what it does today.
+          </p>
+        </div>
+      </section>
+
+      <section class="shell products" id="products" aria-labelledby="products-title">
+        <div class="section-head">
+          <p class="section-kicker">Products</p>
+          <h2 id="products-title">Choose the way you want to work.</h2>
         </div>
 
-        <div class="section-title">
-          <h2>The Miithii Suite</h2>
-          <p>Autonomous apps engineered for specific creative workflows</p>
-        </div>
-
-        <div class="grid">
-          <!-- Chat App -->
-          <a href="https://chat.miithii.in/" class="card featured">
+        <div class="product-list">
+          <article class="product">
+            <div class="product-number">01</div>
             <div>
-              <div class="card-header">
-                <div class="card-icon">💬</div>
-                <span class="card-pill hot">Live on chat.miithii.in</span>
-              </div>
-              <h3 class="card-title">Miithii Chat</h3>
-              <p class="card-desc">
-                High-performance conversational intelligence with markdown streaming, persistent workspace memory, and deep reasoning across Indian languages and English.
+              <h3 class="product-name">Chat</h3>
+              <span class="status">Available</span>
+            </div>
+            <div class="product-copy">
+              <p>
+                A signed-in text workspace for talking with Miithii. Conversations sync to your account, and useful cross-conversation memory can be switched off in settings.
               </p>
+              <a href="https://chat.miithii.in/">Open Chat <span aria-hidden="true">↗</span></a>
             </div>
-            <div class="card-link">
-              Open Chat Workspace →
-            </div>
-          </a>
+          </article>
 
-          <!-- Subtitles App -->
-          <a href="https://subtitles.miithii.in/" class="card">
+          <article class="product">
+            <div class="product-number">02</div>
             <div>
-              <div class="card-header">
-                <div class="card-icon">🎬</div>
-                <span class="card-pill">subtitles.miithii.in</span>
-              </div>
-              <h3 class="card-title">Miithii Subtitles</h3>
-              <p class="card-desc">
-                Frame-accurate automatic speech recognition, automated caption styling, and multi-dialect translation built specifically for video creators and studios.
+              <h3 class="product-name">Voice</h3>
+              <span class="status">Preview</span>
+            </div>
+            <div class="product-copy">
+              <p>
+                Tap the mic to speak in Assamese, or hold Space on desktop. Miithii transcribes your clip, replies, and can read the answer aloud. A simple session transcript remains available while you talk.
               </p>
+              <a href="https://voice.miithii.in/">Open Voice <span aria-hidden="true">↗</span></a>
             </div>
-            <div class="card-link">
-              Explore Subtitles →
-            </div>
-          </a>
+          </article>
 
-          <!-- Voice App -->
-          <a href="https://voice.miithii.in/" class="card">
+          <article class="product">
+            <div class="product-number">03</div>
             <div>
-              <div class="card-header">
-                <div class="card-icon">🎙️</div>
-                <span class="card-pill">Preview</span>
-              </div>
-              <h3 class="card-title">Miithii Voice</h3>
-              <p class="card-desc">
-                Ultra-low latency expressive voice synthesis and conversational audio pipeline with real-time turn-taking and natural prosody.
+              <h3 class="product-name">Subtitles</h3>
+              <span class="status">Prototype</span>
+            </div>
+            <div class="product-copy">
+              <p>
+                A workspace for upload, language selection, timecoded review, and caption export. The live transcription and translation pipeline is still being connected.
               </p>
+              <a href="https://subtitles.miithii.in/">View prototype <span aria-hidden="true">↗</span></a>
             </div>
-            <div class="card-link">
-              View Voice Suite →
-            </div>
-          </a>
+          </article>
         </div>
+      </section>
 
-        <!-- Infrastructure Highlights -->
-        <div class="banner">
-          <div class="banner-item">
-            <h3>⚡ 0ms Cold Starts</h3>
-            <p>Deployed globally across Cloudflare's edge network for instantaneous responses worldwide.</p>
+      <section class="story" aria-labelledby="story-title">
+        <div class="shell story-inner">
+          <div>
+            <p class="section-kicker">What matters</p>
+            <h2 id="story-title">Useful before impressive.</h2>
           </div>
-          <div class="banner-item">
-            <h3>🔒 Sovereign & Private</h3>
-            <p>Your workspace data and generation memory stay strictly protected with end-to-end encryption.</p>
-          </div>
-          <div class="banner-item">
-            <h3>🌐 Native Multilingual</h3>
-            <p>Fine-tuned for Indian languages with authentic dialectal context, nuance, and cultural fluency.</p>
+          <div class="story-copy">
+            <p>
+              Miithii is being built around everyday language use, not a wall of AI features. The current focus is making the Assamese experience dependable, keeping product boundaries clear, and showing what is ready versus experimental.
+            </p>
+            <div class="facts" aria-label="Current product boundaries">
+              <div class="fact">
+                <span class="fact-label">Chat</span>
+                <p>Sign-in required. The daily allowance is 50 messages per account, resetting at midnight IST.</p>
+              </div>
+              <div class="fact">
+                <span class="fact-label">Voice</span>
+                <p>Assamese is the current launch language, using short push-to-talk turns.</p>
+              </div>
+              <div class="fact">
+                <span class="fact-label">Subtitles</span>
+                <p>The workspace exists today; the production processing pipeline is not presented as finished.</p>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      </section>
+
+      <section class="shell entry" aria-labelledby="entry-title">
+        <h2 id="entry-title">Start with the product you need.</h2>
+        <div class="entry-actions">
+          <a class="button button-primary" href="https://chat.miithii.in/">Open Chat <span aria-hidden="true">↗</span></a>
+          <a class="button button-secondary" href="https://voice.miithii.in/">Try Voice</a>
+        </div>
+      </section>
     </main>
 
     <footer>
-      <div class="container footer-wrap">
-        <div>© 2026 Miithii. All rights reserved.</div>
-        <div class="footer-links">
+      <div class="shell footer-inner">
+        <div>© 2026 Miithii</div>
+        <nav class="footer-links" aria-label="Footer">
           <a href="https://chat.miithii.in/">Chat</a>
           <a href="https://subtitles.miithii.in/">Subtitles</a>
           <a href="https://voice.miithii.in/">Voice</a>
           <a href="https://miithii.in/sitemap.xml">Sitemap</a>
-        </div>
+        </nav>
       </div>
     </footer>
   </body>
 </html>`;
-
 const robots = String.raw`User-agent: *
 Allow: /
 
@@ -588,19 +794,25 @@ const sitemap = String.raw`<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://miithii.in/</loc>
-    <lastmod>2026-09-06</lastmod>
+    <lastmod>2026-09-09</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://chat.miithii.in/</loc>
-    <lastmod>2026-09-06</lastmod>
+    <lastmod>2026-09-09</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://subtitles.miithii.in/</loc>
-    <lastmod>2026-09-06</lastmod>
+    <lastmod>2026-09-09</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://voice.miithii.in/</loc>
+    <lastmod>2026-09-09</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>

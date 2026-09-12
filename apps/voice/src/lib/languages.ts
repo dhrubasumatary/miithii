@@ -1,4 +1,4 @@
-// Voice interface languages. Assamese is the launch default; Bodo joins later.
+// Voice interface languages. Assamese is the default; Bodo speech is a provider preview.
 export const DEFAULT_LANGUAGE = "as";
 
 // Codes follow the Bodhan.AI convention (ISO 639-3 for Indic languages).

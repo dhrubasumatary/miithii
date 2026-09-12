@@ -17,6 +17,10 @@
       "default": "./src/components/*.tsx"
     },
     "./styles.css": "./src/styles.css",
+    "./product-links": {
+      "types": "./src/product-links.ts",
+      "default": "./src/product-links.ts"
+    },
     "./tokens": {
       "types": "./src/tokens.ts",
       "default": "./src/tokens.ts"
@@ -41,10 +45,8 @@
     "react-dom": ">=19"
   },
   "dependencies": {
-    "class-variance-authority": "latest",
     "clsx": "latest",
     "lucide-react": "latest",
-    "radix-ui": "latest",
     "tailwind-merge": "latest"
   },
   "devDependencies": {

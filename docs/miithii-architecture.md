@@ -11,7 +11,7 @@ Miithii is one AI platform with multiple focused surfaces:
 - Chat: general AI conversation workspace
 - Voice: real-time or async voice agent workspace
 
-The unifying layer is not DNS. It is shared identity, shared memory, shared billing, shared data conventions, and a shared LLM routing layer.
+The unifying layer is not DNS. It is shared Clerk identity, shared API policy, quota, memory behavior, data conventions, and model routing.
 
 ## Monorepo shape
 
@@ -23,25 +23,21 @@ miithii/
     chat/
     voice/
   packages/
-    auth/
-    db/
-    llm-router/
-    memory/
-    uploads/
-    billing/
     ui/
+  workers/
+    api/
+    chat/
+    apex/
 ```
 
-## Build order
+## Runtime boundaries
 
-1. Lock the Pulse design tokens and logo in `packages/ui`.
-2. Build `apps/subtitles` first.
-3. Extract proven subtitle prototype logic into shared boundaries.
-4. Wire Supabase auth and database types.
-5. Add CI/CD through Vercel and Turborepo.
-6. Build chat and voice from the same shared package pattern.
-7. Build the hub at `miithii.in`.
-8. Consider native via Expo only after the web apps are stable.
+- `packages/ui` is the only shared workspace package currently retained.
+- `workers/api` owns authenticated API behavior, daily quota, model routing, upload handling, and memory policy.
+- `workers/chat` serves the exported Chat app and forwards same-origin API requests to `workers/api`.
+- `apps/voice/worker.js` serves the exported Voice app, handles STT/TTS, and forwards account/chat calls to `workers/api`.
+- `workers/apex` currently owns `miithii.in` and `www.miithii.in` in production.
+- `apps/hub` is the Next.js hub source and remains part of workspace typecheck/build even while the apex Worker is the active production edge.
 
 ## Brand direction
 

@@ -15,13 +15,7 @@
     "incremental": true,
     "baseUrl": ".",
     "paths": {
-      "@miithii/auth": ["packages/auth/src/index.ts"],
-      "@miithii/billing": ["packages/billing/src/index.ts"],
-      "@miithii/db": ["packages/db/src/index.ts"],
-      "@miithii/llm-router": ["packages/llm-router/src/index.ts"],
-      "@miithii/memory": ["packages/memory/src/index.ts"],
-      "@miithii/ui": ["packages/ui/src/index.ts"],
-      "@miithii/uploads": ["packages/uploads/src/index.ts"]
+      "@miithii/ui": ["packages/ui/src/index.ts"]
     }
   }
 }

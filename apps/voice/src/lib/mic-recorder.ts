@@ -63,25 +63,15 @@ function downsample(input: Float32Array, from: number, to: number): Float32Array
 export class MicRecorder {
   private context: AudioContext | null = null;
   private stream: MediaStream | null = null;
-  private node: AudioWorkletNode | null = null;
+  private node: AudioNode | null = null;
+  private workletPort: MessagePort | null = null;
+  private scriptNode: ScriptProcessorNode | null = null;
   private chunks: Float32Array[] = [];
   private sampleCount = 0;
   private recordingSampleRate = 0;
 
   async start(onLevel?: (level: number) => void): Promise<void> {
-    this.stream = await navigator.mediaDevices.getUserMedia({
-      audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true }
-    });
-    const context = new AudioContext();
-    this.context = context;
-    this.recordingSampleRate = context.sampleRate;
-    const workletUrl = URL.createObjectURL(new Blob([WORKLET_SOURCE], { type: "application/javascript" }));
-    await context.audioWorklet.addModule(workletUrl);
-    URL.revokeObjectURL(workletUrl);
-
-    this.node = new AudioWorkletNode(context, "capture-processor");
-    this.node.port.onmessage = event => {
-      const samples = event.data as Float32Array;
+    const pushSamples = (samples: Float32Array) => {
       this.chunks.push(samples);
       this.sampleCount += samples.length;
       if (onLevel) {
@@ -90,14 +80,47 @@ export class MicRecorder {
         onLevel(Math.sqrt(sum / samples.length));
       }
     };
-    const source = context.createMediaStreamSource(this.stream);
-    source.connect(this.node);
-    // Worklets only tick when the graph pulls; a muted gain to destination
-    // keeps that pull while staying silent.
-    const mute = context.createGain();
-    mute.gain.value = 0;
-    this.node.connect(mute);
-    mute.connect(context.destination);
+
+    try {
+      this.stream = await navigator.mediaDevices.getUserMedia({
+        audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true }
+      });
+      const context = new AudioContext();
+      this.context = context;
+      this.recordingSampleRate = context.sampleRate;
+      const source = context.createMediaStreamSource(this.stream);
+
+      if (context.audioWorklet && typeof AudioWorkletNode !== "undefined") {
+        const workletUrl = URL.createObjectURL(new Blob([WORKLET_SOURCE], { type: "application/javascript" }));
+        try {
+          await context.audioWorklet.addModule(workletUrl);
+        } finally {
+          URL.revokeObjectURL(workletUrl);
+        }
+        const node = new AudioWorkletNode(context, "capture-processor");
+        this.node = node;
+        this.workletPort = node.port;
+        node.port.onmessage = event => pushSamples(event.data as Float32Array);
+      } else {
+        // ScriptProcessor is deprecated but remains the broadest fallback on
+        // older mobile Safari/WebViews that do not expose AudioWorklet.
+        const node = context.createScriptProcessor(2048, 1, 1);
+        this.node = node;
+        this.scriptNode = node;
+        node.onaudioprocess = event => pushSamples(event.inputBuffer.getChannelData(0).slice());
+      }
+
+      source.connect(this.node);
+      // Capture nodes only tick while the graph is pulled. A muted gain keeps
+      // that pull active without feeding microphone audio back to the user.
+      const mute = context.createGain();
+      mute.gain.value = 0;
+      this.node.connect(mute);
+      mute.connect(context.destination);
+    } catch (error) {
+      await this.abort();
+      throw error;
+    }
   }
 
   /** Duration of captured audio in seconds. */
@@ -107,11 +130,14 @@ export class MicRecorder {
 
   /** Stop capture and return the recording as a 16 kHz mono WAV blob. */
   async stop(): Promise<Blob> {
-    this.node?.port.close();
+    this.workletPort?.close();
+    if (this.scriptNode) this.scriptNode.onaudioprocess = null;
     this.node?.disconnect();
     await this.context?.close();
     this.stream?.getTracks().forEach(track => track.stop());
     this.node = null;
+    this.workletPort = null;
+    this.scriptNode = null;
     this.context = null;
     this.stream = null;
 
@@ -133,11 +159,14 @@ export class MicRecorder {
 
   /** Discard the capture without encoding (e.g. recording was too short). */
   async abort(): Promise<void> {
-    this.node?.port.close();
+    this.workletPort?.close();
+    if (this.scriptNode) this.scriptNode.onaudioprocess = null;
     this.node?.disconnect();
     await this.context?.close();
     this.stream?.getTracks().forEach(track => track.stop());
     this.node = null;
+    this.workletPort = null;
+    this.scriptNode = null;
     this.context = null;
     this.stream = null;
     this.chunks = [];

@@ -65,8 +65,8 @@ export const ThreadListSearch = forwardRef<
         type="search"
         value={value}
         onChange={(event) => onValueChange(event.target.value)}
-        aria-label="Search threads"
-        placeholder="Search threads"
+        aria-label="Search conversations"
+        placeholder="Search conversations"
         className={cn("h-8 ps-8 text-sm", className)}
         {...props}
       />
@@ -139,7 +139,7 @@ export const useThreadListGroups = (searchQuery = "") => {
       .filter(
         ({ id }) =>
           !query ||
-          (itemsById.get(id)?.title || "New Chat")
+          (itemsById.get(id)?.title || "New chat")
             .toLowerCase()
             .includes(query),
       )
@@ -185,7 +185,7 @@ const ThreadListItemGroups: FC<{ searchQuery?: string }> = ({
         data-slot="aui_thread-list-empty"
         className="text-muted-foreground px-2.5 py-4 text-sm"
       >
-        No threads found
+        No conversations found
       </div>
     );
   }
@@ -237,7 +237,7 @@ export const ThreadListNew = forwardRef<
                     data-slot="aui_thread-list-new-label"
                     className={cn("whitespace-nowrap", labelClassName)}
                   >
-                    New Thread
+                  New chat
                   </span>
                 </>
               )}</ThreadListPrimitive.New>
@@ -253,7 +253,7 @@ const ThreadListSkeleton: FC = () => {
         <div
           key={i}
           role="status"
-          aria-label="Loading threads"
+          aria-label="Loading conversations"
           data-slot="aui_thread-list-skeleton-wrapper"
           className="flex h-8 items-center px-2.5"
         >
@@ -308,7 +308,7 @@ export const ThreadListItem: FC = () => {
             data-slot="aui_thread-list-item-title"
             className="min-w-0 flex-1 truncate"
           >
-            <ThreadListItemPrimitive.Title fallback="New Chat" />
+            <ThreadListItemPrimitive.Title fallback="New chat" />
           </span>
           {isRunning && <span className="sr-only">Running</span>}
         </ThreadListItemPrimitive.Trigger>
