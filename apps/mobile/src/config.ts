@@ -1,6 +1,7 @@
 const rawPipecatUrl = process.env.EXPO_PUBLIC_PIPECAT_URL?.trim();
 const rawApiUrl = process.env.EXPO_PUBLIC_MIITHII_API_URL?.trim();
 const rawUseVoiceSession = process.env.EXPO_PUBLIC_USE_VOICE_SESSION?.trim().toLowerCase();
+const rawPipecatStartUrl = process.env.EXPO_PUBLIC_PIPECAT_START_URL?.trim();
 
 // Android Emulator reaches the host machine through 10.0.2.2. Physical devices
 // should set EXPO_PUBLIC_PIPECAT_URL to the computer's LAN address.
@@ -11,6 +12,7 @@ export const MIITHII_API_URL = (rawApiUrl || "http://10.0.2.2:8787").replace(/\/
 // works without depending on the API worker's loopback start URL.
 export const USE_VOICE_SESSION = rawUseVoiceSession === "true"
   || (rawUseVoiceSession !== "false" && MIITHII_API_URL.startsWith("https://"));
+export const PIPECAT_START_URL_OVERRIDE = rawPipecatStartUrl || null;
 export const PIPECAT_START_URL =
-  process.env.EXPO_PUBLIC_PIPECAT_START_URL?.trim() ||
+  PIPECAT_START_URL_OVERRIDE ||
   `${PIPECAT_URL}/start`;

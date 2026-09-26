@@ -3,7 +3,7 @@
 Last updated: 2026-09-27.
 
 Read `docs/CURRENT-VOICE-STATE.md` first. It is the current product/architecture handoff.
-Checkpoint `ff7814c` is the rollback point immediately before the transport cleanup.
+Checkpoint `88bc15a` is the rollback point immediately before the transport cleanup on this branch.
 
 ## Product direction
 
@@ -50,7 +50,7 @@ physical Android end-to-end gate in `docs/CURRENT-VOICE-STATE.md` passes.
 
 The old Chat/Hub/Subtitles/web Worker/UI code is outside the active workspace. Do not add new work
 there. It may be deleted after the native Voice cutover or when explicitly required by the cleanup
-plan; Git history/checkpoint `ff7814c` is the recovery path.
+plan; Git history/checkpoint `88bc15a` is the recovery path.
 
 ## Verification
 
@@ -62,8 +62,11 @@ pnpm --dir apps/mobile exec expo-doctor
 pnpm --dir apps/mobile prebuild:android --clean
 ```
 
-CI also compiles a real Android debug APK. Non-PR CI runs upload the APK as an artifact so it can
-be installed on a physical Android phone without a local Android toolchain.
+CI compiles the Android debug variant to prove the native project builds. That debug APK does not
+embed the JavaScript bundle and therefore needs Metro. Non-PR CI also builds and uploads a
+SmallWebRTC canary APK from the release variant with the signed-session API URL and explicit Modal
+`/start` override embedded. This private-alpha canary is the standalone physical-phone artifact;
+it does not use EAS and it does not change the production Worker's legacy `/connect` setting.
 
 This Windows machine currently has no local JDK, Android SDK, or `adb` configured.
 

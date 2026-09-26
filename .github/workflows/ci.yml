@@ -73,9 +73,6 @@ jobs:
 
       - name: Build Android debug APK
         working-directory: apps/mobile/android
-        env:
-          EXPO_PUBLIC_MIITHII_API_URL: https://api.miithii.in
-          EXPO_PUBLIC_USE_VOICE_SESSION: 'true'
         run: ./gradlew assembleDebug
 
       - name: Upload Android debug APK
@@ -84,6 +81,24 @@ jobs:
         with:
           name: miithii-android-debug-${{ github.sha }}
           path: apps/mobile/android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Build Android SmallWebRTC canary APK
+        if: github.event_name != 'pull_request'
+        working-directory: apps/mobile/android
+        env:
+          EXPO_PUBLIC_MIITHII_API_URL: https://api.miithii.in
+          EXPO_PUBLIC_USE_VOICE_SESSION: 'true'
+          EXPO_PUBLIC_PIPECAT_START_URL: https://dhrubasumatary--miithii-voice-connect-app.modal.run/start
+        run: ./gradlew assembleRelease
+
+      - name: Upload Android SmallWebRTC canary APK
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: miithii-android-smallwebrtc-canary-${{ github.sha }}
+          path: apps/mobile/android/app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
           retention-days: 14
 

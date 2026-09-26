@@ -16,6 +16,7 @@ import type { PipecatClient, TransportState } from "@pipecat-ai/client-js";
 import {
   MIITHII_API_URL,
   PIPECAT_START_URL,
+  PIPECAT_START_URL_OVERRIDE,
   USE_VOICE_SESSION,
 } from "./src/config";
 import { createVoiceSession } from "./src/session";
@@ -172,7 +173,7 @@ export default function App() {
       ]);
       if (!current()) return;
       await client.startBotAndConnect({
-        endpoint: session?.startUrl || PIPECAT_START_URL,
+        endpoint: PIPECAT_START_URL_OVERRIDE || session?.startUrl || PIPECAT_START_URL,
         ...(session ? { headers: new Headers({ authorization: `Bearer ${session.token}` }) } : {}),
         timeout: 15_000,
         requestData: {

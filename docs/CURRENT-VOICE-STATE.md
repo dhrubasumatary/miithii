@@ -1,6 +1,6 @@
 # Miithii Voice — current execution state
 
-Last updated: 2026-09-27. Recovery checkpoint before cleanup: `ff7814c`.
+Last updated: 2026-09-27. Recovery checkpoint before cleanup on this branch: `88bc15a`.
 
 This file is the first operational document a future coding agent should read.
 Older architecture/recovery plans are historical and must not override this file or the code.
@@ -41,6 +41,12 @@ through Cloudflare Realtime TURN. Previous relay-only tests gathered relay candi
 requests but received no peer responses. TURN/SFU smoke scripts and the temporary aioice
 compatibility patch are retained because they are evidence for this unresolved blocker.
 
+On 2026-09-27 the safe canary signalling path was re-verified against the deployed services:
+`api.miithii.in/api/voice/session` minted a signed capability, the same capability was accepted by
+the deployed Modal `/start` endpoint derived from the legacy `/connect` host, and `/start`
+returned a session ID plus two ICE servers. This proves admission/signalling setup only; it does not
+prove Android ICE, the RTVI data channel, RTP, or end-to-end audio.
+
 `workers/api/wrangler.jsonc` intentionally still points `VOICE_RTC_START_URL` at the currently
 deployed legacy Modal `/connect` URL. Do **not** change/deploy it to `/start` until the deployed
 Modal `/start` path passes a remote libwebrtc/Android smoke test and opens the RTVI data channel.
@@ -68,8 +74,21 @@ web Voice implementation be deleted.
 ## CI/CD and device testing
 
 `.github/workflows/ci.yml` validates TypeScript, Expo config, generated Android native config,
-language contracts, RTC tests, API tests and an actual Gradle debug APK build. Non-PR runs upload
-the APK as a GitHub Actions artifact for installation on a physical Android phone.
+language contracts, RTC tests, API tests and an actual Gradle debug APK build. The debug variant is
+a native compile/dev-client check and requires Metro because React Native does not embed the JS
+bundle in debuggable variants.
+
+For non-PR runs CI additionally builds `assembleRelease` as a private-alpha SmallWebRTC canary.
+That variant embeds the JavaScript and these explicit canary settings:
+
+- `EXPO_PUBLIC_MIITHII_API_URL=https://api.miithii.in`
+- `EXPO_PUBLIC_USE_VOICE_SESSION=true`
+- `EXPO_PUBLIC_PIPECAT_START_URL=https://dhrubasumatary--miithii-voice-connect-app.modal.run/start`
+
+The app endpoint precedence is: explicit `EXPO_PUBLIC_PIPECAT_START_URL` override, then the signed
+session's `startUrl`, then the normal local `/start` default. The signed session bearer token is
+still sent when the explicit override wins. The production Worker remains on legacy `/connect`
+until physical Android proves ICE + data channel.
 
 This Windows workstation currently has no JDK, Android SDK or `adb`; CI APK artifacts are therefore
 the reproducible device-testing path until a local Android toolchain is installed.
@@ -78,6 +97,12 @@ the reproducible device-testing path until a local Android toolchain is installe
 `MODAL_TOKEN_ID`, `MODAL_TOKEN_SECRET` and repository/environment variable `VOICE_RTC_HEALTH_URL`.
 Deploying Modal must not automatically switch the API Worker to `/start`; transport proof comes
 first.
+
+As verified on 2026-09-27, that deploy workflow is not armed yet: the repository has no
+`voice-production` environment, the required Modal token secrets are not present in the repo-level
+Actions secret names, and `VOICE_RTC_HEALTH_URL` is not present in the repo-level variable names.
+This does not block the current Android canary because the already-deployed Modal revision exposes
+both legacy `/connect` and SmallWebRTC `/start`.
 
 The Modal runtime deliberately uses `min_containers=0`, `max_containers=1` and a 300-second
 scaledown window during private alpha. This protects the budget while keeping repeated device tests
@@ -92,7 +117,7 @@ real usage justify the idle cost.
 4. Choose one working production transport; delete the losing transport experiments completely.
 5. Pass the physical Android end-to-end gate.
 6. Delete frozen web Chat/Hub/Subtitles/Voice and their Workers/UI package if they are no longer
-   intentionally served. Git history and checkpoint `ff7814c` are the recovery path.
+   intentionally served. Git history and checkpoint `88bc15a` are the recovery path.
 7. Reduce `workers/api` to the capabilities the shipped product still uses; remove old Chat quota,
    upload, memory/UI protocol code only after the web surfaces are retired.
 
