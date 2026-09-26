@@ -34,7 +34,7 @@ runtime_image = (
     .pip_install(
         "aiohttp>=3.13,<4",
         "python-dotenv>=1,<2",
-        "pipecat-ai[daily,silero,webrtc]==1.10.0",
+        "pipecat-ai[silero,webrtc]==1.10.0",
         "fastapi>=0.118,<1",
     )
     .add_local_file(str(SERVICE_DIR / "bot.py"), remote_path="/root/bot.py")
@@ -70,14 +70,6 @@ def connect_app():
     from fastapi import FastAPI, Header, HTTPException
     from pipecat.runner.types import RunnerArguments
     from pipecat.transports.base_transport import TransportParams
-    from pipecat.transports.daily.transport import DailyParams, DailyTransport
-    from pipecat.transports.daily.utils import (
-        DailyMeetingTokenParams,
-        DailyMeetingTokenProperties,
-        DailyRESTHelper,
-        DailyRoomParams,
-        DailyRoomProperties,
-    )
     from pipecat.transports.smallwebrtc.connection import IceServer, SmallWebRTCConnection
     from pipecat.transports.smallwebrtc.request_handler import (
         IceCandidate,
@@ -120,9 +112,6 @@ def connect_app():
             os.environ.get("CLOUDFLARE_TURN_KEY_ID")
             and os.environ.get("CLOUDFLARE_TURN_KEY_API_TOKEN")
         )
-
-    def daily_is_configured() -> bool:
-        return bool(os.environ.get("DAILY_API_KEY"))
 
     async def get_ice_config(ttl: int) -> tuple[list[dict[str, Any]], list[IceServer]]:
         """Return independent client and server ICE configurations.
@@ -311,103 +300,6 @@ def connect_app():
             "status": "ok",
             "transport": "smallwebrtc",
             "relayConfigured": relay_is_configured(),
-            "dailyConfigured": daily_is_configured(),
-        }
-
-    @web.post("/connect")
-    async def connect(
-        payload: dict,
-        authorization: str | None = Header(default=None),
-    ):
-        """Create a private Daily room and run the existing Miithii pipeline in it."""
-
-        token, claims = require_capability(authorization)
-        if payload.get("transport") not in {None, "daily"}:
-            raise HTTPException(status_code=400, detail="Daily transport required")
-        language = payload.get("language", claims.language)
-        if language != claims.language:
-            raise HTTPException(status_code=400, detail="Voice language does not match session")
-
-        daily_api_key = os.environ.get("DAILY_API_KEY", "").strip()
-        if not daily_api_key:
-            raise HTTPException(status_code=503, detail="Managed voice transport is not configured")
-
-        ttl = max(60, claims.expires_at - int(time.time()))
-        expires_at = int(time.time()) + ttl
-        try:
-            async with aiohttp.ClientSession() as http:
-                helper = DailyRESTHelper(
-                    daily_api_key=daily_api_key,
-                    daily_api_url=os.environ.get("DAILY_API_URL", "https://api.daily.co/v1"),
-                    aiohttp_session=http,
-                )
-                room = await helper.create_room(
-                    DailyRoomParams(
-                        name=f"miithii-{claims.session_id}",
-                        privacy="private",
-                        properties=DailyRoomProperties(
-                            exp=expires_at,
-                            eject_at_room_exp=True,
-                            max_participants=2,
-                            start_video_off=True,
-                        ),
-                    )
-                )
-                bot_token, client_token = await asyncio.gather(
-                    helper.get_token(
-                        room.url,
-                        ttl,
-                        eject_at_token_exp=True,
-                        owner=True,
-                        params=DailyMeetingTokenParams(
-                            properties=DailyMeetingTokenProperties(
-                                user_id="bot",
-                                user_name="Miithii",
-                                start_video_off=True,
-                            )
-                        ),
-                    ),
-                    helper.get_token(
-                        room.url,
-                        ttl,
-                        eject_at_token_exp=True,
-                        owner=False,
-                        params=DailyMeetingTokenParams(
-                            properties=DailyMeetingTokenProperties(
-                                user_id=claims.session_id,
-                                user_name="You",
-                                start_video_off=True,
-                            )
-                        ),
-                    ),
-                )
-        except Exception as error:
-            raise HTTPException(
-                status_code=503,
-                detail="Managed voice room is unavailable",
-            ) from error
-
-        transport = DailyTransport(
-            room_url=room.url,
-            token=bot_token,
-            bot_name="Miithii",
-            params=DailyParams(audio_in_enabled=True, audio_out_enabled=True),
-        )
-        runner_args = RunnerArguments(
-            body={"language": claims.language},
-            session_id=claims.session_id,
-        )
-
-        async def run_daily_session() -> None:
-            await run_bot(transport, runner_args, session_token=token)
-
-        task = asyncio.create_task(run_daily_session(), name=f"miithii-daily-{claims.session_id}")
-        bot_tasks.add(task)
-        task.add_done_callback(bot_tasks.discard)
-        return {
-            "dailyRoom": room.url,
-            "dailyToken": client_token,
-            "sessionId": claims.session_id,
         }
 
     @web.post("/start")

@@ -17,7 +17,6 @@ import {
   MIITHII_API_URL,
   PIPECAT_START_URL,
   USE_VOICE_SESSION,
-  VOICE_TRANSPORT,
 } from "./src/config";
 import { createVoiceSession } from "./src/session";
 import { createVoiceClient, type ReplyLanguage } from "./src/voice-client";
@@ -161,7 +160,7 @@ export default function App() {
         setPhase("error");
         resetSignal();
       },
-    }, VOICE_TRANSPORT);
+    });
     clientRef.current = client;
 
     try {
@@ -176,13 +175,11 @@ export default function App() {
         endpoint: session?.startUrl || PIPECAT_START_URL,
         ...(session ? { headers: new Headers({ authorization: `Bearer ${session.token}` }) } : {}),
         timeout: 15_000,
-        requestData: VOICE_TRANSPORT === "daily"
-          ? { language: targetLanguage }
-          : {
-              transport: "webrtc",
-              enableDefaultIceServers: true,
-              body: { language: targetLanguage },
-            },
+        requestData: {
+          transport: "webrtc",
+          enableDefaultIceServers: true,
+          body: { language: targetLanguage },
+        },
       });
       if (current()) setPhase("ready");
     } catch (cause) {

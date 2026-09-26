@@ -1,10 +1,6 @@
 const rawPipecatUrl = process.env.EXPO_PUBLIC_PIPECAT_URL?.trim();
-const rawTransport = process.env.EXPO_PUBLIC_VOICE_TRANSPORT?.trim().toLowerCase();
 const rawApiUrl = process.env.EXPO_PUBLIC_MIITHII_API_URL?.trim();
 const rawUseVoiceSession = process.env.EXPO_PUBLIC_USE_VOICE_SESSION?.trim().toLowerCase();
-
-export type VoiceTransportKind = "webrtc" | "daily";
-export const VOICE_TRANSPORT: VoiceTransportKind = rawTransport === "daily" ? "daily" : "webrtc";
 
 // Android Emulator reaches the host machine through 10.0.2.2. Physical devices
 // should set EXPO_PUBLIC_PIPECAT_URL to the computer's LAN address.
@@ -17,4 +13,4 @@ export const USE_VOICE_SESSION = rawUseVoiceSession === "true"
   || (rawUseVoiceSession !== "false" && MIITHII_API_URL.startsWith("https://"));
 export const PIPECAT_START_URL =
   process.env.EXPO_PUBLIC_PIPECAT_START_URL?.trim() ||
-  `${PIPECAT_URL}${VOICE_TRANSPORT === "daily" ? "/connect" : "/start"}`;
+  `${PIPECAT_URL}/start`;

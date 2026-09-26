@@ -12,7 +12,9 @@ if hasattr(sys.stderr, "reconfigure"):
 import aiohttp
 from dotenv import load_dotenv
 from loguru import logger
+from pipecat.audio.turn.smart_turn.local_smart_turn_v3 import LocalSmartTurnAnalyzerV3
 from pipecat.audio.vad.silero import SileroVADAnalyzer
+from pipecat.audio.vad.vad_analyzer import VADParams
 from pipecat.observers.loggers.metrics_log_observer import MetricsLogObserver
 from pipecat.pipeline.pipeline import Pipeline
 from pipecat.pipeline.worker import PipelineParams, PipelineWorker
@@ -26,6 +28,9 @@ from pipecat.runner.types import RunnerArguments
 from pipecat.runner.utils import create_transport
 from pipecat.services.tts_service import TextAggregationMode
 from pipecat.transports.base_transport import BaseTransport, TransportParams
+from pipecat.turns.user_stop.turn_analyzer_user_turn_stop_strategy import (
+    TurnAnalyzerUserTurnStopStrategy,
+)
 from pipecat.turns.user_turn_strategies import UserTurnStrategies
 from pipecat.workers.runner import WorkerRunner
 
@@ -40,10 +45,6 @@ load_dotenv(override=False)
 
 TRANSPORT_PARAMS = {
     "webrtc": lambda: TransportParams(
-        audio_in_enabled=True,
-        audio_out_enabled=True,
-    ),
-    "daily": lambda: TransportParams(
         audio_in_enabled=True,
         audio_out_enabled=True,
     ),
@@ -100,7 +101,16 @@ async def run_bot(
     async with aiohttp.ClientSession() as http:
         # SegmentedSTTService consumes VAD start/stop frames and sends one WAV per
         # utterance. User speech remains auto-detected by Bodhan.
-        vad = VADProcessor(vad_analyzer=SileroVADAnalyzer())
+        vad = VADProcessor(
+            vad_analyzer=SileroVADAnalyzer(
+                params=VADParams(
+                    confidence=0.7,
+                    start_secs=0.2,
+                    stop_secs=0.2,
+                    min_volume=0.6,
+                )
+            )
+        )
         stt = BodhanSTTService(api_key=stt_key, session=http)
         brain = MiithiiBrainService(
             session=http,
@@ -125,10 +135,17 @@ async def run_bot(
         user_aggregator, assistant_aggregator = LLMContextAggregatorPair(
             context,
             user_params=LLMUserAggregatorParams(
-                # Pipecat 1.10 defaults to VAD/transcription turn start plus Local
-                # Smart Turn V3 for semantic end-of-turn. We spell it out so an
-                # upstream default change cannot silently alter Miithii's behavior.
-                user_turn_strategies=UserTurnStrategies(),
+                # VAD only tells us that the user paused. Smart Turn V3 decides
+                # whether that pause sounds like a completed conversational turn.
+                # Keep this explicit so a Pipecat default change cannot silently
+                # change Miithii's turn-taking behavior.
+                user_turn_strategies=UserTurnStrategies(
+                    stop=[
+                        TurnAnalyzerUserTurnStopStrategy(
+                            turn_analyzer=LocalSmartTurnAnalyzerV3(),
+                        )
+                    ]
+                ),
                 user_turn_stop_timeout=5.0,
             ),
         )

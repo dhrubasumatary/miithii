@@ -4,7 +4,7 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-packageExtensionsChecksum: sha256-RMOt4klP/erohcXmcmrN7+wrSKhth6L94i/9qwUKbl8=
+packageExtensionsChecksum: sha256-7Jp066IoP2c/ZFAcGhruJtc/pHRO4hZ7vcotvA/wU+w=
 
 importers:
 
@@ -34,9 +34,6 @@ importers:
       '@pipecat-ai/react-native-daily-media-manager':
         specifier: 0.0.2
         version: 0.0.2(4893338062b928cddceedccc3bc1a3cc)
-      '@pipecat-ai/react-native-daily-transport':
-        specifier: 1.8.0
-        version: 1.8.0(bb997744158475f525eaf568c56146cc)
       '@pipecat-ai/react-native-small-webrtc-transport':
         specifier: 1.8.0
         version: 1.8.0(@daily-co/react-native-webrtc@124.0.6-daily.2(react-native@0.83.10(@babel/core@7.29.7(supports-color@8.1.1))(@types/react@19.2.18)(react@19.2.0)(supports-color@8.1.1))(supports-color@8.1.1))(react-native@0.83.10(@babel/core@7.29.7(supports-color@8.1.1))(@types/react@19.2.18)(react@19.2.0)(supports-color@8.1.1))
@@ -831,16 +828,6 @@ packages:
       '@daily-co/react-native-daily-js': ^0.86.0
       '@daily-co/react-native-webrtc': ^124.0.6-daily.2
       '@pipecat-ai/react-native-small-webrtc-transport': '*'
-      '@react-native-async-storage/async-storage': ^3.1.1
-      react-native: '*'
-      react-native-background-timer: ^2.4.1
-      react-native-get-random-values: ^1.11.0
-
-  '@pipecat-ai/react-native-daily-transport@1.8.0':
-    resolution: {integrity: sha512-b7bvDux0X+D/POmXbAk0myzQ1qTpfUwFIcVHN/sK74Cwg31PTGwLMAVXzfNg3Le6MXy+NPNwsTPzh5RUWfX8gw==}
-    peerDependencies:
-      '@daily-co/react-native-daily-js': ^0.86.0
-      '@daily-co/react-native-webrtc': ^124.0.6-daily.2
       '@react-native-async-storage/async-storage': ^3.1.1
       react-native: '*'
       react-native-background-timer: ^2.4.1
@@ -3814,16 +3801,6 @@ snapshots:
       '@daily-co/react-native-daily-js': 0.86.0(@daily-co/react-native-webrtc@124.0.6-daily.2(react-native@0.83.10(@babel/core@7.29.7(supports-color@8.1.1))(@types/react@19.2.18)(react@19.2.0)(supports-color@8.1.1))(supports-color@8.1.1))(@react-native-async-storage/async-storage@2.2.0(react-native@0.83.10(@babel/core@7.29.7(supports-color@8.1.1))(@types/react@19.2.18)(react@19.2.0)(supports-color@8.1.1)))(react-native-background-timer@2.4.1(react-native@0.83.10(@babel/core@7.29.7(supports-color@8.1.1))(@types/react@19.2.18)(react@19.2.0)(supports-color@8.1.1)))(react-native-get-random-values@1.11.0(react-native@0.83.10(@babel/core@7.29.7(supports-color@8.1.1))(@types/react@19.2.18)(react@19.2.0)(supports-color@8.1.1)))(react-native@0.83.10(@babel/core@7.29.7(supports-color@8.1.1))(@types/react@19.2.18)(react@19.2.0)(supports-color@8.1.1))
       '@daily-co/react-native-webrtc': 124.0.6-daily.2(react-native@0.83.10(@babel/core@7.29.7(supports-color@8.1.1))(@types/react@19.2.18)(react@19.2.0)(supports-color@8.1.1))(supports-color@8.1.1)
       '@pipecat-ai/react-native-small-webrtc-transport': 1.8.0(@daily-co/react-native-webrtc@124.0.6-daily.2(react-native@0.83.10(@babel/core@7.29.7(supports-color@8.1.1))(@types/react@19.2.18)(react@19.2.0)(supports-color@8.1.1))(supports-color@8.1.1))(react-native@0.83.10(@babel/core@7.29.7(supports-color@8.1.1))(@types/react@19.2.18)(react@19.2.0)(supports-color@8.1.1))
-      '@react-native-async-storage/async-storage': 2.2.0(react-native@0.83.10(@babel/core@7.29.7(supports-color@8.1.1))(@types/react@19.2.18)(react@19.2.0)(supports-color@8.1.1))
-      react-native: 0.83.10(@babel/core@7.29.7(supports-color@8.1.1))(@types/react@19.2.18)(react@19.2.0)(supports-color@8.1.1)
-      react-native-background-timer: 2.4.1(react-native@0.83.10(@babel/core@7.29.7(supports-color@8.1.1))(@types/react@19.2.18)(react@19.2.0)(supports-color@8.1.1))
-      react-native-get-random-values: 1.11.0(react-native@0.83.10(@babel/core@7.29.7(supports-color@8.1.1))(@types/react@19.2.18)(react@19.2.0)(supports-color@8.1.1))
-
-  '@pipecat-ai/react-native-daily-transport@1.8.0(bb997744158475f525eaf568c56146cc)':
-    dependencies:
-      '@daily-co/react-native-daily-js': 0.86.0(@daily-co/react-native-webrtc@124.0.6-daily.2(react-native@0.83.10(@babel/core@7.29.7(supports-color@8.1.1))(@types/react@19.2.18)(react@19.2.0)(supports-color@8.1.1))(supports-color@8.1.1))(@react-native-async-storage/async-storage@2.2.0(react-native@0.83.10(@babel/core@7.29.7(supports-color@8.1.1))(@types/react@19.2.18)(react@19.2.0)(supports-color@8.1.1)))(react-native-background-timer@2.4.1(react-native@0.83.10(@babel/core@7.29.7(supports-color@8.1.1))(@types/react@19.2.18)(react@19.2.0)(supports-color@8.1.1)))(react-native-get-random-values@1.11.0(react-native@0.83.10(@babel/core@7.29.7(supports-color@8.1.1))(@types/react@19.2.18)(react@19.2.0)(supports-color@8.1.1)))(react-native@0.83.10(@babel/core@7.29.7(supports-color@8.1.1))(@types/react@19.2.18)(react@19.2.0)(supports-color@8.1.1))
-      '@daily-co/react-native-webrtc': 124.0.6-daily.2(react-native@0.83.10(@babel/core@7.29.7(supports-color@8.1.1))(@types/react@19.2.18)(react@19.2.0)(supports-color@8.1.1))(supports-color@8.1.1)
-      '@pipecat-ai/client-js': 1.13.1
       '@react-native-async-storage/async-storage': 2.2.0(react-native@0.83.10(@babel/core@7.29.7(supports-color@8.1.1))(@types/react@19.2.18)(react@19.2.0)(supports-color@8.1.1))
       react-native: 0.83.10(@babel/core@7.29.7(supports-color@8.1.1))(@types/react@19.2.18)(react@19.2.0)(supports-color@8.1.1)
       react-native-background-timer: 2.4.1(react-native@0.83.10(@babel/core@7.29.7(supports-color@8.1.1))(@types/react@19.2.18)(react@19.2.0)(supports-color@8.1.1))

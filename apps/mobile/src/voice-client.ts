@@ -7,10 +7,7 @@ import {
   type TransportState,
 } from "@pipecat-ai/client-js";
 import { DailyMediaManager } from "@pipecat-ai/react-native-daily-media-manager";
-import { RNDailyTransport } from "@pipecat-ai/react-native-daily-transport";
 import { RNSmallWebRTCTransport } from "@pipecat-ai/react-native-small-webrtc-transport";
-
-import type { VoiceTransportKind } from "./config";
 
 export type ReplyLanguage = "as" | "brx";
 
@@ -32,11 +29,8 @@ export type VoiceClientEvents = {
 
 export function createVoiceClient(
   events: VoiceClientEvents,
-  transportKind: VoiceTransportKind = "webrtc",
 ): PipecatClient {
-  const transport = transportKind === "daily"
-    ? new RNDailyTransport()
-    : new RNSmallWebRTCTransport({ mediaManager: new DailyMediaManager() });
+  const transport = new RNSmallWebRTCTransport({ mediaManager: new DailyMediaManager() });
 
   return new PipecatClient({
     // client-js models devices with the browser MediaDeviceInfo type while the
