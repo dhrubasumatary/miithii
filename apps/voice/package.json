@@ -6,13 +6,15 @@
     "dev": "next dev --port 3003",
     "dev:api": "node dev-worker.mjs",
     "build": "next build",
-    "start": "next start --port 3003",
+    "test": "node --test test/*.test.mjs",
+    "test:server": "node --test test/voice-server.test.mjs",
     "typecheck": "tsc --noEmit",
-    "clean": "rimraf .next"
+    "clean": "rimraf .next out .turbo .wrangler .wrangler-dry-run apps tsconfig.tsbuildinfo"
   },
   "dependencies": {
+    "@miithii/language-core": "workspace:*",
     "@miithii/ui": "workspace:*",
-    "next": "latest",
+    "next": "16.3.4",
     "react": "latest",
     "react-dom": "latest"
   },

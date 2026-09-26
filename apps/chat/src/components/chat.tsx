@@ -851,8 +851,11 @@ function SettingsDialog({
     refreshPrefs,
     setMemoryEnabled,
     forgetMemory,
+    setTrainingEnabled,
+    deleteTrainingData,
   } = account;
   const [forgetState, setForgetState] = useState<"idle" | "confirm" | "working" | "done" | "error">("idle");
+  const [trainingDeleteState, setTrainingDeleteState] = useState<"idle" | "confirm" | "working" | "done" | "error">("idle");
 
   const usageText = usagePending && !usage
       ? "Loading usage..."
@@ -867,6 +870,22 @@ function SettingsDialog({
   const handleMemoryToggle = () => {
     if (!prefs || prefsPending) return;
     setMemoryEnabled(!prefs.memoryEnabled).catch(() => {});
+  };
+
+  const handleTrainingToggle = () => {
+    if (!prefs || prefsPending) return;
+    setTrainingEnabled(!Boolean(prefs.trainingEnabled)).catch(() => {});
+  };
+
+  const handleTrainingDelete = () => {
+    if (trainingDeleteState === "confirm" || trainingDeleteState === "error") {
+      setTrainingDeleteState("working");
+      deleteTrainingData()
+        .then(() => setTrainingDeleteState("done"))
+        .catch(() => setTrainingDeleteState("error"));
+      return;
+    }
+    setTrainingDeleteState("confirm");
   };
 
   const handleForget = () => {
@@ -1010,6 +1029,45 @@ function SettingsDialog({
             {forgetState === "error" && (
               <p className="chat-settings-status chat-settings-status--error">
                 Memories could not be deleted. Nothing is being reported as deleted.
+              </p>
+            )}
+          </div>
+          <div className="chat-settings-item">
+            <div className="chat-settings-item--row">
+              <strong>Help improve Northeast language models</strong>
+              <button
+                type="button"
+                className="chat-settings-toggle"
+                data-state={prefs?.trainingEnabled ? "on" : "off"}
+                role="switch"
+                aria-checked={Boolean(prefs?.trainingEnabled)}
+                aria-label="Contribute new text conversations for language-model training"
+                aria-busy={prefsLoading || prefsPending}
+                disabled={!prefs || prefsLoading || prefsLoadError || prefsPending}
+                onClick={handleTrainingToggle}
+              >
+                <span className="chat-settings-toggle-thumb" aria-hidden="true" />
+              </button>
+            </div>
+            <p>
+              Off by default. When on, new text turns from Chat and Voice can be saved as training examples.
+              Audio is not stored. This is separate from Miithii memory, and credential-looking text is rejected.
+            </p>
+            <button
+              type="button"
+              className="chat-settings-danger-btn"
+              disabled={trainingDeleteState === "working" || trainingDeleteState === "done" || prefsPending}
+              onClick={handleTrainingDelete}
+            >
+              {trainingDeleteState === "idle" && "Delete contributed training text"}
+              {trainingDeleteState === "confirm" && "Click again to confirm"}
+              {trainingDeleteState === "working" && "Deleting…"}
+              {trainingDeleteState === "done" && "Contribution off and text deleted"}
+              {trainingDeleteState === "error" && "Try deleting again"}
+            </button>
+            {trainingDeleteState === "error" && (
+              <p className="chat-settings-status chat-settings-status--error">
+                Contributed training text could not be deleted. Nothing is being reported as deleted.
               </p>
             )}
           </div>

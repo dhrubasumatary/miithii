@@ -61,6 +61,7 @@ function downsample(input: Float32Array, from: number, to: number): Float32Array
 }
 
 export class MicRecorder {
+  private cancelled = false;
   private context: AudioContext | null = null;
   private stream: MediaStream | null = null;
   private node: AudioNode | null = null;
@@ -71,6 +72,7 @@ export class MicRecorder {
   private recordingSampleRate = 0;
 
   async start(onLevel?: (level: number) => void): Promise<void> {
+    this.cancelled = false;
     const pushSamples = (samples: Float32Array) => {
       this.chunks.push(samples);
       this.sampleCount += samples.length;
@@ -82,10 +84,21 @@ export class MicRecorder {
     };
 
     try {
-      this.stream = await navigator.mediaDevices.getUserMedia({
+      const stream = await navigator.mediaDevices.getUserMedia({
         audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true }
       });
+      if (this.cancelled) {
+        stream.getTracks().forEach(track => track.stop());
+        return;
+      }
+      this.stream = stream;
       const context = new AudioContext();
+      if (this.cancelled) {
+        await context.close();
+        this.stream.getTracks().forEach(track => track.stop());
+        this.stream = null;
+        return;
+      }
       this.context = context;
       this.recordingSampleRate = context.sampleRate;
       const source = context.createMediaStreamSource(this.stream);
@@ -159,6 +172,7 @@ export class MicRecorder {
 
   /** Discard the capture without encoding (e.g. recording was too short). */
   async abort(): Promise<void> {
+    this.cancelled = true;
     this.workletPort?.close();
     if (this.scriptNode) this.scriptNode.onaudioprocess = null;
     this.node?.disconnect();

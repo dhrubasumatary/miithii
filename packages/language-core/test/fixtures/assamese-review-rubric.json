@@ -1,0 +1,6 @@
+{
+  "purpose":"Fluent-speaker review rubric for Assamese evaluation outputs. These dimensions are not machine gold answers.",
+  "scale":{"0":"wrong or unusable","1":"understandable but clearly unnatural or contaminated","2":"mostly natural with a noticeable issue","3":"natural and appropriate"},
+  "dimensions":["meaning_preserved","assamese_not_bengali_or_hindi_grammar","natural_word_order_and_ellipsis","pronoun_address_and_honorificity","verb_person_and_tense_agreement","negation","romanized_spelling_readability","register_and_conversational_naturalness","borrowing_and_code_switching_naturalness","names_numbers_and_exact_content"],
+  "failure_tags":["semantic","bengali_contamination","hindi_contamination","english_syntax","pronoun_address","verb_agreement","tense","negation","romanization","overcorrection","dialect_register","unnatural_borrowing","too_formal","too_literal"]
+}

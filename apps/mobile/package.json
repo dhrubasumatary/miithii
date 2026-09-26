@@ -1,0 +1,46 @@
+{
+  "name": "@miithii/mobile",
+  "version": "1.0.0",
+  "main": "index.ts",
+  "dependencies": {
+    "@daily-co/config-plugin-rn-daily-js": "0.0.12",
+    "@daily-co/react-native-daily-js": "^0.86.0",
+    "@daily-co/react-native-webrtc": "124.0.6-daily.2",
+    "@pipecat-ai/client-js": "1.13.1",
+    "@pipecat-ai/react-native-daily-media-manager": "0.0.2",
+    "@pipecat-ai/react-native-daily-transport": "1.8.0",
+    "@pipecat-ai/react-native-small-webrtc-transport": "1.8.0",
+    "@react-native-async-storage/async-storage": "^2.2.0",
+    "expo": "~55.0.31",
+    "expo-build-properties": "~55.0.18",
+    "expo-dev-client": "55.0.40",
+    "expo-status-bar": "~55.0.6",
+    "expo-system-ui": "~55.0.22",
+    "react": "19.2.0",
+    "react-native": "0.83.10",
+    "react-native-get-random-values": "^1.11.0"
+  },
+  "devDependencies": {
+    "@types/react": "~19.2.2",
+    "expo-doctor": "1.20.4",
+    "typescript": "~5.9.3"
+  },
+  "scripts": {
+    "start": "expo start --dev-client",
+    "android": "expo run:android",
+    "prebuild:android": "expo prebuild --platform android",
+    "typecheck": "tsc --noEmit"
+  },
+  "expo": {
+    "doctor": {
+      "reactNativeDirectoryCheck": {
+        "exclude": [
+          "@daily-co/react-native-daily-js",
+          "@daily-co/react-native-webrtc",
+          "react-native-background-timer"
+        ]
+      }
+    }
+  },
+  "private": true
+}

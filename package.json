@@ -7,27 +7,15 @@
   },
   "scripts": {
     "bootstrap": "pnpm install --frozen-lockfile && npm ci --prefix workers/api",
-    "build": "turbo build",
-    "dev": "concurrently --names api,voice-api,web \"pnpm dev:api\" \"pnpm dev:voice-api\" \"pnpm dev:web\"",
-    "dev:all": "pnpm dev",
-    "dev:web": "turbo dev --parallel",
+    "dev": "concurrently --names api,rtc \"pnpm dev:api\" \"pnpm dev:rtc\"",
     "dev:api": "npm --prefix workers/api run dev",
-    "dev:voice-api": "pnpm --dir apps/voice dev:api",
-    "dev:hub": "pnpm --dir apps/hub dev",
-    "dev:subtitles": "pnpm --dir apps/subtitles dev",
-    "dev:chat": "pnpm --dir apps/chat dev",
-    "dev:voice": "pnpm --dir apps/voice dev",
-    "typecheck": "turbo typecheck",
-    "check": "pnpm typecheck && pnpm build && npm --prefix workers/api test && npm --prefix workers/api run build",
-    "clean": "turbo clean"
+    "dev:rtc": "uv run --directory services/voice-rtc python bot.py --transport webrtc",
+    "dev:mobile": "pnpm --dir apps/mobile start",
+    "typecheck": "pnpm --dir apps/mobile typecheck && pnpm --filter @miithii/language-core typecheck",
+    "check": "pnpm typecheck && pnpm --filter @miithii/language-core test && pnpm --filter @miithii/language-core check:voice-contracts && uv run --directory services/voice-rtc ruff check . && uv run --directory services/voice-rtc python -m unittest discover tests && npm --prefix workers/api test && npm --prefix workers/api run build"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "latest",
-    "@types/node": "latest",
     "concurrently": "^9.2.4",
-    "rimraf": "latest",
-    "tailwindcss": "latest",
-    "turbo": "latest",
-    "typescript": "^5.9.2"
+    "playwright-core": "^1.63.0"
   }
 }

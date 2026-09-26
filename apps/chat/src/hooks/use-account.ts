@@ -13,7 +13,7 @@ export type UsageStatus = {
   timezone: string;
 };
 
-export type MemoryPrefs = { memoryEnabled: boolean };
+export type AccountPrefs = { memoryEnabled: boolean; trainingEnabled?: boolean; trainingVersion?: number };
 
 type ApiErrorPayload = {
   error?: {
@@ -42,7 +42,7 @@ async function getRequestError(res: Response): Promise<Error> {
 export function useAccount() {
   const { getToken, isSignedIn } = useAuth();
   const [usage, setUsage] = useState<UsageStatus | null>(null);
-  const [prefs, setPrefs] = useState<MemoryPrefs | null>(null);
+  const [prefs, setPrefs] = useState<AccountPrefs | null>(null);
   const [usagePending, setUsagePending] = useState(true);
   const [prefsLoading, setPrefsLoading] = useState(true);
   const [usageError, setUsageError] = useState(false);
@@ -97,7 +97,7 @@ export function useAccount() {
       setPrefsPending(true);
       setPrefsSaveError(false);
       try {
-        const result: MemoryPrefs = await authedFetch("/api/memory/prefs", {
+        const result: AccountPrefs = await authedFetch("/api/memory/prefs", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ memoryEnabled: enabled }),
@@ -118,6 +118,39 @@ export function useAccount() {
     return authedFetch("/api/memory", { method: "DELETE" }) as Promise<{
       deleted: number;
     }>;
+  }, [authedFetch]);
+
+  const setTrainingEnabled = useCallback(
+    async (enabled: boolean) => {
+      setPrefsPending(true);
+      setPrefsSaveError(false);
+      try {
+        const result: AccountPrefs = await authedFetch("/api/training/prefs", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ trainingEnabled: enabled }),
+        });
+        setPrefs(result);
+        return result;
+      } catch (error) {
+        setPrefsSaveError(true);
+        throw error;
+      } finally {
+        setPrefsPending(false);
+      }
+    },
+    [authedFetch],
+  );
+
+  const deleteTrainingData = useCallback(async () => {
+    const result = await authedFetch("/api/training", { method: "DELETE" }) as {
+      deleted: number;
+      memoryEnabled: boolean;
+      trainingEnabled: boolean;
+      trainingVersion: number;
+    };
+    setPrefs({ memoryEnabled: result.memoryEnabled, trainingEnabled: result.trainingEnabled, trainingVersion: result.trainingVersion });
+    return result;
   }, [authedFetch]);
 
   useEffect(() => {
@@ -147,5 +180,7 @@ export function useAccount() {
     refreshPrefs,
     setMemoryEnabled,
     forgetMemory,
+    setTrainingEnabled,
+    deleteTrainingData,
   };
 }

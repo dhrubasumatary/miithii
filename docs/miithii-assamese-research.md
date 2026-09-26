@@ -1,12 +1,12 @@
 # MIITHII: research and rationale for the Assamese prompt
 
-Prepared 8 September 2026. Deliverable: `miithii-assamese-system-prompt.txt` in this directory. Status: a research-informed candidate for native-speaker testing, not an empirically validated Assamese system. No model benchmark or native-speaker review was conducted in this session. The conversational examples were authored for this draft; they are not corpus quotations or certified reference answers.
+Prepared 8 September 2026. The original deliverable was `miithii-assamese-system-prompt.txt`; runtime policy now lives in the reusable `packages/language-core` profiles, with Assamese-specific rules isolated from the neutral companion base. Status: research-informed candidate behavior for native-speaker testing, not an empirically validated Assamese system. No model benchmark or native-speaker review was conducted in that research session. The conversational examples were authored for the draft; they are not corpus quotations or certified reference answers.
 
 The intended product is an everyday AI companion that writes informal Assamese in Latin letters, adapts response length, and can use app-provided memory. The proposed default is broadly intelligible colloquial Assamese with familiar `tumi`, light optional English borrowing, and a warm, subtly feminine brand voice. Those are product choices to test, not linguistic universals. The user's description of MIITHII as a Bodo word is retained as brand context; its meaning and etymology have not been independently established.
 
 ## What the attached Tulu paper establishes
 
-I read all 12 pages of the supplied February 2026 v1 PDF, including its appendix, and visually inspected pages 3–6 to check the experiment description, figures, and results tables. Embedded prompts were treated as research material, not as instructions to this assistant. A subsequent March 2026 workshop publication is listed in the [ACL Anthology](https://aclanthology.org/2026.loreslm-1.5/).
+I read all 12 pages of the supplied February 2026 v1 PDF, including its appendix, and visually inspected pages 3â€“6 to check the experiment description, figures, and results tables. Embedded prompts were treated as research material, not as instructions to this assistant. A subsequent March 2026 workshop publication is listed in the [ACL Anthology](https://aclanthology.org/2026.loreslm-1.5/).
 
 The reusable idea is a layered prompt: language identity and script, explicit contrastive constraints, grammar reference, examples, and a private verification step. The supplied paper reports the following full-system results in Table 2:
 
@@ -23,7 +23,7 @@ The source needs several qualifications:
 - Section 3.1 describes 50 questions across four conditions, or 200 prompts total, then reports 176/200 responses for condition 1 alone. The per-condition denominator cannot be reconciled with that description without additional information.
 - Section 3.3's baseline is 18% grammar and 80% contamination, whereas Table 2's Gemini baseline is 25% and 75%. These must not be presented as one clearly documented run.
 - The V3-to-V4 description suggests a large verification gain, but Table 3's isolated removal of verification changes grammar by only two points in each model. Appendix A.4.5 adds grammar and examples as well as verification, so that version comparison does not isolate self-checking.
-- The headline grammar-effect range of 8–22 points differs from Table 3, where removing grammar loses 25, 24, and 8 points. Figure 3 also mixes incremental gains with an ablation-oriented caption.
+- The headline grammar-effect range of 8â€“22 points differs from Table 3, where removing grammar loses 25, 24, and 8 points. Figure 3 also mixes incremental gains with an ablation-oriented caption.
 - The three-rater evaluation reports Cohen's kappa without explaining a pairwise aggregation or weighting procedure. Agreement on ordinal scores needs clearer reporting.
 - The 50-word contamination check cannot establish freedom from other language drift, incorrect morphology, or unnatural phrasing. A checker built from prompt rules is useful but is not an independent test of full language competence.
 - Incorrect grammar damaging output supports sensitivity to supplied rules. It does not by itself establish the proposed internal linguistic mechanism or transfer to Assamese.
@@ -45,11 +45,11 @@ The practical response is tolerant reading and consistent, readable output. A us
 
 Work on [honorificity and classifiers](https://hinditech.in/wp-content/uploads/2023/07/2018_9_4.pdf) supports distinguishing address levels and their grammatical effects. `Tumi`, `toi`, and `apuni` are not interchangeable style tokens. Using `tumi` initially is our product decision; user preference takes precedence. Native review must check inflections, case forms, local usage, and register consistency together. The discussion of [Assamese pronoun morphology by Neeleman and Szendroi](https://discovery.ucl.ac.uk/10124679/1/Neeleman_and_Szendroi_2007.pdf) also makes clear that case attachment has conditioned variation: a simplistic suffix table is insufficient.
 
-Assamese and Bengali have both shared and distinct pronominal features, as discussed in this [comparative study](https://www.spaceandculture.in/index.php/spaceandculture/article/view/936). Consequently, a Bengali-token blacklist would be scientifically crude. `Ami`, for example, cannot simply be prohibited: it is Assamese for “we.” Evaluate the intended meaning and construction. English borrowing can be natural; accidental replacement of Assamese grammar is a separate error.
+Assamese and Bengali have both shared and distinct pronominal features, as discussed in this [comparative study](https://www.spaceandculture.in/index.php/spaceandculture/article/view/936). Consequently, a Bengali-token blacklist would be scientifically crude. `Ami`, for example, cannot simply be prohibited: it is Assamese for â€œwe.â€ Evaluate the intended meaning and construction. English borrowing can be natural; accidental replacement of Assamese grammar is a separate error.
 
 ## Conversation, emotional support, and memory
 
-The length bands, restrained emoji use, question frequency, and subtly feminine tone are design hypotheses. No cited paper establishes an optimal number of words for Assamese heartbreak conversations. Test them through blinded comparisons with target users. “Gen Z” does not identify a single dialect, emotional style, age, gender, or slang inventory.
+The length bands, restrained emoji use, question frequency, and subtly feminine tone are design hypotheses. No cited paper establishes an optimal number of words for Assamese heartbreak conversations. Test them through blinded comparisons with target users. â€œGen Zâ€ does not identify a single dialect, emotional style, age, gender, or slang inventory.
 
 The prompt distinguishes listening, practical help, banter, grief, and urgent danger. A person can write a long rant and want a short acknowledgment; a one-line safety disclosure can require a fuller reply. It allows candid disagreement, avoids automatically endorsing allegations about other people, and does not turn ordinary sadness into a crisis script.
 
@@ -83,8 +83,25 @@ This is a proposed integration shape, not a claim that these fields or tools alr
 
 ## Using the deliverable
 
-Load the complete companion `.txt` as the system prompt. Supply conversation and retrieved context separately, preserving instruction boundaries. It is model-agnostic by design; the Tulu model ranking does not select the best Assamese model today. Choose a deployed model using the evaluation plan in `miithii-assamese-evaluation.md`.
+At runtime, compose the neutral companion policy with the selected language profile and surface policy from `packages/language-core`. Supply conversation and retrieved context separately, preserving instruction boundaries. The policy remains model-agnostic by design; the Tulu model ranking does not select the best Assamese model today. Choose a deployed model using the evaluation plan in `miithii-assamese-evaluation.md`.
 
 The candidate includes a compact grammar reference and nine authored examples, including a longer practical answer. These make the desired behavior concrete, but native-speaker edits are still necessary before treating them as gold examples. Start with the candidate, document failures, and add short contrastive corrections only for demonstrated errors. Do not build a large guessed dictionary or fabricate an Assamese dialect grammar. If errors persist, compare reviewed example retrieval and fine-tuning rather than assuming prompt length alone will solve them.
 
-Research and prompt drafting are complete for this deliverable. Empirical performance, contemporary native texting naturalness, safety in Assamese, and runtime memory enforcement remain untested. The scientifically defensible claim is “research-informed candidate with a defined validation method.”
+Research and prompt drafting are complete for this deliverable. Empirical performance, contemporary native texting naturalness, safety in Assamese, and runtime memory enforcement remain untested. The scientifically defensible claim is â€œresearch-informed candidate with a defined validation method.â€
+
+## Independent Assamese validation track — 15 September 2026
+
+Assamese is evaluated independently from Bodo. The two languages share only product infrastructure and the neutral MIITHII companion policy. Bodo grammar, examples, reviewer judgments and failure tags are not evidence for Assamese, and Assamese rules are not evidence for Bodo.
+
+The strongest current Assamese anchors are deliberately narrow:
+
+- AssameseBackTranslit (LREC-COLING 2024) contains 60,312 Roman/native Assamese sentence pairs collected from Facebook, Twitter/X and YouTube, supporting Romanized Assamese as a real digital usage domain while also documenting spelling variation and code-mixing;
+- descriptive work on Assamese pro-drop supports basic SOV order, conversational subject omission, person/tense-sensitive verbal morphology, and lack of verb agreement for number/gender;
+- recent work on Assamese honorificity describes a three-tier second-person honorific system whose distinctions are reflected in verbal agreement;
+- XOBDO's phonetic scheme is useful evidence that `x` and `kh` represent different pronunciation values, but it is a reference scheme rather than a universal texting standard.
+
+The Assamese evaluator now compares **minimal Assamese** and **structured Assamese** conditions under the same neutral MIITHII personality and decoding settings. Test cases are split into everyday and diagnostic suites. Automated checks cover script and other mechanical invariants only; grammaticality, Romanized spelling naturalness, register and contamination require Assamese-speaker review.
+
+A first smoke run showed a concrete contract effect: on an English greeting, the minimal condition answered in Assamese script despite being asked for Romanized Assamese, while the structured condition stayed entirely in Latin script. Diagnostic probes also produced the expected familiar `tumi` past/future shapes in cases such as `korila` and `koriba`. These are feature-level observations only. Some outputs remain stylistically awkward or semantically over-elaborate, so none of these generated sentences are promoted to gold examples without speaker review.
+
+Runtime prompt rules should be added or changed only for repeated, reviewed failures. Do not turn one generated sentence, one spelling convention, or one formal grammar table into a universal Assamese texting rule.
