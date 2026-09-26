@@ -50,10 +50,14 @@ realtime_secret = modal.Secret.from_name("miithii-realtime")
 @app.function(
     image=runtime_image,
     secrets=[voice_secret, realtime_secret],
-    # SmallWebRTC's request handler and aiortc peers are process-local. Keep one
-    # warm alpha replica so /start, offer and trickle-ICE requests share state.
-    min_containers=1,
+    # SmallWebRTC's request handler and aiortc peers are process-local, so keep
+    # at most one replica until session routing exists. During private alpha we
+    # scale to zero to protect the budget; after a request, keep the container
+    # warm for a few minutes so iterative device testing avoids repeated cold
+    # starts without paying for a 24/7 idle replica.
+    min_containers=0,
     max_containers=1,
+    scaledown_window=300,
     region="ap",
     timeout=60,
 )

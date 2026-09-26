@@ -79,6 +79,11 @@ the reproducible device-testing path until a local Android toolchain is installe
 Deploying Modal must not automatically switch the API Worker to `/start`; transport proof comes
 first.
 
+The Modal runtime deliberately uses `min_containers=0`, `max_containers=1` and a 300-second
+scaledown window during private alpha. This protects the budget while keeping repeated device tests
+warm for a short period. Do not enable a 24/7 warm replica until measured cold-start latency and
+real usage justify the idle cost.
+
 ## Cleanup order
 
 1. Completed: checkpoint current product state and remove generated local clutter.
