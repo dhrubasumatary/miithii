@@ -9,6 +9,9 @@ import {
 import { DailyMediaManager } from "@pipecat-ai/react-native-daily-media-manager";
 import { RNSmallWebRTCTransport } from "@pipecat-ai/react-native-small-webrtc-transport";
 
+import { VOICE_TRANSPORT } from "./config";
+import { MiithiiCloudflareSFUTransport } from "./cloudflare-sfu-transport";
+
 export type ReplyLanguage = "as" | "brx";
 
 export type VoiceClientEvents = {
@@ -30,7 +33,10 @@ export type VoiceClientEvents = {
 export function createVoiceClient(
   events: VoiceClientEvents,
 ): PipecatClient {
-  const transport = new RNSmallWebRTCTransport({ mediaManager: new DailyMediaManager() });
+  const mediaManager = new DailyMediaManager();
+  const transport = VOICE_TRANSPORT === "cloudflare-sfu"
+    ? new MiithiiCloudflareSFUTransport({ mediaManager })
+    : new RNSmallWebRTCTransport({ mediaManager });
 
   return new PipecatClient({
     // client-js models devices with the browser MediaDeviceInfo type while the

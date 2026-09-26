@@ -6,6 +6,12 @@ on:
     branches:
       - main
   workflow_dispatch:
+    inputs:
+      build_canary:
+        description: Build the standalone Android Voice canary
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -84,20 +90,21 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
-      - name: Build Android SmallWebRTC canary APK
-        if: github.event_name != 'pull_request'
+      - name: Build Android Voice canary APK
+        if: github.event_name == 'workflow_dispatch' && inputs.build_canary
         working-directory: apps/mobile/android
         env:
           EXPO_PUBLIC_MIITHII_API_URL: https://api.miithii.in
           EXPO_PUBLIC_USE_VOICE_SESSION: 'true'
-          EXPO_PUBLIC_PIPECAT_START_URL: https://dhrubasumatary--miithii-voice-connect-app.modal.run/start
+          EXPO_PUBLIC_VOICE_TRANSPORT: cloudflare-sfu
+          EXPO_PUBLIC_PIPECAT_START_URL: https://dhrubasumatary--miithii-voice-connect-app.modal.run/sfu/start
         run: ./gradlew assembleRelease
 
-      - name: Upload Android SmallWebRTC canary APK
-        if: github.event_name != 'pull_request'
+      - name: Upload Android Voice canary APK
+        if: github.event_name == 'workflow_dispatch' && inputs.build_canary
         uses: actions/upload-artifact@v4
         with:
-          name: miithii-android-smallwebrtc-canary-${{ github.sha }}
+          name: miithii-android-voice-canary-${{ github.sha }}
           path: apps/mobile/android/app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
           retention-days: 14

@@ -5,6 +5,7 @@ const API_URL = process.env.MIITHII_API_URL || "https://api.miithii.in";
 const MODAL_URL =
   process.env.MIITHII_MODAL_URL ||
   "https://dhrubasumatary--miithii-voice-connect-app.modal.run";
+const SFU_PREFIX = process.env.MIITHII_SFU_PREFIX || "/debug/sfu";
 const CHROME_PATH =
   process.env.MIITHII_CHROME_PATH ||
   "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
@@ -29,7 +30,7 @@ async function main() {
   });
   const authorization = `Bearer ${voiceSession.token}`;
   const sfuRequest = (path, method = "POST", body = {}) =>
-    jsonRequest(`${MODAL_URL}/debug/sfu${path}`, {
+    jsonRequest(`${MODAL_URL}${SFU_PREFIX}${path}`, {
       method,
       headers: { authorization, "content-type": "application/json" },
       body: JSON.stringify(body),
@@ -73,6 +74,11 @@ async function main() {
     await page.evaluate(async answer => {
       await window.peer.pc.setRemoteDescription(answer);
     }, published.sessionDescription);
+    await page.waitForFunction(
+      () => window.peer.pc.connectionState === "connected",
+      null,
+      { timeout: 15000 },
+    );
 
     const clientTrack = published.tracks.find(track => track.trackName);
     if (!clientTrack) throw new Error("SFU did not return the client audio track");
@@ -95,21 +101,9 @@ async function main() {
         ],
       },
     );
-    const safeSdpLines = String(pulled.sessionDescription?.sdp || "")
-      .split(/\r?\n/)
-      .filter(
-        line =>
-          line &&
-          !line.startsWith("a=ice-ufrag:") &&
-          !line.startsWith("a=ice-pwd:") &&
-          !line.startsWith("a=fingerprint:") &&
-          !line.startsWith("a=candidate:"),
-      )
-      .slice(0, 80);
     console.log(
       `pull_sdp type=${pulled.sessionDescription?.type} length=${String(pulled.sessionDescription?.sdp || "").length}`,
     );
-    console.log(safeSdpLines.join("\n"));
     const answer = await page.evaluate(async remoteOffer => {
       await window.peer.pc.setRemoteDescription(remoteOffer);
       const localAnswer = await window.peer.pc.createAnswer();
@@ -150,7 +144,7 @@ async function main() {
       `/sessions/${clientSession.sessionId}/datachannels/new`,
       "POST",
       {
-        dataChannels: [{ location: "local", dataChannelName: "rtvi-ai", ordered: true }],
+        dataChannels: [{ location: "local", dataChannelName: "chat", ordered: true }],
       },
     );
     const clientDataChannelId = publishedData.dataChannels?.[0]?.id;
@@ -158,7 +152,7 @@ async function main() {
       throw new Error("SFU did not return client RTVI DataChannel ID");
     }
     await page.evaluate(channelId => {
-      const channel = window.peer.pc.createDataChannel("rtvi-ai", {
+      const channel = window.peer.pc.createDataChannel("chat", {
         negotiated: true,
         ordered: true,
         id: channelId,
@@ -171,7 +165,7 @@ async function main() {
     }, clientDataChannelId);
     await sfuRequest(`/pipecat-peer/${modalPeer.sessionId}/datachannel/subscribe`, "POST", {
       remoteSessionId: clientSession.sessionId,
-      remoteDataChannelName: "rtvi-ai",
+      remoteDataChannelName: "chat",
     });
 
     const deadline = Date.now() + 20000;
@@ -218,12 +212,30 @@ async function main() {
       if (modalStatus.receivedPing) break;
       await page.waitForTimeout(100);
     }
-    await sfuRequest(`/pipecat-peer/${modalPeer.sessionId}/message`, "POST", { value: 42 });
-    await page.waitForFunction(
-      () => window.peer.messages?.some(message => message.includes('"sfu-probe"')),
-      null,
-      { timeout: 5000 },
+    const sendResult = await sfuRequest(
+      `/pipecat-peer/${modalPeer.sessionId}/message`,
+      "POST",
+      { value: 42 },
     );
+    let probeDelivered = false;
+    try {
+      await page.waitForFunction(
+        () => window.peer.messages?.some(message => message.includes('"sfu-probe"')),
+        null,
+        { timeout: 5000 },
+      );
+      probeDelivered = true;
+    } catch {
+      // Preserve the hard assertion below, but collect transport metadata first.
+    }
+    modalStatus = await sfuRequest(`/pipecat-peer/${modalPeer.sessionId}/status`);
+    const browserDataChannel = await page.evaluate(() => ({
+      label: window.peer.rtvi?.label,
+      id: window.peer.rtvi?.id,
+      readyState: window.peer.rtvi?.readyState,
+      bufferedAmount: window.peer.rtvi?.bufferedAmount,
+      messages: window.peer.messages?.length || 0,
+    }));
 
     console.log(`browser_state=${browserResult?.connectionState}`);
     console.log(`browser_received_audio_track=${browserResult?.receivedTrack}`);
@@ -234,6 +246,11 @@ async function main() {
     console.log(`modal_input_samples=${modalStatus?.inputSamples}`);
     console.log(`modal_datachannel=${modalStatus?.dataChannelState}`);
     console.log(`modal_received_ping=${modalStatus?.receivedPing}`);
+    console.log(`modal_datachannel_meta=${JSON.stringify(modalStatus?.dataChannel || {})}`);
+    console.log(`modal_sfu_channels=${JSON.stringify(modalStatus?.sfuDataChannels || [])}`);
+    console.log(`modal_ack_sent=${modalStatus?.dataChannelAckSent}`);
+    console.log(`send_result=${JSON.stringify(sendResult?.dataChannel || {})}`);
+    console.log(`browser_datachannel_meta=${JSON.stringify(browserDataChannel)}`);
     const browserMessages = await page.evaluate(() => window.peer.messages?.length || 0);
     console.log(`browser_datachannel_messages=${browserMessages}`);
     if (
@@ -244,6 +261,7 @@ async function main() {
       modalStatus?.inputFrames <= 0 ||
       modalStatus?.dataChannelState !== "open" ||
       !modalStatus?.receivedPing ||
+      !probeDelivered ||
       browserMessages <= 0
     ) {
       throw new Error("Cloudflare SFU Modal aiortc media/control proof failed");

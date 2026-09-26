@@ -1,6 +1,9 @@
 import json
 import unittest
+from struct import pack
 from unittest.mock import AsyncMock, Mock
+
+from aiortc.rtcsctptransport import DATA_CHANNEL_OPEN, WEBRTC_DCEP
 
 from miithii_voice.cloudflare_sfu import CloudflareSFUConnection
 
@@ -24,6 +27,11 @@ class _FakeReceiver:
 class _FakeChannel:
     def __init__(self, ready_state="connecting"):
         self.readyState = ready_state
+        self.label = "chat"
+        self.id = 7
+        self.negotiated = True
+        self.ordered = True
+        self.bufferedAmount = 0
         self.handlers = {}
         self.sent = []
 
@@ -35,7 +43,9 @@ class _FakeChannel:
         return register
 
     def send(self, message):
+        self.bufferedAmount += len(message.encode("utf-8"))
         self.sent.append(message)
+        self.bufferedAmount = 0
 
 
 class CloudflareSFUConnectionTests(unittest.IsolatedAsyncioTestCase):
@@ -91,6 +101,42 @@ class CloudflareSFUConnectionTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertIsNotNone(self.connection._last_received_time)
         self.connection._call_event_handler.assert_not_awaited()
+
+    async def test_send_app_message_records_safe_channel_metadata(self):
+        channel = _FakeChannel(ready_state="open")
+        self.connection.attach_data_channel(channel)
+
+        self.connection.send_app_message(
+            {"label": "rtvi-ai", "type": "server-ready", "data": {}}
+        )
+        state = self.connection.data_channel_debug_state()
+
+        self.assertEqual(len(channel.sent), 1)
+        self.assertEqual(state["label"], "chat")
+        self.assertEqual(state["id"], 7)
+        self.assertEqual(state["readyState"], "open")
+        self.assertEqual(state["sentMessages"], 1)
+        self.assertGreater(state["sentBytes"], 0)
+        self.assertEqual(state["lastSendBufferedBefore"], 0)
+
+    async def test_duplicate_cloudflare_dcep_open_does_not_close_negotiated_channel(self):
+        channel = self.connection.pc.createDataChannel(
+            "server-events",
+            negotiated=True,
+            ordered=True,
+            id=1,
+        )
+        self.connection.enable_cloudflare_sctp_compat()
+        label = b"server-events"
+        dcep_open = pack("!BBHLHH", DATA_CHANNEL_OPEN, 0, 0, 0, len(label), 0) + label
+
+        await self.connection.pc.sctp._data_channel_receive(1, WEBRTC_DCEP, dcep_open)
+
+        self.assertIs(self.connection.pc.sctp._data_channels[1], channel)
+        self.assertEqual(
+            self.connection.data_channel_debug_state()["duplicateDcepOpens"],
+            [{"id": 1, "label": "server-events"}],
+        )
 
 
 if __name__ == "__main__":

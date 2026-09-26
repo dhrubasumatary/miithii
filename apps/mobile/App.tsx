@@ -18,6 +18,7 @@ import {
   PIPECAT_START_URL,
   PIPECAT_START_URL_OVERRIDE,
   USE_VOICE_SESSION,
+  VOICE_TRANSPORT,
 } from "./src/config";
 import { createVoiceSession } from "./src/session";
 import { createVoiceClient, type ReplyLanguage } from "./src/voice-client";
@@ -172,12 +173,18 @@ export default function App() {
           : Promise.resolve(null),
       ]);
       if (!current()) return;
+      const endpoint = VOICE_TRANSPORT === "cloudflare-sfu"
+        ? PIPECAT_START_URL_OVERRIDE
+        : PIPECAT_START_URL_OVERRIDE || session?.startUrl || PIPECAT_START_URL;
+      if (!endpoint) {
+        throw new Error("Miithii SFU start endpoint is not configured");
+      }
       await client.startBotAndConnect({
-        endpoint: PIPECAT_START_URL_OVERRIDE || session?.startUrl || PIPECAT_START_URL,
+        endpoint,
         ...(session ? { headers: new Headers({ authorization: `Bearer ${session.token}` }) } : {}),
         timeout: 15_000,
         requestData: {
-          transport: "webrtc",
+          transport: VOICE_TRANSPORT === "cloudflare-sfu" ? "cloudflare-sfu" : "webrtc",
           enableDefaultIceServers: true,
           body: { language: targetLanguage },
         },

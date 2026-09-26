@@ -1,9 +1,9 @@
 """Production Modal entrypoint for Miithii Voice.
 
-Miithii uses Pipecat SmallWebRTC directly between the Android client and the
-Modal container. Signalling and the aiortc peer connection intentionally live
-in the same long-lived ASGI process: SmallWebRTC keeps peer state in memory and
-the negotiated UDP socket belongs to that process.
+Miithii's target native transport is Cloudflare Realtime SFU between the
+Android/iOS libwebrtc peer and Pipecat's aiortc peer on Modal. The legacy
+direct SmallWebRTC endpoints remain available until the native SFU path has
+passed the physical-device release gate.
 
 For the private alpha this function is pinned to one warm replica. That keeps
 session-scoped signalling deterministic while still allowing multiple peer
@@ -306,6 +306,26 @@ def connect_app():
             "relayConfigured": relay_is_configured(),
         }
 
+    @web.post("/sfu/start")
+    async def sfu_start(
+        payload: dict,
+        authorization: str | None = Header(default=None),
+    ):
+        """Authenticate native SFU startup without exposing Cloudflare credentials."""
+        _token, claims = require_capability(authorization)
+        if payload.get("transport") != "cloudflare-sfu":
+            raise HTTPException(status_code=400, detail="Cloudflare SFU transport required")
+        body = payload.get("body", {})
+        if not isinstance(body, dict):
+            raise HTTPException(status_code=400, detail="Voice session body must be an object")
+        language = body.get("language", claims.language)
+        if language != claims.language:
+            raise HTTPException(status_code=400, detail="Voice language does not match session")
+        return {
+            "transport": "cloudflare-sfu",
+            "sessionId": claims.session_id,
+        }
+
     @web.post("/start")
     async def start(
         payload: dict,
@@ -418,6 +438,7 @@ def connect_app():
             "sourceAddress": [source[0], source[1]],
         }
 
+    @web.post("/sfu/sessions/new")
     @web.post("/debug/sfu/sessions/new")
     async def debug_sfu_session_new(
         _payload: dict,
@@ -435,6 +456,7 @@ def connect_app():
         if sfu_sessions.get(calls_session_id) != claims.session_id:
             raise HTTPException(status_code=404, detail="Voice SFU session not found")
 
+    @web.post("/sfu/sessions/{calls_session_id}/tracks/new")
     @web.post("/debug/sfu/sessions/{calls_session_id}/tracks/new")
     async def debug_sfu_tracks_new(
         calls_session_id: str,
@@ -456,6 +478,7 @@ def connect_app():
             payload,
         )
 
+    @web.put("/sfu/sessions/{calls_session_id}/renegotiate")
     @web.put("/debug/sfu/sessions/{calls_session_id}/renegotiate")
     async def debug_sfu_renegotiate(
         calls_session_id: str,
@@ -470,6 +493,7 @@ def connect_app():
             payload,
         )
 
+    @web.post("/sfu/sessions/{calls_session_id}/datachannels/establish")
     @web.post("/debug/sfu/sessions/{calls_session_id}/datachannels/establish")
     async def debug_sfu_datachannels_establish(
         calls_session_id: str,
@@ -484,6 +508,7 @@ def connect_app():
             payload,
         )
 
+    @web.post("/sfu/sessions/{calls_session_id}/datachannels/new")
     @web.post("/debug/sfu/sessions/{calls_session_id}/datachannels/new")
     async def debug_sfu_datachannels_new(
         calls_session_id: str,
@@ -531,6 +556,7 @@ def connect_app():
         except Exception as error:
             peer["inputError"] = error.__class__.__name__
 
+    @web.post("/sfu/pipecat-peer/start")
     @web.post("/debug/sfu/pipecat-peer/start")
     async def debug_sfu_pipecat_peer_start(
         payload: dict,
@@ -664,24 +690,39 @@ def connect_app():
                 }
             },
         )
+        connect_deadline = time.monotonic() + 10
+        while (
+            connection.pc.connectionState != "connected"
+            and time.monotonic() < connect_deadline
+        ):
+            await asyncio.sleep(0.05)
+        if connection.pc.connectionState != "connected":
+            await connection.pc.close()
+            raise HTTPException(status_code=503, detail="Voice SFU Modal peer did not connect")
 
+        run_bot_session = payload.get("runBot") is True
         peer = {
             "connection": connection,
             "inputFrames": 0,
             "inputSamples": 0,
             "botTrackName": bot_track["trackName"],
+            "dataChannelAckSent": False,
+            "runBot": run_bot_session,
+            "sessionToken": _token,
         }
         sfu_pipecat_peers[modal_session_id] = peer
-        task = asyncio.create_task(
-            receive_sfu_probe_audio(peer),
-            name=f"miithii-sfu-probe-{modal_session_id}",
-        )
-        peer["inputTask"] = task
+        if not run_bot_session:
+            task = asyncio.create_task(
+                receive_sfu_probe_audio(peer),
+                name=f"miithii-sfu-probe-{modal_session_id}",
+            )
+            peer["inputTask"] = task
         return {
             "sessionId": modal_session_id,
             "trackName": bot_track["trackName"],
         }
 
+    @web.post("/sfu/pipecat-peer/{calls_session_id}/status")
     @web.post("/debug/sfu/pipecat-peer/{calls_session_id}/status")
     async def debug_sfu_pipecat_peer_status(
         calls_session_id: str,
@@ -694,6 +735,19 @@ def connect_app():
         if not peer:
             raise HTTPException(status_code=404, detail="Voice SFU Pipecat peer not found")
         connection = peer.get("connection")
+        sfu_state = await calls_request("GET", f"/sessions/{calls_session_id}")
+        sfu_data_channels = []
+        for item in sfu_state.get("dataChannels", []):
+            if isinstance(item, dict):
+                sfu_data_channels.append(
+                    {
+                        "location": item.get("location"),
+                        "sessionId": item.get("sessionId"),
+                        "dataChannelName": item.get("dataChannelName"),
+                        "id": item.get("id"),
+                        "status": item.get("status"),
+                    }
+                )
         return {
             "connectionState": connection.pc.connectionState if connection else "closed",
             "iceConnectionState": connection.pc.iceConnectionState if connection else "closed",
@@ -706,8 +760,16 @@ def connect_app():
             "inputFrames": peer.get("inputFrames", 0),
             "inputSamples": peer.get("inputSamples", 0),
             "inputError": peer.get("inputError"),
+            "dataChannelAckSent": peer.get("dataChannelAckSent", False),
+            "sfuDataChannels": sfu_data_channels,
+            "dataChannel": (
+                connection.data_channel_debug_state()
+                if isinstance(connection, CloudflareSFUConnection)
+                else None
+            ),
         }
 
+    @web.post("/sfu/pipecat-peer/{calls_session_id}/datachannel/subscribe")
     @web.post("/debug/sfu/pipecat-peer/{calls_session_id}/datachannel/subscribe")
     async def debug_sfu_pipecat_peer_subscribe_datachannel(
         calls_session_id: str,
@@ -716,7 +778,7 @@ def connect_app():
     ):
         """Attach the browser-published RTVI channel to the Modal aiortc peer."""
 
-        _token, claims = require_capability(authorization)
+        token, claims = require_capability(authorization)
         require_sfu_session(calls_session_id, claims)
         peer = sfu_pipecat_peers.get(calls_session_id)
         if not peer:
@@ -726,7 +788,7 @@ def connect_app():
             raise HTTPException(status_code=503, detail="Voice SFU Pipecat peer unavailable")
 
         remote_session_id = payload.get("remoteSessionId")
-        remote_channel_name = payload.get("remoteDataChannelName", "rtvi-ai")
+        remote_channel_name = payload.get("remoteDataChannelName", "chat")
         if not isinstance(remote_session_id, str) or not isinstance(remote_channel_name, str):
             raise HTTPException(status_code=400, detail="Voice SFU data channel is invalid")
         require_sfu_session(remote_session_id, claims)
@@ -750,6 +812,7 @@ def connect_app():
                 type=established_description["type"],
             )
         )
+        connection.enable_cloudflare_sctp_compat()
         server_events_channel = connection.pc.createDataChannel(
             "server-events",
             negotiated=True,
@@ -802,6 +865,7 @@ def connect_app():
         def acknowledge_when_open() -> None:
             if rtvi_channel.readyState == "open":
                 rtvi_channel.send("ack")
+                peer["dataChannelAckSent"] = True
 
         @rtvi_channel.on("open")
         def on_rtvi_open():
@@ -810,9 +874,39 @@ def connect_app():
         acknowledge_when_open()
         peer["serverEventsChannel"] = server_events_channel
         peer["dataChannel"] = rtvi_channel
+        peer["remoteSessionId"] = remote_session_id
+        peer["remoteDataChannelName"] = remote_channel_name
+        transport = None
+        if peer.get("runBot") and not peer.get("botTask"):
+            transport = SmallWebRTCTransport(
+                webrtc_connection=connection,
+                params=TransportParams(audio_in_enabled=True, audio_out_enabled=True),
+            )
+            peer["transport"] = transport
         await connection.connect()
+        if transport is not None and not peer.get("botTask"):
+            runner_args = RunnerArguments(
+                body={"language": claims.language},
+                session_id=claims.session_id,
+            )
+
+            async def run_sfu_session() -> None:
+                try:
+                    await run_bot(transport, runner_args, session_token=token)
+                finally:
+                    sfu_pipecat_peers.pop(calls_session_id, None)
+                    sfu_sessions.pop(calls_session_id, None)
+
+            task = asyncio.create_task(
+                run_sfu_session(),
+                name=f"miithii-voice-sfu-{claims.session_id}",
+            )
+            peer["botTask"] = task
+            bot_tasks.add(task)
+            task.add_done_callback(bot_tasks.discard)
         return {"dataChannelName": remote_channel_name}
 
+    @web.post("/sfu/pipecat-peer/{calls_session_id}/message")
     @web.post("/debug/sfu/pipecat-peer/{calls_session_id}/message")
     async def debug_sfu_pipecat_peer_message(
         calls_session_id: str,
@@ -832,7 +926,11 @@ def connect_app():
                 "data": payload,
             }
         )
-        return {"status": "sent"}
+        await asyncio.sleep(0.1)
+        return {
+            "status": "sent",
+            "dataChannel": connection.data_channel_debug_state(),
+        }
 
     @web.post("/sessions/{session_id}/api/offer")
     async def offer(

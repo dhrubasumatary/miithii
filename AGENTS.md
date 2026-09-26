@@ -24,7 +24,7 @@ The API Worker and Python RTC service have their own dependency managers.
 
 ## Realtime target
 
-`Android -> SmallWebRTC -> Pipecat/Modal -> Bodhan STT -> workers/api -> Bodhan TTS -> Android`
+`Android/iOS -> Cloudflare Realtime SFU -> Pipecat/Modal -> Bodhan STT -> workers/api -> Bodhan TTS -> Cloudflare Realtime SFU -> device`
 
 Daily hosted transport is rejected and its client/server branch is removed. Some `@daily-co/*`
 packages still exist because the Pipecat React Native SmallWebRTC transport currently uses Daily's
@@ -35,13 +35,22 @@ V3. The legacy browser Voice 1500 ms silence timer is not the Android architectu
 
 ## Current blocker
 
-Production Android Voice is not end-to-end yet. Direct SmallWebRTC between Android/libwebrtc and
-Modal/aiortc has not proven ICE connectivity through Cloudflare Realtime TURN. Keep the existing
-TURN/SFU diagnostics until one production transport is proven, then delete the losing experiments.
+Direct relay-to-relay SmallWebRTC through Cloudflare TURN is rejected for production. Live
+cross-network tests proved asymmetric TURN delivery and relay-only libwebrtc -> Modal ICE failed
+despite both peers gathering relay candidates.
+
+Cloudflare Realtime SFU is now the chosen transport direction. On 2026-09-27 all three live SFU
+gates passed against the current code: bidirectional SFU DataChannel, libwebrtc audio forwarding,
+and libwebrtc <-> SFU <-> Modal/aiortc with audio plus bidirectional Pipecat application messages.
+The third gate ends with `CLOUDFLARE_SFU_PIPECAT_PEER_OK`.
+
+The remaining gate is native integration and physical Android end-to-end behavior. The React Native
+SFU transport exists behind explicit `EXPO_PUBLIC_VOICE_TRANSPORT=cloudflare-sfu`, but do not build
+another APK until the SFU runtime is deployed non-breakingly and the browser gates remain green.
 
 `workers/api/wrangler.jsonc` still points `VOICE_RTC_START_URL` at the old deployed Modal
-`/connect` endpoint. Do not change/deploy it to `/start` until a remote libwebrtc/physical Android
-smoke test reaches connected state and the RTVI data channel opens.
+`/connect` endpoint. Do not change it yet. Native SFU canaries use an explicit `/sfu/start`
+override while still using the legitimate signed Voice capability.
 
 ## Frozen fallback
 
@@ -63,10 +72,9 @@ pnpm --dir apps/mobile prebuild:android --clean
 ```
 
 CI compiles the Android debug variant to prove the native project builds. That debug APK does not
-embed the JavaScript bundle and therefore needs Metro. Non-PR CI also builds and uploads a
-SmallWebRTC canary APK from the release variant with the signed-session API URL and explicit Modal
-`/start` override embedded. This private-alpha canary is the standalone physical-phone artifact;
-it does not use EAS and it does not change the production Worker's legacy `/connect` setting.
+embed the JavaScript bundle and therefore needs Metro. The standalone Voice canary is now manual
+opt-in only through the CI workflow's `build_canary` input; ordinary pushes must not spend a
+standalone canary build. The future canary uses the SFU transport and explicit `/sfu/start`.
 
 This Windows machine currently has no local JDK, Android SDK, or `adb` configured.
 
@@ -90,12 +98,13 @@ This Windows machine currently has no local JDK, Android SDK, or `adb` configure
 
 ## Cleanup order
 
-1. Preserve a checkpoint before structural deletion — done at `ff7814c`.
+1. Preserve a checkpoint before structural deletion — done at `88bc15a`.
 2. Remove rejected Daily hosted transport — done in the post-checkpoint cleanup.
-3. Prove one Android transport end-to-end.
-4. Delete the losing TURN/SFU/transport experiments.
-5. Pass the physical Android release gate.
-6. Remove frozen web product code and simplify `workers/api` to shipped capabilities.
+3. Prove Cloudflare SFU on libwebrtc <-> Modal/aiortc — done.
+4. Prove the same SFU route on physical Android.
+5. Delete direct TURN/losing transport experiments.
+6. Pass the physical Android release gate.
+7. Remove frozen web product code and simplify `workers/api` to shipped capabilities.
 
 Do not perform broad `git clean`, `git reset --hard`, or other wholesale cleanup. Delete only paths
 whose role has been traced and whose recovery point is known.
