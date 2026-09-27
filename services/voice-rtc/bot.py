@@ -13,7 +13,6 @@ if hasattr(sys.stderr, "reconfigure"):
 import aiohttp
 from dotenv import load_dotenv
 from loguru import logger
-from pipecat.audio.turn.smart_turn.local_smart_turn_v3 import LocalSmartTurnAnalyzerV3
 from pipecat.audio.vad.silero import SileroVADAnalyzer
 from pipecat.audio.vad.vad_analyzer import VADParams
 from pipecat.observers.loggers.metrics_log_observer import MetricsLogObserver
@@ -29,9 +28,7 @@ from pipecat.runner.types import RunnerArguments
 from pipecat.runner.utils import create_transport
 from pipecat.services.tts_service import TextAggregationMode
 from pipecat.transports.base_transport import BaseTransport, TransportParams
-from pipecat.turns.user_stop.turn_analyzer_user_turn_stop_strategy import (
-    TurnAnalyzerUserTurnStopStrategy,
-)
+from pipecat.turns.user_stop import SpeechTimeoutUserTurnStopStrategy
 from pipecat.turns.user_turn_strategies import UserTurnStrategies
 from pipecat.workers.runner import WorkerRunner
 
@@ -137,15 +134,11 @@ async def run_bot(
         user_aggregator, assistant_aggregator = LLMContextAggregatorPair(
             context,
             user_params=LLMUserAggregatorParams(
-                # VAD only tells us that the user paused. Smart Turn V3 decides
-                # whether that pause sounds like a completed conversational turn.
-                # Keep this explicit so a Pipecat default change cannot silently
-                # change Miithii's turn-taking behavior.
+                # Bodhan emits one final transcript per segmented utterance, so end
+                # the turn from VAD silence instead of waiting on Smart Turn input.
                 user_turn_strategies=UserTurnStrategies(
                     stop=[
-                        TurnAnalyzerUserTurnStopStrategy(
-                            turn_analyzer=LocalSmartTurnAnalyzerV3(),
-                        )
+                        SpeechTimeoutUserTurnStopStrategy(wait_for_transcript=False)
                     ]
                 ),
                 user_turn_stop_timeout=5.0,
