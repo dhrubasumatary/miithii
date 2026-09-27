@@ -24,6 +24,7 @@ export type PcmStartResponse = {
 };
 
 export type PcmPublishRequest = {
+  mid: string;
   sessionDescription: SessionDescription;
 };
 

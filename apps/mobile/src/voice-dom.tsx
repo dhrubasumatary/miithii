@@ -296,13 +296,18 @@ export default function VoiceDOM({ ref, onState, onError, onEvent }: Props) {
       emitState({ generation: params.generation, state: "connecting", stage: "publish" });
       const publisher = new RTCPeerConnection(rtcConfiguration(started.iceConfig.iceServers));
       publisherRef.current = publisher;
-      for (const track of microphone.getAudioTracks()) publisher.addTrack(track, microphone);
+      const microphoneTrack = microphone.getAudioTracks()[0];
+      if (!microphoneTrack) throw new Error("Microphone track is unavailable");
+      const audioTransceiver = publisher.addTransceiver(microphoneTrack, { direction: "sendonly" });
       await publisher.setLocalDescription(await publisher.createOffer());
       await waitForIceGathering(publisher, signal);
+      if (audioTransceiver.mid === null) {
+        throw new Error("Voice microphone publication is missing a media id");
+      }
       const published = await jsonRequest<PcmPublishRequest, PcmPublishResponse>(
         `${base}/${encodeURIComponent(started.voiceSessionId)}/publish`,
         params.token,
-        { sessionDescription: localDescription(publisher) },
+        { mid: audioTransceiver.mid, sessionDescription: localDescription(publisher) },
         signal,
       );
       await publisher.setRemoteDescription(asDescription(published.sessionDescription));
@@ -324,8 +329,8 @@ export default function VoiceDOM({ ref, onState, onError, onEvent }: Props) {
       receiverRef.current = receiver;
       receiver.addEventListener("track", event => {
         const audio = audioRef.current;
-        if (!audio || !event.streams[0]) return;
-        audio.srcObject = event.streams[0];
+        if (!audio) return;
+        audio.srcObject = new MediaStream([event.track]);
         void audio.play().catch(() => {});
       });
       await receiver.setRemoteDescription(asDescription(subscribed.sessionDescription));
