@@ -39,10 +39,10 @@ runtime_image = (
         "pipecat-ai[silero,webrtc]==1.10.0",
         "fastapi>=0.118,<1",
     )
+    .env({"MIITHII_DEPLOY_REVISION": DEPLOY_REVISION})
     .add_local_file(str(SERVICE_DIR / "bot.py"), remote_path="/root/bot.py")
     .add_local_dir(str(SERVICE_DIR / "miithii_voice"), remote_path="/root/miithii_voice")
     .add_local_dir(str(SERVICE_DIR / "contracts"), remote_path="/root/contracts")
-    .env({"MIITHII_DEPLOY_REVISION": DEPLOY_REVISION})
 )
 
 app = modal.App(MODAL_APP_NAME)
