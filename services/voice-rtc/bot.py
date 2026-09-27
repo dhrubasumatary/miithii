@@ -37,9 +37,8 @@ from pipecat.processors.aggregators.llm_response_universal import (
 from pipecat.processors.audio.vad_processor import VADProcessor
 from pipecat.processors.frame_processor import FrameDirection, FrameProcessor
 from pipecat.runner.types import RunnerArguments
-from pipecat.runner.utils import create_transport
 from pipecat.services.tts_service import TextAggregationMode
-from pipecat.transports.base_transport import BaseTransport, TransportParams
+from pipecat.transports.base_transport import BaseTransport
 from pipecat.turns.user_stop.turn_analyzer_user_turn_stop_strategy import (
     TurnAnalyzerUserTurnStopStrategy,
 )
@@ -48,20 +47,11 @@ from pipecat.workers.runner import WorkerRunner
 
 from miithii_voice.bodhan import BodhanSTTService, BodhanTTSService
 from miithii_voice.brain import MiithiiBrainService
-from miithii_voice.cloudflare_sfu import CloudflareSFUConnection
 from miithii_voice.contracts import load_contract
 from miithii_voice.processors import CompleteTurnSpeechGate
 from miithii_voice.session import verify_voice_session
 
 load_dotenv(override=False)
-
-
-TRANSPORT_PARAMS = {
-    "webrtc": lambda: TransportParams(
-        audio_in_enabled=True,
-        audio_out_enabled=True,
-    ),
-}
 
 
 class VoiceFrameLogger(FrameProcessor):
@@ -200,45 +190,30 @@ async def run_bot(
         )
 
         processors = [
-                transport.input(),
-                vad,
-                VoiceFrameLogger("after_vad"),
-                stt,
-                VoiceFrameLogger("after_stt"),
-                user_aggregator,
-                brain,
-                speech_gate,
-                tts,
-                VoiceFrameLogger("after_tts"),
-                transport.output(),
-                assistant_aggregator,
+            transport.input(),
+            vad,
+            VoiceFrameLogger("after_vad"),
+            stt,
+            VoiceFrameLogger("after_stt"),
+            user_aggregator,
+            brain,
+            speech_gate,
+            tts,
+            VoiceFrameLogger("after_tts"),
+            transport.output(),
+            assistant_aggregator,
         ]
-        input_processor = processors[0]
         for processor in processors:
             original_setup = processor.setup
             processor_name = type(processor).__name__
 
             async def timed_setup(
-                setup, *, _setup=original_setup, _name=processor_name, _processor=processor
+                setup, *, _setup=original_setup, _name=processor_name
             ):
                 started = time.perf_counter()
                 logger.info("voice_stage stage=pipeline_setup_start processor={}", _name)
                 try:
                     await _setup(setup)
-                    # The SFU peer connects during signalling, before Pipecat's
-                    # input setup. Its first connected event sees unset client
-                    # params and deliberately skips media track binding. Bind
-                    # them now that setup has configured the audio resampler.
-                    if _processor is input_processor:
-                        client = getattr(transport, "_client", None)
-                        connection = getattr(client, "_webrtc_connection", None)
-                        if isinstance(connection, CloudflareSFUConnection):
-                            await client._handle_client_connected()
-                            logger.info(
-                                "voice_stage stage=sfu_media_bound input={} output={}",
-                                client._audio_input_track is not None,
-                                client._audio_output_track is not None,
-                            )
                 finally:
                     logger.info(
                         "voice_stage stage=pipeline_setup_end processor={} ms={}",
@@ -270,14 +245,3 @@ async def run_bot(
             await runner.cancel()
 
         await runner.run()
-
-
-async def bot(runner_args: RunnerArguments) -> None:
-    transport = await create_transport(runner_args, TRANSPORT_PARAMS)
-    await run_bot(transport, runner_args)
-
-
-if __name__ == "__main__":
-    from pipecat.runner.run import main
-
-    main()

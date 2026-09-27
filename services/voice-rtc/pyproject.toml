@@ -5,12 +5,12 @@ description = "Realtime WebRTC voice runtime for Miithii"
 requires-python = ">=3.13,<3.14"
 dependencies = [
   "aiohttp>=3.13,<4",
-  "pipecat-ai[runner,silero,webrtc]==1.10.0",
+  "fastapi>=0.118,<1",
+  "pipecat-ai[runner,silero]==1.10.0",
 ]
 
 [project.optional-dependencies]
 modal = [
-  "fastapi>=0.118,<1",
   "modal>=1,<2",
 ]
 
