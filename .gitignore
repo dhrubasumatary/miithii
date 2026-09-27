@@ -31,3 +31,16 @@ __pycache__/
 # local scratch
 /tmp/
 /px0/
+
+# Local Android tooling & debug captures
+.android-platform-tools/
+.android-platform-tools.zip
+.start-mobile-debug.ps1
+android-*.png
+android-*.xml
+
+# Agent skills & local assistant state
+.agents/
+.claude/
+agent/
+skills-lock.json

@@ -110,7 +110,7 @@ enabled it uses:
 - `EXPO_PUBLIC_MIITHII_API_URL=https://api.miithii.in`
 - `EXPO_PUBLIC_USE_VOICE_SESSION=true`
 - `EXPO_PUBLIC_VOICE_TRANSPORT=cloudflare-sfu`
-- `EXPO_PUBLIC_PIPECAT_START_URL=https://dhrubasumatary--miithii-voice-connect-app.modal.run/sfu/start`
+- `EXPO_PUBLIC_PIPECAT_START_URL=https://dhrubasumatary--miithii-voice-sfu-connect-app.modal.run/sfu/start`
 
 Do not run that canary until the production Modal deployment exposes the SFU route without breaking
 the Worker's still-live legacy `/connect` path.
@@ -128,8 +128,9 @@ negotiation with the Cloudflare SFU sequence. Cloudflare App credentials remain 
 Modal; the device sends only its signed Miithii Voice capability to capability-protected `/sfu/*`
 proxy routes.
 
-This Windows workstation currently has no JDK, Android SDK or `adb`; CI APK artifacts are therefore
-the reproducible device-testing path until a local Android toolchain is installed.
+This Windows workstation now has `adb`/Android platform-tools and can exercise the connected physical
+Android device with the existing dev client. A local JDK/full Android SDK is still not configured, so
+CI remains the reproducible path for native rebuilds and standalone APK artifacts.
 
 `.github/workflows/deploy-voice-runtime.yml` is deliberately manual. It requires GitHub secrets
 `MODAL_TOKEN_ID`, `MODAL_TOKEN_SECRET` and repository/environment variable `VOICE_RTC_HEALTH_URL`.

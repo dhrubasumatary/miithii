@@ -4,7 +4,7 @@ const { chromium } = require("playwright-core");
 const API_URL = process.env.MIITHII_API_URL || "https://api.miithii.in";
 const MODAL_URL =
   process.env.MIITHII_MODAL_URL ||
-  "https://dhrubasumatary--miithii-voice-connect-app.modal.run";
+  "https://dhrubasumatary--miithii-voice-sfu-connect-app.modal.run";
 const SFU_PREFIX = process.env.MIITHII_SFU_PREFIX || "/debug/sfu";
 const CHROME_PATH =
   process.env.MIITHII_CHROME_PATH ||
@@ -248,7 +248,6 @@ async function main() {
     console.log(`modal_received_ping=${modalStatus?.receivedPing}`);
     console.log(`modal_datachannel_meta=${JSON.stringify(modalStatus?.dataChannel || {})}`);
     console.log(`modal_sfu_channels=${JSON.stringify(modalStatus?.sfuDataChannels || [])}`);
-    console.log(`modal_ack_sent=${modalStatus?.dataChannelAckSent}`);
     console.log(`send_result=${JSON.stringify(sendResult?.dataChannel || {})}`);
     console.log(`browser_datachannel_meta=${JSON.stringify(browserDataChannel)}`);
     const browserMessages = await page.evaluate(() => window.peer.messages?.length || 0);

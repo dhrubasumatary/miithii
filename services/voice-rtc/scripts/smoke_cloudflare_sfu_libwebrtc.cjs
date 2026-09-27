@@ -4,7 +4,7 @@ const { chromium } = require("playwright-core");
 const API_URL = process.env.MIITHII_API_URL || "https://api.miithii.in";
 const MODAL_URL =
   process.env.MIITHII_MODAL_URL ||
-  "https://dhrubasumatary--miithii-voice-connect-app.modal.run";
+  "https://dhrubasumatary--miithii-voice-sfu-connect-app.modal.run";
 const CHROME_PATH =
   process.env.MIITHII_CHROME_PATH ||
   "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";

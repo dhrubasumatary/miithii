@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import sys
+import time
 import uuid
 
 if hasattr(sys.stdout, "reconfigure"):
@@ -36,6 +37,7 @@ from pipecat.workers.runner import WorkerRunner
 
 from miithii_voice.bodhan import BodhanSTTService, BodhanTTSService
 from miithii_voice.brain import MiithiiBrainService
+from miithii_voice.cloudflare_sfu import CloudflareSFUConnection
 from miithii_voice.contracts import load_contract
 from miithii_voice.processors import CompleteTurnSpeechGate
 from miithii_voice.session import verify_voice_session
@@ -150,8 +152,7 @@ async def run_bot(
             ),
         )
 
-        pipeline = Pipeline(
-            [
+        processors = [
                 transport.input(),
                 vad,
                 stt,
@@ -161,13 +162,49 @@ async def run_bot(
                 tts,
                 transport.output(),
                 assistant_aggregator,
-            ]
-        )
+        ]
+        input_processor = processors[0]
+        for processor in processors:
+            original_setup = processor.setup
+            processor_name = type(processor).__name__
+
+            async def timed_setup(
+                setup, *, _setup=original_setup, _name=processor_name, _processor=processor
+            ):
+                started = time.perf_counter()
+                logger.info("voice_stage stage=pipeline_setup_start processor={}", _name)
+                try:
+                    await _setup(setup)
+                    # The SFU peer connects during signalling, before Pipecat's
+                    # input setup. Its first connected event sees unset client
+                    # params and deliberately skips media track binding. Bind
+                    # them now that setup has configured the audio resampler.
+                    if _processor is input_processor:
+                        client = getattr(transport, "_client", None)
+                        connection = getattr(client, "_webrtc_connection", None)
+                        if isinstance(connection, CloudflareSFUConnection):
+                            await client._handle_client_connected()
+                            logger.info(
+                                "voice_stage stage=sfu_media_bound input={} output={}",
+                                client._audio_input_track is not None,
+                                client._audio_output_track is not None,
+                            )
+                finally:
+                    logger.info(
+                        "voice_stage stage=pipeline_setup_end processor={} ms={}",
+                        _name,
+                        round((time.perf_counter() - started) * 1000),
+                    )
+
+            processor.setup = timed_setup
+
+        pipeline = Pipeline(processors)
 
         worker = PipelineWorker(
             pipeline,
             params=PipelineParams(enable_metrics=True, enable_usage_metrics=True),
             idle_timeout_secs=runner_args.pipeline_idle_timeout_secs,
+            setup_timeout_secs=45.0,
             observers=[MetricsLogObserver()],
         )
         runner = WorkerRunner(handle_sigint=runner_args.handle_sigint)

@@ -98,16 +98,23 @@ jobs:
           EXPO_PUBLIC_USE_VOICE_SESSION: 'true'
           EXPO_PUBLIC_VOICE_TRANSPORT: cloudflare-sfu
           EXPO_PUBLIC_PIPECAT_START_URL: https://dhrubasumatary--miithii-voice-sfu-connect-app.modal.run/sfu/start
-        run: ./gradlew assembleRelease
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error \
+            https://dhrubasumatary--miithii-voice-sfu-connect-app.modal.run/health \
+            > /tmp/voice-health.json
+          python - <<'PY'
+          import json
+          import os
 
-      - name: Upload Android Voice canary APK
-        if: github.event_name == 'workflow_dispatch' && inputs.build_canary
-        uses: actions/upload-artifact@v4
-        with:
-          name: miithii-android-voice-canary-${{ github.sha }}
-          path: apps/mobile/android/app/build/outputs/apk/release/app-release.apk
-          if-no-files-found: error
-          retention-days: 14
+          with open('/tmp/voice-health.json', encoding='utf-8') as handle:
+              health = json.load(handle)
+
+          assert health.get('status') == 'ok', health
+          assert health.get('transport') == 'smallwebrtc', health
+          assert health.get('revision') == os.environ['GITHUB_SHA'], health
+          PY
+          ./gradlew assembleRelease
 
       - name: Test language policy
         run: |
@@ -124,3 +131,12 @@ jobs:
 
       - name: Validate API Worker bundle
         run: npm --prefix workers/api run build
+
+      - name: Upload Android Voice canary APK
+        if: github.event_name == 'workflow_dispatch' && inputs.build_canary
+        uses: actions/upload-artifact@v4
+        with:
+          name: miithii-android-voice-canary-${{ github.sha }}
+          path: apps/mobile/android/app/build/outputs/apk/release/app-release.apk
+          if-no-files-found: error
+          retention-days: 14

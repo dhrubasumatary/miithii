@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import json
 import time
 from struct import pack, unpack_from
@@ -46,6 +47,25 @@ class CloudflareSFUConnection(SmallWebRTCConnection):
         self._data_channel_last_send_buffered_after = None
         self._duplicate_dcep_opens: list[dict[str, Any]] = []
         self._sctp_compat_enabled = False
+
+    def _start_data_channel_timeout(self) -> None:
+        """Allow SFU signaling to finish before Pipecat disables message delivery.
+
+        Pipecat's direct-peer default is ten seconds after ICE connects. The SFU
+        route still has to subscribe to audio, establish SCTP, and allocate the
+        remote channel after that point. Our signaling endpoint separately
+        checks that the channel opens; this timer only bounds the queue if the
+        client abandons signaling.
+        """
+
+        async def timeout_handler() -> None:
+            await asyncio.sleep(60)
+            if not self._data_channel or self._data_channel.readyState != "open":
+                logger.warning("Cloudflare SFU data channel did not open within 60s")
+                self._outgoing_messages_queue.clear()
+                self._data_channel_enabled = False
+
+        self._data_channel_timeout_task = asyncio.create_task(timeout_handler())
 
     def bind_audio_input(self, transceiver: Any) -> None:
         """Use ``transceiver`` as the Android microphone subscription."""
@@ -124,6 +144,12 @@ class CloudflareSFUConnection(SmallWebRTCConnection):
                 if not isinstance(json_message, dict):
                     raise ValueError("Data channel message must be a JSON object")
 
+                logger.debug(
+                    "Cloudflare SFU app-message received type={} label={} connected={}",
+                    json_message.get("type"),
+                    json_message.get("label"),
+                    self.is_connected(),
+                )
                 if json_message.get("type") == SIGNALLING_TYPE and json_message.get("message"):
                     self._handle_signalling_message(json_message["message"])
                 elif self.is_connected():
@@ -183,6 +209,8 @@ class CloudflareSFUConnection(SmallWebRTCConnection):
     def send_app_message(self, message: Any):
         """Send RTVI JSON while recording content-free DataChannel metadata."""
         channel = self._data_channel
+        message_type = message.get("type") if isinstance(message, dict) else type(message).__name__
+        message_label = message.get("label") if isinstance(message, dict) else None
         if channel and channel.readyState == "open":
             payload = json.dumps(message)
             self._data_channel_last_send_buffered_before = getattr(
@@ -194,7 +222,23 @@ class CloudflareSFUConnection(SmallWebRTCConnection):
             )
             self._data_channel_sent_messages += 1
             self._data_channel_sent_bytes += len(payload.encode("utf-8"))
+            logger.debug(
+                "Cloudflare SFU app-message sent "
+                "type={} label={} bytes={} channel={} id={} state={}",
+                message_type,
+                message_label,
+                len(payload.encode("utf-8")),
+                getattr(channel, "label", None),
+                getattr(channel, "id", None),
+                getattr(channel, "readyState", None),
+            )
             return
+        logger.debug(
+            "Cloudflare SFU app-message queued type={} label={} channel_state={}",
+            message_type,
+            message_label,
+            getattr(channel, "readyState", None) if channel else None,
+        )
         super().send_app_message(message)
 
     def data_channel_debug_state(self) -> dict[str, Any]:

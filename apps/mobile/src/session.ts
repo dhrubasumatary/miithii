@@ -31,6 +31,7 @@ async function getInstallId() {
 export async function createVoiceSession(
   apiUrl: string,
   language: ReplyLanguage,
+  signal?: AbortSignal,
 ): Promise<VoiceSession> {
   const installId = await getInstallId();
   const response = await fetch(`${apiUrl.replace(/\/+$/, "")}/api/voice/session`, {
@@ -40,6 +41,7 @@ export async function createVoiceSession(
       "x-miithii-install-id": installId,
     },
     body: JSON.stringify({ language }),
+    signal,
   });
   const payload = await response.json().catch(() => null) as Partial<VoiceSession> & {
     error?: { message?: string };
@@ -60,4 +62,3 @@ export async function createVoiceSession(
   }
   return payload as VoiceSession;
 }
-

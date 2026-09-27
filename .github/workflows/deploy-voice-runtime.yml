@@ -46,6 +46,8 @@ jobs:
       MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
       MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
       VOICE_RTC_HEALTH_URL: ${{ vars.VOICE_RTC_HEALTH_URL }}
+      MIITHII_MODAL_APP_NAME: miithii-voice-sfu
+      MIITHII_DEPLOY_REVISION: ${{ github.sha }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -78,5 +80,14 @@ jobs:
         run: |
           set -euo pipefail
           curl --fail --silent --show-error "${VOICE_RTC_HEALTH_URL}" | tee /tmp/voice-health.json
-          grep -q '"status":"ok"' /tmp/voice-health.json
-          grep -q '"transport":"smallwebrtc"' /tmp/voice-health.json
+          python - <<'PY'
+          import json
+          import os
+
+          with open("/tmp/voice-health.json", encoding="utf-8") as handle:
+              health = json.load(handle)
+
+          assert health.get("status") == "ok", health
+          assert health.get("transport") == "smallwebrtc", health
+          assert health.get("revision") == os.environ["MIITHII_DEPLOY_REVISION"], health
+          PY
