@@ -48,6 +48,10 @@ The remaining gate is native integration and physical Android end-to-end behavio
 SFU transport exists behind explicit `EXPO_PUBLIC_VOICE_TRANSPORT=cloudflare-sfu`, but do not build
 another APK until the SFU runtime is deployed non-breakingly and the browser gates remain green.
 
+Deploy SFU revisions under the separate Modal app name `miithii-voice-sfu` by setting
+`MIITHII_MODAL_APP_NAME=miithii-voice-sfu`. Do not deploy this source over the existing
+`miithii-voice` app while the Worker still points at its legacy `/connect` endpoint.
+
 `workers/api/wrangler.jsonc` still points `VOICE_RTC_START_URL` at the old deployed Modal
 `/connect` endpoint. Do not change it yet. Native SFU canaries use an explicit `/sfu/start`
 override while still using the legitimate signed Voice capability.

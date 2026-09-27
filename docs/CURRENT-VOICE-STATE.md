@@ -115,6 +115,11 @@ enabled it uses:
 Do not run that canary until the production Modal deployment exposes the SFU route without breaking
 the Worker's still-live legacy `/connect` path.
 
+The non-breaking deployment strategy is a separate Modal app named `miithii-voice-sfu`. Set
+`MIITHII_MODAL_APP_NAME=miithii-voice-sfu` and `MIITHII_DEPLOY_REVISION=<git sha>` for the
+deployment. The SFU health response includes that revision marker so the live gates can be tied to
+the exact deployed source. Leave the original `miithii-voice` app untouched until Android passes.
+
 `apps/mobile/src/cloudflare-sfu-transport.ts` is the native signalling adapter. It subclasses the
 pinned Pipecat RN SmallWebRTC transport instead of creating a new conversation framework, reusing
 its DailyMediaManager device lifecycle, microphone/audio-level handling, `chat`/RTVI parser,

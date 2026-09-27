@@ -27,6 +27,8 @@ SERVICE_DIR = Path(__file__).resolve().parent
 SESSION_SECONDS = 20 * 60
 STUN_URL = "stun:stun.l.google.com:19302"
 CLOUDFLARE_TURN_API = "https://rtc.live.cloudflare.com/v1/turn/keys"
+MODAL_APP_NAME = os.environ.get("MIITHII_MODAL_APP_NAME", "miithii-voice").strip()
+DEPLOY_REVISION = os.environ.get("MIITHII_DEPLOY_REVISION", "dev").strip()
 
 runtime_image = (
     modal.Image.debian_slim(python_version="3.13")
@@ -40,9 +42,10 @@ runtime_image = (
     .add_local_file(str(SERVICE_DIR / "bot.py"), remote_path="/root/bot.py")
     .add_local_dir(str(SERVICE_DIR / "miithii_voice"), remote_path="/root/miithii_voice")
     .add_local_dir(str(SERVICE_DIR / "contracts"), remote_path="/root/contracts")
+    .env({"MIITHII_DEPLOY_REVISION": DEPLOY_REVISION})
 )
 
-app = modal.App("miithii-voice")
+app = modal.App(MODAL_APP_NAME)
 voice_secret = modal.Secret.from_name("miithii-voice")
 realtime_secret = modal.Secret.from_name("miithii-realtime")
 
@@ -304,6 +307,7 @@ def connect_app():
             "status": "ok",
             "transport": "smallwebrtc",
             "relayConfigured": relay_is_configured(),
+            "revision": os.environ.get("MIITHII_DEPLOY_REVISION", "unknown"),
         }
 
     @web.post("/sfu/start")

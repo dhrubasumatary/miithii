@@ -97,7 +97,7 @@ jobs:
           EXPO_PUBLIC_MIITHII_API_URL: https://api.miithii.in
           EXPO_PUBLIC_USE_VOICE_SESSION: 'true'
           EXPO_PUBLIC_VOICE_TRANSPORT: cloudflare-sfu
-          EXPO_PUBLIC_PIPECAT_START_URL: https://dhrubasumatary--miithii-voice-connect-app.modal.run/sfu/start
+          EXPO_PUBLIC_PIPECAT_START_URL: https://dhrubasumatary--miithii-voice-sfu-connect-app.modal.run/sfu/start
         run: ./gradlew assembleRelease
 
       - name: Upload Android Voice canary APK
