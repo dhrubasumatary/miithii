@@ -100,10 +100,12 @@ def connect_app():
 
     from bot import run_bot
     from miithii_voice.aioice_patch import apply_aioice_turn_data_indication_patch
+    from miithii_voice.aiortc_patch import apply_aiortc_opus_decoder_patch
     from miithii_voice.cloudflare_sfu import CloudflareSFUConnection
     from miithii_voice.session import VoiceSessionClaims, verify_voice_session
 
     apply_aioice_turn_data_indication_patch()
+    apply_aiortc_opus_decoder_patch()
 
     os.environ["MIITHII_DEV_NO_AUTH"] = "false"
     os.environ["MIITHII_API_URL"] = "https://api.miithii.in"
@@ -1203,6 +1205,7 @@ def connect_app():
             "runBot": run_bot_session,
             "sessionToken": _token,
             "remoteSessionId": remote_session_id,
+            "remoteTrackName": remote_track_name,
         }
         # Register the provisional aiortc peer immediately. If any later SFU
         # mutation fails or the request is cancelled, centralized cleanup can
@@ -1255,6 +1258,12 @@ def connect_app():
         if bot_track is None:
             raise HTTPException(status_code=503, detail="Voice SFU bot track is invalid")
         peer["botTrackName"] = bot_track["trackName"]
+        peer["botPublication"] = {
+            "sessionId": modal_session_id,
+            "mid": bot_track.get("mid"),
+            "trackName": bot_track.get("trackName"),
+            "status": bot_track.get("status"),
+        }
 
         pulled = await calls_request(
             "POST",
@@ -1284,6 +1293,23 @@ def connect_app():
             None,
         )
         input_mid = subscribed_track.get("mid") if subscribed_track else None
+        peer["microphoneSubscription"] = (
+            {
+                "sessionId": remote_session_id,
+                "trackName": remote_track_name,
+                "mid": subscribed_track.get("mid"),
+                "status": subscribed_track.get("status"),
+                "errorCode": subscribed_track.get("errorCode"),
+            }
+            if subscribed_track
+            else {
+                "sessionId": remote_session_id,
+                "trackName": remote_track_name,
+                "mid": None,
+                "status": None,
+                "errorCode": "missing_track",
+            }
+        )
         input_transceiver = next(
             (
                 transceiver
@@ -1356,6 +1382,8 @@ def connect_app():
             else {}
         )
         sfu_data_channels = []
+        sfu_tracks = []
+        client_tracks = []
         for item in sfu_state.get("dataChannels", []):
             if isinstance(item, dict):
                 sfu_data_channels.append(
@@ -1367,6 +1395,47 @@ def connect_app():
                         "status": item.get("status"),
                     }
                 )
+        for item in sfu_state.get("tracks", []):
+            if isinstance(item, dict):
+                sfu_tracks.append(
+                    {
+                        "location": item.get("location"),
+                        "sessionId": item.get("sessionId"),
+                        "trackName": item.get("trackName"),
+                        "mid": item.get("mid"),
+                        "status": item.get("status"),
+                    }
+                )
+        for item in client_state.get("tracks", []):
+            if isinstance(item, dict):
+                client_tracks.append(
+                    {
+                        "location": item.get("location"),
+                        "sessionId": item.get("sessionId"),
+                        "trackName": item.get("trackName"),
+                        "mid": item.get("mid"),
+                        "status": item.get("status"),
+                    }
+                )
+        receiver_stats = []
+        if connection:
+            try:
+                stats = await connection.pc.getStats()
+                for stat in stats.values():
+                    if getattr(stat, "type", None) in {"inbound-rtp", "remote-inbound-rtp"}:
+                        receiver_stats.append(
+                            {
+                                "id": getattr(stat, "id", None),
+                                "type": getattr(stat, "type", None),
+                                "kind": getattr(stat, "kind", None),
+                                "packetsReceived": getattr(stat, "packetsReceived", None),
+                                "bytesReceived": getattr(stat, "bytesReceived", None),
+                                "packetsLost": getattr(stat, "packetsLost", None),
+                                "jitter": getattr(stat, "jitter", None),
+                            }
+                        )
+            except Exception as error:
+                receiver_stats.append({"error": error.__class__.__name__})
         return {
             "connectionState": connection.pc.connectionState if connection else "closed",
             "iceConnectionState": connection.pc.iceConnectionState if connection else "closed",
@@ -1379,6 +1448,20 @@ def connect_app():
             "inputFrames": peer.get("inputFrames", 0),
             "inputSamples": peer.get("inputSamples", 0),
             "inputError": peer.get("inputError"),
+            "remotePublication": {
+                "sessionId": peer.get("remoteSessionId"),
+                "trackName": peer.get("remoteTrackName"),
+            },
+            "microphoneSubscription": peer.get("microphoneSubscription"),
+            "botPublication": peer.get("botPublication"),
+            "sfuTracks": sfu_tracks,
+            "clientTracks": client_tracks,
+            "receiverStats": receiver_stats,
+            "audioInput": (
+                connection.audio_input_debug_state()
+                if isinstance(connection, CloudflareSFUConnection)
+                else None
+            ),
             "sfuDataChannels": sfu_data_channels,
             "clientDataChannels": [
                 {

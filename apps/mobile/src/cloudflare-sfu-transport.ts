@@ -187,6 +187,7 @@ async function settleIceGathering(
 export class MiithiiCloudflareSFUTransport extends RNSmallWebRTCTransport {
   private botReadyObserved = false;
   private clientReadyRetryTimers: ReturnType<typeof setTimeout>[] = [];
+  private channelStatusTimers: ReturnType<typeof setTimeout>[] = [];
   private connectAbortController: AbortController | null = null;
   private pendingRequestControllers = new Set<AbortController>();
   private clientSessionId: string | null = null;
@@ -312,6 +313,12 @@ export class MiithiiCloudflareSFUTransport extends RNSmallWebRTCTransport {
       try {
         const status = await sfuRequest(`/pipecat-peer/${modalSessionId}/status`, "POST", {});
         stage("channel_status", {
+          remotePublication: status.remotePublication,
+          microphoneSubscription: status.microphoneSubscription,
+          sfuTracks: status.sfuTracks,
+          clientTracks: status.clientTracks,
+          receiverStats: status.receiverStats,
+          audioInput: status.audioInput,
           dataChannel: status.dataChannel,
           sfuDataChannels: status.sfuDataChannels,
           clientDataChannels: status.clientDataChannels,
@@ -437,6 +444,13 @@ export class MiithiiCloudflareSFUTransport extends RNSmallWebRTCTransport {
       publishedTrack?.trackName,
       "Miithii SFU microphone publication is invalid",
     );
+    stage("microphone_published", {
+      clientSessionId,
+      mid: audioTransceiver.mid,
+      requestedTrackName: localAudio.id,
+      trackName: microphoneTrackName,
+      status: publishedTrack?.status,
+    });
     try {
       await waitFor(
         () => pc.connectionState === "connected",
@@ -610,9 +624,70 @@ export class MiithiiCloudflareSFUTransport extends RNSmallWebRTCTransport {
     this.state = "connected";
     stage("transport_connected");
     this._callbacks.onConnected?.();
+
+    // TEMPORARY DEVICE DIAGNOSTIC: prove whether the native Android sender is
+    // actually producing microphone RTP after the SFU control plane is ready.
+    // Do not commit this probe as product telemetry.
+    for (const delay of [2000, 6000, 12000]) {
+      setTimeout(() => {
+        const senderTrack = audioTransceiver.sender.track as (MediaStreamTrack & {
+          muted?: boolean;
+        }) | null;
+        const parameters = audioTransceiver.sender.getParameters();
+        console.info("[miithii-voice-stage]", "native_audio_sender_state", {
+          delay,
+          trackId: senderTrack?.id ?? null,
+          enabled: senderTrack?.enabled ?? null,
+          readyState: senderTrack?.readyState ?? null,
+          muted: senderTrack?.muted ?? null,
+          encodings: parameters.encodings?.map(encoding => ({
+            active: encoding.active ?? null,
+            maxBitrate: encoding.maxBitrate ?? null,
+          })) ?? [],
+        });
+
+        void pc.getStats().then(report => {
+          const outbound: JsonObject[] = [];
+          const mediaSources: JsonObject[] = [];
+          report.forEach((value: JsonObject) => {
+            const mediaKind = String(value.kind ?? value.mediaType ?? "");
+            if (value.type === "outbound-rtp" && mediaKind === "audio") {
+              outbound.push({
+                id: value.id,
+                ssrc: value.ssrc,
+                packetsSent: value.packetsSent,
+                bytesSent: value.bytesSent,
+                active: value.active,
+                codecId: value.codecId,
+                mediaSourceId: value.mediaSourceId,
+              });
+            }
+            if (value.type === "media-source" && mediaKind === "audio") {
+              mediaSources.push({
+                id: value.id,
+                audioLevel: value.audioLevel,
+                totalAudioEnergy: value.totalAudioEnergy,
+                totalSamplesDuration: value.totalSamplesDuration,
+              });
+            }
+          });
+          console.info("[miithii-voice-stage]", "native_audio_outbound_stats", {
+            delay,
+            outbound,
+            mediaSources,
+          });
+        }).catch(error => {
+          console.info("[miithii-voice-stage]", "native_audio_outbound_stats_failed", {
+            delay,
+            error: String(error),
+          });
+        });
+      }, delay);
+    }
+
     for (const delay of [3000, 9000]) {
       const timer = setTimeout(() => { void checkChannelStatus(modalSessionId); }, delay);
-      this.clientReadyRetryTimers.push(timer);
+      this.channelStatusTimers.push(timer);
     }
   }
 
@@ -665,6 +740,8 @@ export class MiithiiCloudflareSFUTransport extends RNSmallWebRTCTransport {
     this.connectAbortController = null;
     for (const timer of this.clientReadyRetryTimers) clearTimeout(timer);
     this.clientReadyRetryTimers = [];
+    for (const timer of this.channelStatusTimers) clearTimeout(timer);
+    this.channelStatusTimers = [];
     for (const controller of this.pendingRequestControllers) controller.abort();
     this.pendingRequestControllers.clear();
     this.serverEventsChannel?.close();

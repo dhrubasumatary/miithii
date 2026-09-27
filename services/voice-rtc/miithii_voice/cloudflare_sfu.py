@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import math
 import time
 from struct import pack, unpack_from
 from typing import Any
@@ -47,6 +48,15 @@ class CloudflareSFUConnection(SmallWebRTCConnection):
         self._data_channel_last_send_buffered_after = None
         self._duplicate_dcep_opens: list[dict[str, Any]] = []
         self._sctp_compat_enabled = False
+        self._audio_input_frames = 0
+        self._audio_input_samples = 0
+        self._audio_input_error = None
+        self._audio_input_signal_frames = 0
+        self._audio_input_last_rms = None
+        self._audio_input_last_peak = None
+        self._audio_input_max_peak = 0.0
+        self._audio_input_last_sample_rate = None
+        self._audio_input_last_layout = None
 
     def _start_data_channel_timeout(self) -> None:
         """Allow SFU signaling to finish before Pipecat disables message delivery.
@@ -89,7 +99,7 @@ class CloudflareSFUConnection(SmallWebRTCConnection):
             logger.warning("Cloudflare SFU audio input transceiver is not bound")
             return None
 
-        track = SmallWebRTCTrack(receiver)
+        track = _CountingSmallWebRTCTrack(receiver, self)
         self._track_map[self._AUDIO_INPUT_TRACK_KEY] = track
         return track
 
@@ -270,3 +280,71 @@ class CloudflareSFUConnection(SmallWebRTCConnection):
             "lastSendBufferedAfter": self._data_channel_last_send_buffered_after,
             "duplicateDcepOpens": list(self._duplicate_dcep_opens),
         }
+
+    def audio_input_debug_state(self) -> dict[str, Any]:
+        """Return safe counters for the subscribed Android microphone track."""
+        transceiver = self._audio_input_transceiver
+        receiver = getattr(transceiver, "receiver", None) if transceiver else None
+        track = getattr(receiver, "track", None) if receiver else None
+        return {
+            "bound": transceiver is not None,
+            "mid": getattr(transceiver, "mid", None) if transceiver else None,
+            "direction": getattr(transceiver, "direction", None) if transceiver else None,
+            "currentDirection": getattr(transceiver, "currentDirection", None)
+            if transceiver
+            else None,
+            "receiverEnabled": getattr(receiver, "_enabled", None) if receiver else None,
+            "trackKind": getattr(track, "kind", None) if track else None,
+            "trackReadyState": getattr(track, "readyState", None) if track else None,
+            "frames": self._audio_input_frames,
+            "samples": self._audio_input_samples,
+            "error": self._audio_input_error,
+            "signalFrames": self._audio_input_signal_frames,
+            "lastRms": self._audio_input_last_rms,
+            "lastPeak": self._audio_input_last_peak,
+            "maxPeak": self._audio_input_max_peak,
+            "sampleRate": self._audio_input_last_sample_rate,
+            "layout": self._audio_input_last_layout,
+        }
+
+
+class _CountingSmallWebRTCTrack(SmallWebRTCTrack):
+    def __init__(self, receiver: Any, connection: CloudflareSFUConnection):
+        super().__init__(receiver)
+        self._connection = connection
+
+    async def recv(self):
+        try:
+            frame = await super().recv()
+        except Exception as error:
+            self._connection._audio_input_error = error.__class__.__name__
+            raise
+        if frame is not None:
+            self._connection._audio_input_frames += 1
+            self._connection._audio_input_samples += int(getattr(frame, "samples", 0) or 0)
+            self._record_signal(frame)
+        return frame
+
+    def _record_signal(self, frame: Any) -> None:
+        try:
+            samples = frame.to_ndarray()
+            if samples.size == 0:
+                return
+            sample_type = getattr(samples.dtype, "kind", "")
+            scale = 32768.0 if sample_type in {"i", "u"} else 1.0
+            normalized = samples.astype("float32", copy=False) / scale
+            peak = float(abs(normalized).max())
+            rms = float(math.sqrt(float((normalized * normalized).mean())))
+        except Exception as error:
+            self._connection._audio_input_error = error.__class__.__name__
+            return
+        self._connection._audio_input_last_peak = peak
+        self._connection._audio_input_last_rms = rms
+        self._connection._audio_input_max_peak = max(self._connection._audio_input_max_peak, peak)
+        self._connection._audio_input_last_sample_rate = getattr(frame, "sample_rate", None)
+        layout = getattr(frame, "layout", None)
+        self._connection._audio_input_last_layout = (
+            getattr(layout, "name", None) if layout else None
+        )
+        if peak > 0.002 or rms > 0.0005:
+            self._connection._audio_input_signal_frames += 1

@@ -16,6 +16,16 @@ from loguru import logger
 from pipecat.audio.turn.smart_turn.local_smart_turn_v3 import LocalSmartTurnAnalyzerV3
 from pipecat.audio.vad.silero import SileroVADAnalyzer
 from pipecat.audio.vad.vad_analyzer import VADParams
+from pipecat.frames.frames import (
+    BotStartedSpeakingFrame,
+    BotStoppedSpeakingFrame,
+    Frame,
+    TranscriptionFrame,
+    UserStartedSpeakingFrame,
+    UserStoppedSpeakingFrame,
+    VADUserStartedSpeakingFrame,
+    VADUserStoppedSpeakingFrame,
+)
 from pipecat.observers.loggers.metrics_log_observer import MetricsLogObserver
 from pipecat.pipeline.pipeline import Pipeline
 from pipecat.pipeline.worker import PipelineParams, PipelineWorker
@@ -25,6 +35,7 @@ from pipecat.processors.aggregators.llm_response_universal import (
     LLMUserAggregatorParams,
 )
 from pipecat.processors.audio.vad_processor import VADProcessor
+from pipecat.processors.frame_processor import FrameDirection, FrameProcessor
 from pipecat.runner.types import RunnerArguments
 from pipecat.runner.utils import create_transport
 from pipecat.services.tts_service import TextAggregationMode
@@ -51,6 +62,42 @@ TRANSPORT_PARAMS = {
         audio_out_enabled=True,
     ),
 }
+
+
+class VoiceFrameLogger(FrameProcessor):
+    """Log speech pipeline edges without dumping audio or transcript text."""
+
+    def __init__(self, tag: str = "frame"):
+        super().__init__()
+        self._tag = tag
+
+    async def process_frame(self, frame: Frame, direction: FrameDirection):
+        await super().process_frame(frame, direction)
+        if isinstance(
+            frame,
+            (
+                VADUserStartedSpeakingFrame,
+                VADUserStoppedSpeakingFrame,
+                UserStartedSpeakingFrame,
+                UserStoppedSpeakingFrame,
+                BotStartedSpeakingFrame,
+                BotStoppedSpeakingFrame,
+            ),
+        ):
+            logger.info(
+                "voice_stage stage=frame tag={} frame={} direction={}",
+                self._tag,
+                type(frame).__name__,
+                direction.name,
+            )
+        elif isinstance(frame, TranscriptionFrame):
+            logger.info(
+                "voice_stage stage=transcription_frame tag={} chars={} direction={}",
+                self._tag,
+                len(frame.text.strip()),
+                direction.name,
+            )
+        await self.push_frame(frame, direction)
 
 
 def required_env(name: str) -> str:
@@ -106,10 +153,10 @@ async def run_bot(
         vad = VADProcessor(
             vad_analyzer=SileroVADAnalyzer(
                 params=VADParams(
-                    confidence=0.7,
+                    confidence=0.5,
                     start_secs=0.2,
                     stop_secs=0.2,
-                    min_volume=0.6,
+                    min_volume=0.005,
                 )
             )
         )
@@ -155,11 +202,14 @@ async def run_bot(
         processors = [
                 transport.input(),
                 vad,
+                VoiceFrameLogger("after_vad"),
                 stt,
+                VoiceFrameLogger("after_stt"),
                 user_aggregator,
                 brain,
                 speech_gate,
                 tts,
+                VoiceFrameLogger("after_tts"),
                 transport.output(),
                 assistant_aggregator,
         ]
