@@ -8,10 +8,16 @@
     "userInterfaceStyle": "dark",
     "ios": {
       "bundleIdentifier": "in.miithii.voice",
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSMicrophoneUsageDescription": "Miithii uses the microphone for live voice conversations."
+      }
     },
     "android": {
       "package": "in.miithii.voice",
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ],
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -24,14 +30,6 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      [
-        "@daily-co/config-plugin-rn-daily-js",
-        {
-          "enableCamera": false,
-          "enableMicrophone": true,
-          "enableScreenShare": false
-        }
-      ],
       [
         "expo-build-properties",
         {

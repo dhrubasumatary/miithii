@@ -11,49 +11,19 @@ import {
   Text,
   View,
 } from "react-native";
-import type { PipecatClient, TransportState } from "@pipecat-ai/client-js";
 
-import {
-  MIITHII_API_URL,
-  PIPECAT_START_URL,
-  PIPECAT_START_URL_OVERRIDE,
-  USE_VOICE_SESSION,
-  VOICE_TRANSPORT,
-} from "./src/config";
-import {
-  MiithiiCloudflareSFUTransport,
-  MiithiiSFUTransportError,
-} from "./src/cloudflare-sfu-transport";
+import { MIITHII_API_URL, resolveVoicePcmStartUrl } from "./src/config";
 import { createVoiceSession } from "./src/session";
-import { createVoiceClient, type ReplyLanguage } from "./src/voice-client";
+import type {
+  ReplyLanguage,
+  VoiceDomErrorEvent,
+  VoiceDomServerEvent,
+  VoiceDomStateEvent,
+  VoiceLatencyStage,
+} from "./src/voice-contract";
+import VoiceDOM, { type VoiceDOMRef } from "./src/voice-dom";
 
 type Phase = "offline" | "connecting" | "ready" | "listening" | "thinking" | "speaking" | "error";
-
-function isRetryableStartupFailure(cause: unknown): cause is MiithiiSFUTransportError {
-  if (!(cause instanceof MiithiiSFUTransportError)) return false;
-  if (cause.code === "microphone_connect_timeout") return true;
-  return cause.code === "sfu_http"
-    && cause.path === "/pipecat-peer/start"
-    && cause.status === 503;
-}
-
-async function withTimeout<T>(
-  promise: Promise<T>,
-  timeoutMs: number,
-  message: string,
-): Promise<T> {
-  let timeout: ReturnType<typeof setTimeout> | null = null;
-  try {
-    return await Promise.race([
-      promise,
-      new Promise<never>((_, reject) => {
-        timeout = setTimeout(() => reject(new Error(message)), timeoutMs);
-      }),
-    ]);
-  } finally {
-    if (timeout) clearTimeout(timeout);
-  }
-}
 
 const LANGUAGE_LABELS: Record<ReplyLanguage, { native: string; english: string }> = {
   as: { native: "অসমীয়া", english: "Assamese" },
@@ -74,9 +44,10 @@ function phaseCopy(phase: Phase, language: ReplyLanguage) {
 }
 
 export default function App() {
-  const clientRef = useRef<PipecatClient | null>(null);
+  const voiceDomRef = useRef<VoiceDOMRef>(null);
   const connectAbortRef = useRef<AbortController | null>(null);
   const generationRef = useRef(0);
+  const activeRef = useRef(false);
   const activeLanguageRef = useRef<ReplyLanguage>("as");
   const turnStoppedAtRef = useRef<number | null>(null);
   const level = useRef(new Animated.Value(0)).current;
@@ -84,11 +55,11 @@ export default function App() {
 
   const [language, setLanguage] = useState<ReplyLanguage>("as");
   const [phase, setPhase] = useState<Phase>("offline");
-  const [transportState, setTransportState] = useState<TransportState>("disconnected");
   const [heard, setHeard] = useState("");
   const [reply, setReply] = useState("");
-  const [error, setError] = useState<string | null>(null);
   const [responseMs, setResponseMs] = useState<number | null>(null);
+  const [stageLatency, setStageLatency] = useState<Partial<Record<VoiceLatencyStage, number>>>({});
+  const [error, setError] = useState<string | null>(null);
 
   const resetSignal = useCallback(() => {
     Animated.timing(level, {
@@ -99,8 +70,6 @@ export default function App() {
     }).start();
   }, [level]);
 
-  // A slow ambient pulse means "ready". Measured audio level takes over while
-  // either side is actually speaking.
   useEffect(() => {
     if (phase !== "ready") {
       glow.stopAnimation();
@@ -109,280 +78,173 @@ export default function App() {
     }
     const animation = Animated.loop(
       Animated.sequence([
-        Animated.timing(glow, { toValue: 1, duration: 1500, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
-        Animated.timing(glow, { toValue: 0, duration: 1500, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+        Animated.timing(glow, {
+          toValue: 1,
+          duration: 1500,
+          easing: Easing.inOut(Easing.sin),
+          useNativeDriver: true,
+        }),
+        Animated.timing(glow, {
+          toValue: 0,
+          duration: 1500,
+          easing: Easing.inOut(Easing.sin),
+          useNativeDriver: true,
+        }),
       ]),
     );
     animation.start();
     return () => animation.stop();
   }, [glow, phase]);
 
+  const onDomState = useCallback(async (event: VoiceDomStateEvent) => {
+    if (event.generation !== generationRef.current) return;
+    console.info("[miithii-voice-stage]", "dom_state", event);
+    if (event.state === "connecting") setPhase("connecting");
+    if (event.state === "ready") {
+      setError(null);
+      setPhase("ready");
+    }
+    if (event.state === "error") setPhase("error");
+    if (event.state === "stopped") {
+      activeRef.current = false;
+      setPhase("offline");
+    }
+  }, []);
+
+  const onDomError = useCallback(async (event: VoiceDomErrorEvent) => {
+    if (event.generation !== generationRef.current) return;
+    console.info("[miithii-voice-stage]", "dom_error", event);
+    activeRef.current = false;
+    setError(event.message);
+    setPhase("error");
+  }, []);
+
+  const onDomEvent = useCallback(async ({ generation, event }: VoiceDomServerEvent) => {
+    if (generation !== generationRef.current) return;
+    console.info("[miithii-voice-stage]", "server_event", { type: event.type });
+
+    switch (event.type) {
+      case "user-started":
+        setError(null);
+        setHeard("");
+        setReply("");
+        setResponseMs(null);
+        setStageLatency({});
+        setPhase("listening");
+        break;
+      case "user-stopped":
+        turnStoppedAtRef.current = performance.now();
+        setPhase("thinking");
+        resetSignal();
+        break;
+      case "transcript":
+        if (event.final && event.text.trim()) setHeard(event.text.trim());
+        break;
+      case "bot-text":
+        if (event.text.trim()) setReply(event.text.trim());
+        break;
+      case "bot-started": {
+        const stoppedAt = turnStoppedAtRef.current;
+        if (stoppedAt !== null) setResponseMs(Math.round(performance.now() - stoppedAt));
+        setPhase("speaking");
+        break;
+      }
+      case "bot-stopped":
+        setPhase("ready");
+        resetSignal();
+        break;
+      case "audio-level":
+        level.setValue(Math.min(1, Math.max(0, event.level)));
+        break;
+      case "latency":
+        setStageLatency(current => ({ ...current, [event.stage]: event.ms }));
+        break;
+    }
+  }, [level, resetSignal]);
+
   const connect = useCallback(async (targetLanguage: ReplyLanguage = language) => {
-    if (clientRef.current) return;
+    if (activeRef.current) return;
+
     const generation = generationRef.current + 1;
     generationRef.current = generation;
-    const current = () => generationRef.current === generation;
-
+    activeRef.current = true;
     activeLanguageRef.current = targetLanguage;
     setError(null);
     setHeard("");
     setReply("");
     setResponseMs(null);
+    setStageLatency({});
     setPhase("connecting");
-    const connectAbort = new AbortController();
-    connectAbortRef.current = connectAbort;
+
+    const controller = new AbortController();
+    connectAbortRef.current = controller;
 
     try {
-      for (let attempt = 1; attempt <= 2; attempt += 1) {
-        if (!current() || connectAbort.signal.aborted) return;
+      console.info("[miithii-voice-stage]", "session_start", { generation, language: targetLanguage });
+      const session = await createVoiceSession(
+        MIITHII_API_URL,
+        targetLanguage,
+        controller.signal,
+      );
+      if (generationRef.current !== generation || controller.signal.aborted) return;
 
-        let botReady = false;
-        let attemptActive = true;
-        let client!: PipecatClient;
-        const attemptCurrent = () => (
-          attemptActive
-          && current()
-          && clientRef.current === client
-        );
-
-        client = createVoiceClient({
-          onTransportState: state => {
-            if (!attemptCurrent()) return;
-            console.info("[miithii-voice-stage]", "transport_state", { state, attempt });
-            setTransportState(state);
-            if (["initializing", "authenticating", "authenticated", "connecting", "connected"].includes(state)) {
-              setPhase("connecting");
-            }
-            if (state === "ready") setPhase("ready");
-            if (state === "disconnected") setPhase("offline");
-            if (state === "error" && botReady) setPhase("error");
-          },
-          onConnected: () => {
-            console.info("[miithii-voice-stage]", "client_connected", { attempt });
-            if (attemptCurrent()) setError(null);
-          },
-          onDisconnected: () => {
-            console.info("[miithii-voice-stage]", "client_disconnected", { attempt });
-            if (!attemptCurrent()) return;
-            setPhase("offline");
-            resetSignal();
-          },
-          onUserStartedSpeaking: () => {
-            if (!attemptCurrent()) return;
-            setPhase("listening");
-            setError(null);
-            setHeard("");
-            setReply("");
-            setResponseMs(null);
-          },
-          onUserStoppedSpeaking: () => {
-            if (!attemptCurrent()) return;
-            turnStoppedAtRef.current = performance.now();
-            setPhase("thinking");
-            resetSignal();
-          },
-          onBotStartedSpeaking: () => {
-            if (!attemptCurrent()) return;
-            const stoppedAt = turnStoppedAtRef.current;
-            if (stoppedAt !== null) setResponseMs(Math.round(performance.now() - stoppedAt));
-            setPhase("speaking");
-          },
-          onBotStoppedSpeaking: () => {
-            if (!attemptCurrent()) return;
-            setPhase("ready");
-            resetSignal();
-          },
-          onUserTranscript: data => {
-            if (attemptCurrent() && data.final && data.text.trim()) setHeard(data.text.trim());
-          },
-          onBotText: data => {
-            if (attemptCurrent() && data.text.trim()) setReply(data.text.trim());
-          },
-          onLocalAudioLevel: next => {
-            if (attemptCurrent()) level.setValue(Math.min(1, Math.max(0, next)));
-          },
-          onRemoteAudioLevel: next => {
-            if (attemptCurrent()) level.setValue(Math.min(1, Math.max(0, next)));
-          },
-          onMetrics: () => {},
-          onError: message => {
-            console.info("[miithii-voice-stage]", "client_error", { message, attempt });
-            if (!attemptCurrent() || !botReady) return;
-            setError(message);
-            setPhase("error");
-            resetSignal();
-          },
-        });
-        clientRef.current = client;
-
-        try {
-          console.info("[miithii-voice-stage]", "preflight_start", { attempt });
-          const [, session] = await Promise.all([
-            withTimeout(client.initDevices(), 15_000, "Microphone setup timed out"),
-            USE_VOICE_SESSION
-              ? withTimeout(
-                createVoiceSession(MIITHII_API_URL, targetLanguage, connectAbort.signal),
-                15_000,
-                "Voice session timed out",
-              )
-              : Promise.resolve(null),
-          ]);
-          console.info("[miithii-voice-stage]", "preflight_ok", { attempt });
-          if (!attemptCurrent() || connectAbort.signal.aborted) return;
-          const endpoint = VOICE_TRANSPORT === "cloudflare-sfu"
-            ? PIPECAT_START_URL_OVERRIDE
-            : PIPECAT_START_URL_OVERRIDE || session?.startUrl || PIPECAT_START_URL;
-          if (!endpoint) {
-            throw new Error("Miithii SFU start endpoint is not configured");
-          }
-          const connectionParams = await client.startBot({
-            endpoint,
-            ...(session ? { headers: new Headers({ authorization: `Bearer ${session.token}` }) } : {}),
-            timeout: 60_000,
-            requestData: {
-              transport: VOICE_TRANSPORT === "cloudflare-sfu" ? "cloudflare-sfu" : "webrtc",
-              enableDefaultIceServers: true,
-              body: { language: targetLanguage },
-            },
-          });
-          if (!attemptCurrent() || connectAbort.signal.aborted) {
-            console.info("[miithii-voice-stage]", "startup_cancelled_after_auth", { attempt });
-            attemptActive = false;
-            await client.disconnect().catch(() => {});
-            return;
-          }
-          await withTimeout(
-            client.connect(connectionParams),
-            120_000,
-            "Voice startup timed out",
-          );
-          botReady = true;
-          console.info("[miithii-voice-stage]", "bot_ready", { attempt });
-          if (attemptCurrent()) setPhase("ready");
-          return;
-        } catch (cause) {
-          if (!current() || connectAbort.signal.aborted || clientRef.current !== client) return;
-
-          const message = cause instanceof Error ? cause.message : "Could not open Miithii Voice";
-          const retryable = attempt === 1 && !botReady && isRetryableStartupFailure(cause);
-          console.info("[miithii-voice-stage]", "connect_failed", {
-            message,
-            attempt,
-            retryable,
-          });
-
-          // Suppress callbacks from the retired attempt while keeping clientRef
-          // occupied so a user tap cannot create a new media manager during
-          // teardown. For a non-retryable failure, abort any parallel preflight
-          // work; a retryable transport failure has already completed preflight
-          // and keeps the user-intent abort signal alive for attempt two.
-          attemptActive = false;
-          if (!retryable) connectAbort.abort();
-          setError(null);
-          setPhase("connecting");
-          let cleanupFailed = false;
-          await client.disconnect().catch(error => {
-            cleanupFailed = true;
-            console.info("[miithii-voice-stage]", "disconnect_after_failure_failed", {
-              message: error instanceof Error ? error.message : String(error),
-              attempt,
-            });
-          });
-          const retirementAcknowledged = VOICE_TRANSPORT === "cloudflare-sfu"
-            && (client.transport as MiithiiCloudflareSFUTransport).retirementAcknowledged;
-
-          // Cancellation, backgrounding or a language switch increments the
-          // generation and/or clears the client while cleanup is in flight.
-          // Those user lifecycle actions always win over automatic retry.
-          if (generationRef.current !== generation || clientRef.current !== client) return;
-          clientRef.current = null;
-
-          if (
-            retryable
-            && !cleanupFailed
-            && retirementAcknowledged
-            && !connectAbort.signal.aborted
-          ) {
-            console.info("[miithii-voice-stage]", "startup_retry", {
-              attempt: 2,
-              code: cause.code,
-              ...(cause.path ? { path: cause.path } : {}),
-              ...(cause.status ? { status: cause.status } : {}),
-            });
-            setTransportState("disconnected");
-            setPhase("connecting");
-            continue;
-          }
-
-          if (retryable && !retirementAcknowledged) {
-            console.info("[miithii-voice-stage]", "startup_retry_blocked", {
-              reason: "sfu_retirement_unacknowledged",
-              attempt,
-            });
-          }
-
-          connectAbort.abort();
-          generationRef.current += 1;
-          setError(message);
-          setPhase("error");
-          return;
-        }
+      const startUrl = resolveVoicePcmStartUrl(session.startUrl);
+      if (!startUrl) {
+        throw new Error("Voice PCM endpoint is not configured");
       }
+      const dom = voiceDomRef.current;
+      if (!dom) throw new Error("Voice media component is unavailable");
+
+      dom.start({
+        generation,
+        language: targetLanguage,
+        startUrl,
+        token: session.token,
+      });
+    } catch (cause) {
+      if (generationRef.current !== generation || controller.signal.aborted) return;
+      activeRef.current = false;
+      const message = cause instanceof Error ? cause.message : "Could not open Miithii Voice";
+      console.info("[miithii-voice-stage]", "session_failed", { generation, message });
+      setError(message);
+      setPhase("error");
     } finally {
-      if (connectAbortRef.current === connectAbort) connectAbortRef.current = null;
+      if (connectAbortRef.current === controller) connectAbortRef.current = null;
     }
-  }, [language, level, resetSignal]);
+  }, [language]);
 
   const disconnect = useCallback(async () => {
-    console.info("[miithii-voice-stage]", "disconnect_requested");
-    const client = clientRef.current;
+    const wasActive = activeRef.current;
     connectAbortRef.current?.abort();
     connectAbortRef.current = null;
     generationRef.current += 1;
-    clientRef.current = null;
-    try {
-      if (client) await client.disconnect();
-    } finally {
-      setTransportState("disconnected");
-      setPhase("offline");
-      resetSignal();
-    }
-  }, [resetSignal]);
+    activeRef.current = false;
+    if (wasActive) voiceDomRef.current?.stop();
+    setPhase("offline");
+  }, []);
 
-  // Voice owns the microphone only while Miithii is visible. Backgrounding
-  // invalidates the current generation before native/WebRTC cleanup runs, so
-  // late events from the retired session cannot mutate a future conversation.
   useEffect(() => {
     const subscription = AppState.addEventListener("change", state => {
       console.info("[miithii-voice-stage]", "app_state_change", { state });
-      if (state === "background" && clientRef.current) {
-        console.info("[miithii-voice-stage]", "disconnect_background");
-        void disconnect();
-      }
+      if (state === "background" && activeRef.current) void disconnect();
     });
     return () => subscription.remove();
   }, [disconnect]);
 
   useEffect(() => () => {
-    generationRef.current += 1;
     connectAbortRef.current?.abort();
-    connectAbortRef.current = null;
-    const client = clientRef.current;
-    clientRef.current = null;
-    if (client) void client.disconnect().catch(() => {});
+    generationRef.current += 1;
+    activeRef.current = false;
+    voiceDomRef.current?.stop();
   }, []);
 
   const changeLanguage = useCallback(async (next: ReplyLanguage) => {
     if (next === language) return;
-    // A language switch is a session reset even while startup is still in
-    // progress. Checking only `client.connected` lets an old-language auth/ICE
-    // attempt keep running behind the newly selected pill, which can leave the
-    // UI showing one reply language while the live capability/bot uses another.
-    const hadClient = Boolean(clientRef.current);
-    if (hadClient) await disconnect();
+    const wasActive = activeRef.current;
+    if (wasActive) await disconnect();
     setLanguage(next);
     activeLanguageRef.current = next;
-    if (hadClient) await connect(next);
+    if (wasActive) await connect(next);
   }, [connect, disconnect, language]);
 
   const active = phase !== "offline" && phase !== "error";
@@ -391,10 +253,30 @@ export default function App() {
     Animated.add(1, Animated.multiply(glow, 0.025)),
   );
   const haloOpacity = Animated.add(0.08, Animated.multiply(level, 0.28));
+  const latencyParts = [
+    stageLatency.stt === undefined ? null : `STT ${(stageLatency.stt / 1000).toFixed(2)}s`,
+    stageLatency.brain === undefined ? null : `brain ${(stageLatency.brain / 1000).toFixed(2)}s`,
+    stageLatency["tts-first-audio"] === undefined
+      ? null
+      : `TTS ${(stageLatency["tts-first-audio"]! / 1000).toFixed(2)}s`,
+  ].filter((value): value is string => Boolean(value));
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar style="light" />
+      <VoiceDOM
+        ref={voiceDomRef}
+        onState={onDomState}
+        onError={onDomError}
+        onEvent={onDomEvent}
+        dom={{
+          style: styles.domHost,
+          scrollEnabled: false,
+          allowsInlineMediaPlayback: true,
+          mediaPlaybackRequiresUserAction: false,
+        }}
+      />
+
       <View style={styles.screen}>
         <View style={styles.topBar}>
           <Text style={styles.wordmark}>Miithii</Text>
@@ -420,11 +302,14 @@ export default function App() {
 
         <View style={styles.stage}>
           <Text style={styles.phase}>{phaseCopy(phase, language)}</Text>
-
           <Pressable
             onPress={() => void (active ? disconnect() : connect())}
             accessibilityRole="button"
-            accessibilityLabel={phase === "connecting" ? "Cancel voice startup" : active ? "End voice session" : "Start voice session"}
+            accessibilityLabel={phase === "connecting"
+              ? "Cancel voice startup"
+              : active
+                ? "End voice session"
+                : "Start voice session"}
             style={styles.presenceHitArea}
           >
             <Animated.View style={[styles.halo, { opacity: haloOpacity, transform: [{ scale }] }]} />
@@ -439,9 +324,12 @@ export default function App() {
               <View style={styles.presenceCore} />
             </Animated.View>
           </Pressable>
-
           <Text style={styles.action}>{phase === "connecting" ? "tap to cancel" : active ? "tap to end" : "tap to start"}</Text>
-          {responseMs !== null ? <Text style={styles.latency}>{(responseMs / 1000).toFixed(2)}s response</Text> : null}
+          {latencyParts.length > 0 ? (
+            <Text style={styles.latency}>{latencyParts.join(" · ")}</Text>
+          ) : responseMs !== null ? (
+            <Text style={styles.latency}>{(responseMs / 1000).toFixed(2)}s response</Text>
+          ) : null}
         </View>
 
         <View style={styles.transcript}>
@@ -458,17 +346,12 @@ export default function App() {
             </View>
           ) : null}
           {!heard && !reply && !error ? (
-            <Text style={styles.firstUse}>Speak any language. Miithii answers in {LANGUAGE_LABELS[language].english}.</Text>
+            <Text style={styles.firstUse}>
+              Speak any language. Miithii answers in {LANGUAGE_LABELS[language].english}.
+            </Text>
           ) : null}
-          {error ? (
-            <View style={styles.errorBox}>
-              <Text style={styles.errorText}>{error}</Text>
-              {__DEV__ ? <Text style={styles.endpoint}>{PIPECAT_START_URL}</Text> : null}
-            </View>
-          ) : null}
+          {error ? <Text style={styles.errorText}>{error}</Text> : null}
         </View>
-
-        {__DEV__ ? <Text style={styles.debugState}>{transportState}</Text> : null}
       </View>
     </SafeAreaView>
   );
@@ -476,6 +359,7 @@ export default function App() {
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: "#070908" },
+  domHost: { position: "absolute", width: 1, height: 1, opacity: 0 },
   screen: { flex: 1, paddingHorizontal: 22, paddingTop: Platform.OS === "android" ? 22 : 10, paddingBottom: 18 },
   topBar: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   wordmark: { color: "#f3f5f4", fontSize: 20, fontWeight: "700", letterSpacing: -0.5 },
@@ -501,8 +385,5 @@ const styles = StyleSheet.create({
   userText: { color: "#a3aaa6", fontSize: 16, lineHeight: 22 },
   replyText: { color: "#eef2f0", fontSize: 22, lineHeight: 29, fontWeight: "500", letterSpacing: -0.3 },
   firstUse: { alignSelf: "center", maxWidth: 290, textAlign: "center", color: "#77817c", fontSize: 14, lineHeight: 20 },
-  errorBox: { alignItems: "center", gap: 6 },
   errorText: { color: "#e6a39d", fontSize: 14, lineHeight: 20, textAlign: "center" },
-  endpoint: { color: "#626c67", fontSize: 10 },
-  debugState: { alignSelf: "center", color: "#444c48", fontSize: 9, letterSpacing: 0.6, textTransform: "uppercase" },
 });

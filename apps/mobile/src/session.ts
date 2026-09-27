@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-import type { ReplyLanguage } from "./voice-client";
+import type { ReplyLanguage } from "./voice-contract";
 
 const INSTALL_ID_KEY = "miithii.install-id.v1";
 
