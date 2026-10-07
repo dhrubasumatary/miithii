@@ -1,8 +1,8 @@
 # Miithii developer guide
 
 Reviewed against the local working tree on **7 October 2026**, based on commit `0a107fe`.
-The current source snapshot is published on `codex/developer-handoff`. This document describes
-that migration, not a verified deployed revision or the contents of GitHub's default branch.
+The current source snapshot is published through PR #3 to `main`. This document describes
+that migration; it does not certify a deployed agent revision or the APK's exact build-time source.
 
 This guide is a map of the implementation, not a promise that its behavior is complete. When
 source and prose disagree, inspect the source and update the guide. Repository constraints in

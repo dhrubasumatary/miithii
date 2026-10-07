@@ -1,8 +1,7 @@
 # Miithii
 
-**Developer handoff — 7 October 2026.** The `codex/developer-handoff` branch contains the current
-LiveKit source, language packs, Android app, and Cloudflare download site. GitHub's `main` still
-contains the retired runtime. Clone the handoff branch to use the setup commands below.
+**Developer handoff — 7 October 2026.** This repository contains the current LiveKit source,
+language packs, Android app, and Cloudflare download site. Use `main` for the developer handoff.
 
 Miithii is an Android voice companion for Assamese and Bodo speakers. The app sends microphone
 audio through LiveKit to a Python agent, which transcribes speech, generates a reply, checks it
@@ -24,7 +23,7 @@ so another developer can work on it without that conversation history.
 - [Documentation index](docs/README.md)
 - [Developer guide](docs/developer-guide.md): session flow, code map, setup, and known limits
 
-The handoff branch includes [agent operations](services/agent/README.md),
+The repository includes [agent operations](services/agent/README.md),
 [dated evidence](docs/current-work.md), and [contribution constraints](AGENTS.md).
 
 The developer guide was written against the local working tree on **7 October 2026**, with

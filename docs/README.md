@@ -3,9 +3,9 @@
 This directory contains a developer guide, supporting research, and captured evidence. None
 overrides the live repository.
 
-**GitHub handoff — 7 October 2026:** `codex/developer-handoff` publishes the current LiveKit
-source, constraints, and indexed status/research documents. GitHub's `main` still has the retired
-runtime. Historical screenshots/XML under `audit-2026-09-29` are omitted from this handoff;
+**GitHub handoff — 7 October 2026:** the current LiveKit source, constraints, and indexed
+status/research documents are published together for `main` through PR #3.
+Historical screenshots/XML under `audit-2026-09-29` are omitted from this handoff;
 private `.tmp` provider/device captures remain local. Their mentions are evidence references,
 not downloadable files in the handoff.
 
