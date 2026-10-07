@@ -1,10 +1,12 @@
 packages:
   - "apps/mobile"
-  - "packages/language-core"
-packageExtensions:
-  '@daily-co/config-plugin-rn-daily-js@0.0.12':
-    dependencies:
-      '@expo/plist': 0.5.4
-  '@pipecat-ai/react-native-daily-media-manager@0.0.2':
-    peerDependencies:
-      '@react-native-async-storage/async-storage': '>=2.2.0 <4'
+  - "packages/language-packs"
+  - "packages/language-core-ts"
+
+minimumReleaseAgeExclude:
+  - expo-constants@57.0.20
+  - expo-modules-core@57.0.20
+  - expo@57.0.26
+
+virtualStoreDir: .pnpm
+virtualStoreDirMaxLength: 20

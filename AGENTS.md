@@ -1,114 +1,90 @@
-# AGENTS.md — Miithii current operating brief
+# AGENTS.md — Miithii voice app
 
-Last updated: 2026-09-27.
+Last updated: 2026-09-30.
 
-Read `docs/CURRENT-VOICE-STATE.md` first. It is the current product/architecture handoff.
-Checkpoint `88bc15a` is the rollback point immediately before the transport cleanup on this branch.
+Miithii is a voice companion for Assamese and Bodo speakers. The previous web apps, Android app,
+Cloudflare runtime, first Modal runtime, Pipecat transport, WebRTC experiments, deployment files, and
+generated native projects are retired. Git history is the recovery mechanism; do not restore old
+runtime code into the active tree unless the user explicitly asks for a historical comparison.
 
-## Product direction
+## The active tree
 
-- Miithii is Android-first Voice now.
-- iOS comes after Android is excellent; keep React Native code portable.
-- Web comes after native Voice is stable; do not fork backend/session/turn semantics by platform.
-- Ship product behavior before polishing architecture.
+- `apps/mobile` — Expo SDK 57 / React Native 0.86.3, official `@livekit/react-native` 3.0.0.
+- `services/agent` — LiveKit Agents 1.8.3 on Modal. Sarvam realtime STT, Gemini 2.5 Flash through
+  AIMLAPI by default. Standard speech uses Bodhan for Bodo; Assamese can explicitly select
+  ElevenLabs v4 through server configuration. Expression controls require separate validation.
+- `packages/language-packs` — the source of truth for language data. Packs use canonical ISO 639-3
+  ids (`asm`, `brx`), are schema-validated, compile to one hash-verified JSON artifact, and remain
+  draft until native review has approved production language content.
+- `packages/language-core-ts` — the thin TypeScript reader used by mobile for the language registry
+  and shared sentence-boundary data. Python runtime logic lives in `services/agent/miithii_agent` and
+  reads the same compiled language-pack artifact.
 
-## Active code
+`docs/README.md` is the only documentation index. Files under `docs/` are research/evidence unless
+that index explicitly says otherwise. Historical handoffs and architecture plans were deleted on
+purpose; do not search Git history for one and treat it as an implementation brief.
 
-- `apps/mobile` — Expo/React Native client.
-- `services/voice-rtc` — Pipecat realtime runtime on Modal.
-- `workers/api` — Miithii brain + signed Voice session endpoint.
-- `packages/language-core` — Assamese/Bodo language policy and Voice contracts.
+`pnpm run check` runs contract freshness, both typechecks, and every suite. It must exit 0.
 
-`pnpm-workspace.yaml` intentionally contains only `apps/mobile` and `packages/language-core`.
-The API Worker and Python RTC service have their own dependency managers.
+## Rules that do not bend
 
-## Realtime target
+The language id is immutable for one session. It selects the pack, Sarvam realtime locale, prompt,
+gate, and TTS voice. Switching Assamese/Bodo ends the current room and starts a fresh session. The
+installed LiveKit Sarvam 1.8.3 integration is configured with explicit `as-IN` / `brx-IN`,
+`mode="codemix"`, and `stream_type="fast"`; it has no model/keyterms parameter, so do not add dead
+configuration pretending those controls exist.
 
-`Android/iOS -> Cloudflare Realtime SFU -> Pipecat/Modal -> Bodhan STT -> workers/api -> Bodhan TTS -> Cloudflare Realtime SFU -> device`
+Assamese and Bodo policy must remain isolated. No rule, prompt, voice, limit, blocklist entry,
+fallback line, crisis phrase, or exemplar from one language may reach the other. Never add
+LLM-written native-language pack content. Native-language production content requires reviewer
+metadata and the compiler must continue to fail closed when that approval is missing.
 
-Daily hosted transport is rejected and its client/server branch is removed. Some `@daily-co/*`
-packages still exist because the Pipecat React Native SmallWebRTC transport currently uses Daily's
-React Native WebRTC/media implementation. Do not reintroduce Daily rooms or `/connect`.
+Cancellation, reset, language switch, reconnect, and app backgrounding must never allow stale
+speech or stale events to re-enter the current turn. `TurnRegistry` enforces this; wiring it to
+real lifecycle events is what makes it mean anything.
 
-Pipecat owns server-side turn semantics. The RTC bot explicitly uses Silero VAD + Local Smart Turn
-V3. The legacy browser Voice 1500 ms silence timer is not the Android architecture.
+## Two invariants worth more than their line count
 
-## Current blocker
+**Generation is not speech.** Text may be shown only as *generated*; the app marks a sentence
+*spoken* only when LiveKit's TTS-aligned transcript says so. Alignment must measure how far the
+two agree, never assume the transcript's length is the reply's length. Marking unspoken text as
+spoken is the one bug the alignment layer exists to prevent.
 
-Direct relay-to-relay SmallWebRTC through Cloudflare TURN is rejected for production. Live
-cross-network tests proved asymmetric TURN delivery and relay-only libwebrtc -> Modal ICE failed
-despite both peers gathering relay candidates.
+On the Bodhan route the two streams are expected to be byte-identical, because the aligned
+transcript is the sentence text handed to synthesis rather than text a provider rebuilt from
+word timings. The measurement is not therefore optional and the tolerance is not licence: a
+divergence means the transcript and the preview came from different text, and the app must
+under-claim rather than absorb it. See `docs/miithii-mobile-ui.md` §4 and
+`services/agent/tests/test_tts_alignment.py`.
 
-Cloudflare Realtime SFU is now the chosen transport direction. On 2026-09-27 all three live SFU
-gates passed against the current code: bidirectional SFU DataChannel, libwebrtc audio forwarding,
-and libwebrtc <-> SFU <-> Modal/aiortc with audio plus bidirectional Pipecat application messages.
-The third gate ends with `CLOUDFLARE_SFU_PIPECAT_PEER_OK`.
+**Interruptions discard audio, by design.** On any interruption LiveKit clears its shared output
+buffer. Everything queued but unplayed is dropped, and the transcript is truncated to match. So
+false barge-in is expensive and asymmetric: a synthesizer holding one sentence loses a sentence,
+one holding a whole reply loses the reply. Every interruption option is set explicitly for this
+reason, and buffering less before speech is worth more than tuning anything else.
 
-The remaining gate is native integration and physical Android end-to-end behavior. The React Native
-SFU transport exists behind explicit `EXPO_PUBLIC_VOICE_TRANSPORT=cloudflare-sfu`, but do not build
-another APK until the SFU runtime is deployed non-breakingly and the browser gates remain green.
+## Do not re-add
 
-Deploy SFU revisions under the separate Modal app name `miithii-voice-sfu` by setting
-`MIITHII_MODAL_APP_NAME=miithii-voice-sfu`. Do not deploy this source over the existing
-`miithii-voice` app while the Worker still points at its legacy `/connect` endpoint.
+Do not re-add provider-authored delivery text, bracketed performance cues, or provider control
+tokens. The only LLM control envelope allowed by the current language contract is the first-line
+`@mood: <...>` classification. The gate removes that line before display and TTS; canonical speech
+remains plain words. A provider may receive a server-owned style parameter derived from the mood
+only when that provider's accepted values have been verified.
 
-`workers/api/wrangler.jsonc` still points `VOICE_RTC_START_URL` at the old deployed Modal
-`/connect` endpoint. Do not change it yet. Native SFU canaries use an explicit `/sfu/start`
-override while still using the legitimate signed Voice capability.
+Do not restore the retired TypeScript `packages/language-core` or its old voice-contract shape.
+Git history is evidence only. The active language contract is the compiled `language-packs`
+artifact consumed independently by Python and TypeScript.
 
-## Frozen fallback
+Prefer official SDKs and supported integrations over custom media/network code.
 
-`apps/voice` is still the live web fallback at `voice.miithii.in`; do not delete it until the
-physical Android end-to-end gate in `docs/CURRENT-VOICE-STATE.md` passes.
+## Evidence discipline
 
-The old Chat/Hub/Subtitles/web Worker/UI code is outside the active workspace. Do not add new work
-there. It may be deleted after the native Voice cutover or when explicitly required by the cleanup
-plan; Git history/checkpoint `88bc15a` is the recovery path.
+A gate is complete only with phone evidence or a focused test, never from a passing suite alone.
+Every timed or measured claim names what measured it. Agent-side timings are not phone
+audibility. Do not describe anything as fixed until it has been heard.
 
-## Verification
+A language pack is not shippable because its schema validates. Native review, contamination evals,
+crisis fixtures, fallback speech, name pronunciation, and real provider/phone tests remain separate
+gates. Empty reviewed-content files are preferable to fabricated Assamese or Bodo.
 
-Run before committing meaningful product/runtime changes:
-
-```powershell
-pnpm check
-pnpm --dir apps/mobile exec expo-doctor
-pnpm --dir apps/mobile prebuild:android --clean
-```
-
-CI compiles the Android debug variant to prove the native project builds. That debug APK does not
-embed the JavaScript bundle and therefore needs Metro. The standalone Voice canary is now manual
-opt-in only through the CI workflow's `build_canary` input; ordinary pushes must not spend a
-standalone canary build. The future canary uses the SFU transport and explicit `/sfu/start`.
-
-This Windows machine currently has no local JDK, Android SDK, or `adb` configured.
-
-## Deployment
-
-- `.github/workflows/deploy-production.yml` deploys the Cloudflare brain manually.
-- `.github/workflows/deploy-voice-runtime.yml` deploys Modal manually after verification.
-- Never deploy production from a local machine.
-- Never make the API Worker point to `/start` merely because Modal deployed; transport proof is a
-  separate gate.
-
-## Non-negotiable product behavior
-
-- User may speak any supported/input language; STT auto-detects.
-- Assamese/Bodo selector controls reply language + TTS voice, not input language.
-- Assamese and Bodo have separate language rules; never leak one profile into the other.
-- No stale turn may speak after a newer turn/reset/language switch.
-- Voice must disconnect cleanly when backgrounded.
-- Measure STT, brain, and TTS latency separately.
-- Prefer deletion and simple contracts over parallel legacy paths.
-
-## Cleanup order
-
-1. Preserve a checkpoint before structural deletion — done at `88bc15a`.
-2. Remove rejected Daily hosted transport — done in the post-checkpoint cleanup.
-3. Prove Cloudflare SFU on libwebrtc <-> Modal/aiortc — done.
-4. Prove the same SFU route on physical Android.
-5. Delete direct TURN/losing transport experiments.
-6. Pass the physical Android release gate.
-7. Remove frozen web product code and simplify `workers/api` to shipped capabilities.
-
-Do not perform broad `git clean`, `git reset --hard`, or other wholesale cleanup. Delete only paths
-whose role has been traced and whose recovery point is known.
+The user has a physical Android phone ready for acceptance testing.

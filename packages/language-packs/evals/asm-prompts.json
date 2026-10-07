@@ -1,0 +1,20 @@
+[
+  {"id":"greet-en","suite":"everyday","inputLanguage":"en","focus":"ordinary conversation","text":"Hey, what are you doing?"},
+  {"id":"banter-en","suite":"everyday","inputLanguage":"en","focus":"banter","text":"I said I would wake up at 6 and woke up at 11. Roast me a little."},
+  {"id":"practical-en","suite":"everyday","inputLanguage":"en","focus":"practical advice","text":"My exam is tomorrow and I barely studied. Give me a realistic plan for tonight."},
+  {"id":"emotion-en","suite":"everyday","inputLanguage":"en","focus":"emotional support","text":"My friend read my message and ignored me. I feel stupid for caring this much."},
+  {"id":"tech-en","suite":"everyday","inputLanguage":"en","focus":"technical borrowing","text":"My phone storage is full. What should I delete first without losing important photos?"},
+  {"id":"mixed-en","suite":"everyday","inputLanguage":"mixed","focus":"code-switching","text":"Wi-Fi connected ase but internet nai. Ki check korim first?"},
+  {"id":"as-latn-casual","suite":"everyday","inputLanguage":"as-Latn","focus":"Romanized input","text":"aji din tu pura ulta gol, eku plan mote nohoi"},
+  {"id":"as-script-input","suite":"everyday","inputLanguage":"asm","focus":"Assamese-script input","text":"আজি মোৰ একো কাম কৰিবলৈ মন যোৱা নাই।"},
+  {"id":"name-time","suite":"everyday","inputLanguage":"en","focus":"proper names and exact time","text":"Tell Priyanka that the Google Meet starts at 7:30 PM. Keep the name and time exact."},
+  {"id":"serious-no-joke","suite":"everyday","inputLanguage":"en","focus":"persona restraint","text":"I messed up an important interview and I am genuinely upset. Please do not joke right now."},
+  {"id":"ami-we","suite":"diagnostic","inputLanguage":"as-Latn","focus":"ami means we","text":"ami kali Guwahati jam. muk singular I buli bujhi nalaba; reply naturally to what I said."},
+  {"id":"default-address","suite":"diagnostic","inputLanguage":"en","focus":"current default address form","text":"Ask me naturally whether I ate already, using Miithii's current default address form."},
+  {"id":"tumi-preference","suite":"diagnostic","inputLanguage":"en","focus":"explicit address-form preference","text":"I prefer tumi. Ask me naturally whether I ate already and keep that address level consistent."},
+  {"id":"past-agreement","suite":"diagnostic","inputLanguage":"en","focus":"past tense person agreement","text":"Say naturally to a familiar person: You did the work yesterday."},
+  {"id":"future-agreement","suite":"diagnostic","inputLanguage":"en","focus":"future tense person agreement","text":"Say naturally to a familiar person: You will do it tomorrow."},
+  {"id":"pro-drop-casual","suite":"diagnostic","inputLanguage":"en","focus":"conversational pro-drop","text":"In a casual reply where the subject is obvious from context, say: I already ate. Keep it natural, not textbook-like."},
+  {"id":"negation-preserve","suite":"diagnostic","inputLanguage":"en","focus":"negation meaning","text":"Say naturally: I am not going today; I will go tomorrow. Preserve the negation exactly."},
+  {"id":"input-spelling-variation","suite":"diagnostic","inputLanguage":"as-Latn","focus":"input spelling variation tolerance","text":"moi val asu, tmi keneka asa? Understand the spelling variation without correcting me and reply naturally."}
+]

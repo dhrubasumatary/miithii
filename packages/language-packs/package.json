@@ -1,0 +1,17 @@
+{
+  "name": "@miithii/language-packs",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./compiled/language-packs.json": "./compiled/language-packs.json"
+  },
+  "scripts": {
+    "compile": "node scripts/compile.mjs",
+    "check": "node scripts/compile.mjs --check",
+    "test": "node --test test/*.test.mjs"
+  },
+  "devDependencies": {
+    "ajv": "^8.17.1"
+  }
+}

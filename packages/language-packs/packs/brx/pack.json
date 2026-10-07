@@ -1,0 +1,79 @@
+{
+  "id": "brx",
+  "version": "0.2.0-draft",
+  "provenance": {
+    "languageInstructions": {
+      "source": "historical-language-core",
+      "sourceCommit": "88bc15a3aa9ae5e3f33b8cf979333adcdcc1d544",
+      "sourcePath": "packages/language-core/src/profiles/bodo.ts",
+      "reviewStatus": "native-approved",
+      "reviewer": "project-owner"
+    }
+  },
+  "names": {
+    "english": "Bodo",
+    "native": "बरʼ",
+    "romanized": "Bodo"
+  },
+  "codes": {
+    "sarvam": { "realtime-stt": "brx-IN" },
+    "bodhan": { "speech": "brx" },
+    "llmName": "Bodo (Boro)",
+    "bcp47": "brx-IN"
+  },
+  "scripts": {
+    "native": {
+      "name": "Devanagari",
+      "unicodeRanges": [[2304, 2431], [43232, 43263]],
+      "foreignIndicRanges": [[2432, 2559]],
+      "distinctiveLetters": [],
+      "suspectLetters": [],
+      "normalizations": []
+    },
+    "pipeline": {
+      "llmWorking": "native",
+      "ttsInput": "native",
+      "display": "native"
+    }
+  },
+  "agentName": {
+    "display": "Miithii",
+    "tts": "Miithii",
+    "sttKeyterms": ["Miithii"]
+  },
+  "addressForm": {
+    "default": "neutral",
+    "allowed": ["neutral"],
+    "reviewStatus": "native-approved",
+    "reviewer": "project-owner"
+  },
+  "prompt": {
+    "languageInstructionsFile": "language-instructions.txt",
+    "constraints": [
+      "Reply in natural Bodo (Boro) using Devanagari.",
+      "Do not drift into Hindi grammar or Hindi function words merely because the script is shared.",
+      "Do not build Bodo sentences from Assamese grammar. English code-mixing is allowed when it is natural or when a Bodo word is uncertain.",
+      "Do not invent slang, dialect spellings, grammar rules, or etymologies."
+    ],
+    "grammarFacts": []
+  },
+  "gate": {
+    "sentenceTerminators": [".", "?", "!", "।", "॥", "…"],
+    "maxTurnChars": 180,
+    "generationMaxTokens": 4096,
+    "maxLatinRatio": 0.55
+  },
+  "tts": {
+    "recommendedVoice": "Gwrbw",
+    "maxCharsPerRequest": 180
+  },
+  "safety": {
+    "crisisFile": "crisis.json",
+    "fallbackFile": "fallback.json"
+  },
+  "review": {
+    "reviewers": [],
+    "lastReviewed": null,
+    "status": "draft"
+  }
+}

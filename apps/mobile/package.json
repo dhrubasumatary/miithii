@@ -1,45 +1,55 @@
 {
   "name": "@miithii/mobile",
-  "version": "1.0.0",
-  "main": "index.ts",
-  "dependencies": {
-    "@daily-co/config-plugin-rn-daily-js": "0.0.12",
-    "@daily-co/react-native-daily-js": "^0.86.0",
-    "@daily-co/react-native-webrtc": "124.0.6-daily.2",
-    "@pipecat-ai/client-js": "1.13.1",
-    "@pipecat-ai/react-native-daily-media-manager": "0.0.2",
-    "@pipecat-ai/react-native-small-webrtc-transport": "1.8.0",
-    "@react-native-async-storage/async-storage": "^2.2.0",
-    "expo": "~55.0.31",
-    "expo-build-properties": "~55.0.18",
-    "expo-dev-client": "55.0.40",
-    "expo-status-bar": "~55.0.6",
-    "expo-system-ui": "~55.0.22",
-    "react": "19.2.0",
-    "react-native": "0.83.10",
-    "react-native-get-random-values": "^1.11.0"
-  },
-  "devDependencies": {
-    "@types/react": "~19.2.2",
-    "expo-doctor": "1.20.4",
-    "typescript": "~5.9.3"
-  },
-  "scripts": {
-    "start": "expo start --dev-client",
-    "android": "expo run:android",
-    "prebuild:android": "expo prebuild --platform android",
-    "typecheck": "tsc --noEmit"
-  },
+  "version": "0.0.1",
+  "private": true,
+  "main": "index.js",
   "expo": {
-    "doctor": {
-      "reactNativeDirectoryCheck": {
+    "autolinking": {
+      "android": {
         "exclude": [
-          "@daily-co/react-native-daily-js",
-          "@daily-co/react-native-webrtc",
-          "react-native-background-timer"
+          "@expo/dom-webview"
+        ]
+      },
+      "ios": {
+        "exclude": [
+          "@expo/dom-webview"
         ]
       }
     }
   },
-  "private": true
+  "scripts": {
+    "start": "expo start --dev-client",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
+    "test": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-strip-types --test \"src/**/*.test.ts\"",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@config-plugins/react-native-webrtc": "^15.0.2",
+    "@livekit/components-react": "2.9.21",
+    "@livekit/react-native": "^3.0.0",
+    "@livekit/react-native-expo-plugin": "^1.0.3",
+    "@livekit/react-native-webrtc": "^144.2.0",
+    "@miithii/language-core-ts": "workspace:*",
+    "@react-native-masked-view/masked-view": "0.3.2",
+    "expo": "^57.0.26",
+    "expo-constants": "~57.0.20",
+    "expo-dev-client": "~57.0.19",
+    "expo-font": "~57.0.4",
+    "expo-haptics": "~57.0.3",
+    "expo-status-bar": "~57.0.1",
+    "expo-system-ui": "~57.0.4",
+    "livekit-client": "^2.22.3",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "react-native": "0.86.3",
+    "react-native-safe-area-context": "~5.7.0",
+    "react-native-view-shot": "5.1.0",
+    "tslib": "^2.6.2"
+  },
+  "devDependencies": {
+    "@types/node": "^24.19.0",
+    "@types/react": "~19.2.4",
+    "typescript": "~6.0.3"
+  }
 }

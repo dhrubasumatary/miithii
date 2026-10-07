@@ -1,0 +1,42 @@
+[project]
+name = "miithii-agent"
+version = "0.1.0"
+description = "Miithii LiveKit voice agent"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+  "livekit-agents==1.8.3",
+  "livekit-plugins-elevenlabs @ git+https://github.com/livekit/agents.git@7d3a90714fe6b4d7310413def76a23d8e53e2bff#subdirectory=livekit-plugins/livekit-plugins-elevenlabs",
+  "livekit-plugins-google==1.8.3",
+  "livekit-plugins-openai==1.8.3",
+  "livekit-plugins-sarvam==1.8.3",
+  "livekit-plugins-silero==1.8.3",
+  "modal==1.5.3",
+]
+
+[dependency-groups]
+dev = [
+  "pytest==8.4.2",
+  "ruff==0.13.2",
+]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "ASYNC"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# The service is run as a plain module directory rather than an installed package, so the
+# repo root has to be importable for `import miithii_agent` to resolve.
+pythonpath = ["."]
+# Binary PCM in an assertion diff makes failures unreadable and can overflow the
+# captured-output limit, so truncate representation output.
+addopts = "--tb=short -q"
+
+[tool.uv]
+# The pinned ElevenLabs plugin comes from LiveKit's monorepo. Ignore that checkout's development
+# `tool.uv.sources` mappings so only the plugin's published dependency metadata participates in
+# Miithii's resolution. The Git requirement above remains a direct project dependency.
+no-sources = true

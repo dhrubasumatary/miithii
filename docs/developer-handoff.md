@@ -1,0 +1,25 @@
+# Developer handoff — 7 October 2026
+
+Start with the root README and developer guide. Clone `codex/developer-handoff`, not `main`,
+for the current system. The draft pull request presents the replacement of the retired tree for
+review. No native generated Android/iOS projects, credentials, private captures, or APKs are
+included in source. Fonts and application assets needed to build are included with their licenses.
+
+The available prebuilt APK is version 0.0.1, the 5 October theme-preload build. It is 120182039
+bytes with SHA-256 `81dc512270f06593593e8b317ebbfc565b2652da4026c4509927cafc11cc6cb2`.
+It has recorded phone-installation evidence. A different share-polish build appears in the
+status note but is not available locally. This source snapshot includes later documentation/site
+work; it is not a preserved exact build-time source commit for that APK. Do not claim reproducible
+binary identity from this snapshot.
+
+Offline validation on 7 October: `pnpm run check` exited 0, with 4 pack tests, 90 mobile tests,
+322 agent tests, both typechecks, pack freshness, and Ruff. No new native build, paid provider
+probe, or phone listening session was run for the handoff.
+
+The download site is separate from the voice runtime. Cloudflare serves the page and redirects
+`/Miithii.apk` to a versioned GitHub release. LiveKit/Modal remain the voice runtime. See
+`apps/download/README.md` and `wrangler.jsonc` for the website target and publishing command.
+
+Open engineering questions include unauthenticated token admission, token publishing-source
+restrictions, zero-audio transcript fallback, native review, and remaining phone acceptance.
+The developer guide explains the evidence limits. A successful offline suite does not close them.
