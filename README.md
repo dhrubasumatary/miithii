@@ -1,105 +1,58 @@
 # Miithii
 
-Miithii is one product suite under `miithii.in`. The web apps share identity, quota, API behavior, and a common product dock, while Cloudflare Workers own the production edge.
+**Documentation snapshot — 7 October 2026.** This README and developer guide describe the newer
+local LiveKit working tree. GitHub's `main` still contains the retired runtime; the corresponding
+source migration has not been published. The setup commands below apply to the local system,
+not a fresh clone of `main`. This publication changes documentation only.
 
-## Product surfaces
+Miithii is an Android voice companion for Assamese and Bodo speakers. The app sends microphone
+audio through LiveKit to a Python agent, which transcribes speech, generates a reply, checks it
+against the selected language policy, and synthesizes speech back to the phone.
 
-- `apps/hub` → `miithii.in`
-- `apps/chat` → `chat.miithii.in`
-- `apps/voice` → `voice.miithii.in`
-- `apps/subtitles` → `subtitles.miithii.in`
-- `packages/ui` → shared visual system and cross-product navigation
+This is a project under active development. Both language packs are draft, the current token
+endpoint has no user authentication, and phone acceptance is incomplete. A passing test suite
+does not establish pronunciation, conversational quality, or production readiness.
 
-Chat and Voice require sign-in because conversation history, daily quota, and memory are account-scoped. Subtitles is currently a public waitlist and does not require an account.
+The project was developed through conversations with Codex. These documents explain the code
+so another developer can work on it without that conversation history.
 
-## Runtime services
+## Start here
 
-- `workers/api` — authenticated API, model routing, quota, memory, and private R2 uploads
-- `workers/chat` — Chat static assets plus same-origin API forwarding
-- `apps/voice/worker.js` — Voice static assets, STT/TTS endpoints, and API forwarding
-- `apps/subtitles/worker.js` — Subtitles static assets and the waitlist endpoint
-- `workers/apex` — `miithii.in` and `www.miithii.in`
+- [Documentation index](docs/README.md)
+- [Developer guide](docs/developer-guide.md): session flow, code map, setup, and known limits
 
-## Fresh-machine setup
+The local checkout also has agent operations in `services/agent/README.md`, dated evidence in
+`docs/current-work.md`, and updated constraints in `AGENTS.md`. Those versions are not included
+in this documentation publication. GitHub's older `AGENTS.md` describes its older source tree.
 
-Use Node 24 and pnpm 11.19.0. The repository declares the pnpm version in `package.json`; enable Corepack if pnpm is not already installed.
+The developer guide was written against the local working tree on **7 October 2026**, with
+`0a107fe` as its base commit. That tree includes uncommitted runtime and mobile changes. Until
+those changes are published, GitHub's code describes an older system. Read the source in your
+checkout before relying on a route or command here.
 
-```bash
-corepack enable
-corepack prepare pnpm@11.19.0 --activate
-git clone https://github.com/dhrubasumatary/miithii.git
-cd miithii
-pnpm bootstrap
-pnpm check
+## Repository
+
+| Directory | Responsibility |
+| --- | --- |
+| `apps/mobile` | Expo Android app, session controls, transcript, and display alignment |
+| `services/agent` | Python LiveKit agent and Modal worker/token deployment |
+| `packages/language-packs` | Language data, review metadata, compiler, and shared JSON artifact |
+| `packages/language-core-ts` | Thin mobile reader for the language registry and segmentation data |
+
+The previous web apps and voice runtimes are retired. Git history preserves them; they are not
+alternative setup paths for the current app.
+
+## Local checks
+
+With pnpm and uv installed, from the repository root:
+
+```powershell
+pnpm install --frozen-lockfile
+uv sync --directory services/agent
+pnpm run check
 ```
 
-`pnpm bootstrap` installs both dependency graphs: the Turborepo workspace with pnpm and the standalone API Worker with its committed npm lockfile. `pnpm check` runs workspace typechecks/builds plus the API Worker protocol tests and Wrangler dry-run build.
+The root check verifies compiled-pack freshness, TypeScript types, pack/mobile/Python tests,
+and Python lint. Live provider calls and listening tests are separate. See the developer guide
+before starting a voice session; it requires provider credentials and a native Android build.
 
-## Local environment files
-
-Never commit secrets. Start from `.env.example`, but place values in the files consumed by each runtime:
-
-```text
-workers/api/.dev.vars
-  UPSTREAM_API_KEY
-  SUPERMEMORY_API_KEY
-  CLERK_ISSUER
-  CLERK_AUDIENCE
-
-apps/chat/.env.local
-  NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
-  NEXT_PUBLIC_ASSISTANT_BASE_URL
-  MIITHII_API_ORIGIN=http://127.0.0.1:8787
-
-apps/voice/.env.local
-  NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
-  BODHAN_API_KEY
-  BODHAN_TTS_API_KEY
-  MIITHII_API_ORIGIN=http://127.0.0.1:8787
-  MIITHII_VOICE_API_ORIGIN=http://127.0.0.1:8788
-
-apps/subtitles/.env.local
-  WAITLIST_KEY
-```
-
-For localhost auth, Clerk must allow the local origins you use and the `miithii-api` JWT template must match the API Worker expectations. Production uses the live Clerk frontend at `clerk.miithii.in`.
-
-## Local development
-
-After the environment files are in place, one command starts the web apps, shared API Worker, and Voice API proxy together:
-
-```bash
-pnpm dev
-```
-
-For debugging one layer at a time, `pnpm dev:web`, `pnpm dev:api`, and `pnpm dev:voice-api` remain available.
-
-Default app ports are:
-
-```text
-Hub        http://localhost:3000
-Subtitles  http://localhost:3001
-Chat       http://localhost:3002
-Voice      http://localhost:3003
-API        http://127.0.0.1:8787
-Voice API  http://127.0.0.1:8788
-```
-
-If you only need one app, use `pnpm dev:hub`, `pnpm dev:chat`, `pnpm dev:voice`, or `pnpm dev:subtitles` while keeping the required Worker processes running.
-
-## Production deployment
-
-`main` is production. `.github/workflows/deploy-production.yml` is the canonical release path. It verifies the exact commit, enforces the private R2 attachment lifecycle, deploys API → Chat → Voice → Subtitles → Apex, and then smoke-tests the public surfaces.
-
-Repository configuration required by GitHub Actions:
-
-```text
-Secret:   CLOUDFLARE_API_TOKEN
-Secret:   WAITLIST_KEY
-Variable: CLOUDFLARE_ACCOUNT_ID
-Variable: NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
-```
-
-The existing API and Voice runtime secrets stay in Cloudflare and are preserved by Wrangler during normal releases. For a disaster-recovery rebuild into a blank Cloudflare account, restore those Worker secrets separately before deploying.
-
-More detail: `docs/ci-cd.md` and `docs/miithii-architecture.md`.
