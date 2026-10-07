@@ -23,3 +23,18 @@ The download site is separate from the voice runtime. Cloudflare serves the page
 Open engineering questions include unauthenticated token admission, token publishing-source
 restrictions, zero-audio transcript fallback, native review, and remaining phone acceptance.
 The developer guide explains the evidence limits. A successful offline suite does not close them.
+
+## Publication verification
+
+- Current source: `https://github.com/dhrubasumatary/miithii/tree/codex/developer-handoff`.
+- Draft migration review: `https://github.com/dhrubasumatary/miithii/pull/3`.
+- Download page: `https://voice.miithii.in`, verified by HTTP 200 and browser inspection.
+- APK release: `voice-2026-10-05-theme-preload`, public prerelease with `Miithii.apk` attached.
+- Downloaded the entire APK through the site's public `/Miithii.apk` redirect. Byte count and
+  SHA-256 match the artifact recorded above. GitHub's asset digest agrees.
+- Cloudflare Worker `miithii-voice` serves the static page and release redirect. Its only remaining
+  binding is ASSETS; the retired API service binding and two old Bodhan secret bindings were removed.
+- Obsolete Vercel `nullvoid3/miithii-chat` Git connection was disconnected and verified null.
+  Separate Cloudflare chat, subtitles, and API Workers were left in place.
+- GitHub's default branch has not been merged with this migration. No new CI workflow was added;
+  the validation counts above are local checks, not a claim of GitHub CI acceptance.
