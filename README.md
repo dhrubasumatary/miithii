@@ -17,6 +17,10 @@ so another developer can work on it without that conversation history.
 
 ## Start here
 
+- [Android download](https://voice.miithii.in)
+- [Versioned APK release](https://github.com/dhrubasumatary/miithii/releases/tag/voice-2026-10-05-theme-preload)
+- [Handoff review](https://github.com/dhrubasumatary/miithii/pull/3)
+
 - [Documentation index](docs/README.md)
 - [Developer guide](docs/developer-guide.md): session flow, code map, setup, and known limits
 
