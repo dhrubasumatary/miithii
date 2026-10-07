@@ -89,7 +89,7 @@ The candidate includes a compact grammar reference and nine authored examples, i
 
 Research and prompt drafting are complete for this deliverable. Empirical performance, contemporary native texting naturalness, safety in Assamese, and runtime memory enforcement remain untested. The scientifically defensible claim is â€œresearch-informed candidate with a defined validation method.â€
 
-## Independent Assamese validation track — 15 September 2026
+## Independent Assamese validation track: 15 September 2026
 
 Assamese is evaluated independently from Bodo. The two languages share only product infrastructure and the neutral MIITHII companion policy. Bodo grammar, examples, reviewer judgments and failure tags are not evidence for Assamese, and Assamese rules are not evidence for Bodo.
 

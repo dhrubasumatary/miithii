@@ -45,7 +45,7 @@ are refused before adoption. SDK-aligned transcripts establish what was played. 
 measures agreement and under-claims divergence. Interruptions discard unplayed buffered audio.
 Device RPC registers once per room with current callbacks and observable registration failure.
 
-## Evidence — 2026-10-01
+## Evidence: 2026-10-01
 
 Local arm64 release builds installed on USB phone R9ZY30DVSJN. ADB UI trees and screenshots
 observed cold launch, language sheet/pick, appearance switching, connected LISTENING, and actual

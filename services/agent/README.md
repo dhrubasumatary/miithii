@@ -68,7 +68,7 @@ gate; only its accepted canonical body is published on `miithii.reply`. `lk.tran
 
 ## Provider vocabularies are not interchangeable
 
-Two live traps, both found by probing rather than reading:
+Two issues found through live probes:
 
 - Miithii's canonical ids are `asm` / `brx`. Bodhan's speech API takes provider codes `as` / `brx`,
   while Sarvam realtime takes `as-IN` / `brx-IN`. Provider codes always come from the pack resolver.
@@ -100,7 +100,7 @@ Sarvam transcribes it back, which covers both provider boundaries at once.
 Historical provider notes are not an implementation contract. Use the live probes plus current
 tests/source; `docs/README.md` explains which retained documents are research/evidence only.
 
-## Latency and speech proposal audit — 2026-10-01
+## Latency and speech proposal audit: 2026-10-01
 
 The latency and Bulbul proposals were checked against the current source and installed LiveKit
 1.8.3 SDK. The pipeline already passes accepted sentences to synthesis while later text is being

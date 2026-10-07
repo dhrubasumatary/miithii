@@ -1,4 +1,4 @@
-# Prompt audit — 2026-10-01
+# Prompt audit: 2026-10-01
 
 This record describes source inspection and focused checks for the six prompts in
 the now-retired `docs/prompts/` briefs. It is evidence, not a replacement architecture or a native-language review.
@@ -12,7 +12,7 @@ with the configured Flash Lite model; two identity/script samples passed on the 
 route. Worker v38 and the updated phone build are recorded in `current-work.md`. These findings
 supersede broad interpretations of this older audit; native review and phone audibility remain open.
 
-## Prompts 01/02 — latency and Assamese speech
+## Prompts 01/02: latency and Assamese speech
 
 Source and installed-SDK inspection found sentence generation and synthesis already overlap;
 Bodhan buffers one validated WAV per sentence. Timing callbacks now stop on retired/interrupted
@@ -27,7 +27,7 @@ Bodo remains independent. Background audio uses a separate SDK audio source/trac
 sounds were added. No ten-turn latency comparison, speculative-synthesis benefit, or audible
 improvement was measured. Detailed findings are in `services/agent/README.md`.
 
-## Prompt 03 — device bridge lifecycle
+## Prompt 03: device bridge lifecycle
 
 Inline callback dependencies could churn RPC registration during renders. Current callbacks and
 session facts now live in a ref, with one stable command handler registered per room. Registration
@@ -35,7 +35,7 @@ failure is surfaced; duplicate registration does not dispose the surviving handl
 handlers refuse late work. Focused tests exercise those failures. Invalid language commands
 report failure honestly. Pending microphone starts cancel on backgrounding.
 
-## Prompt 04 — named controls and operation bounds
+## Prompt 04: named controls and operation bounds
 
 `deriveVoiceUiState` owns primary, language, clear, and microphone interactions. Reconnect resolves
 to history-preserving Cancel, clear appears only when available, startup requires user action,
@@ -44,7 +44,7 @@ presence. Operation deadlines release gates; stale completion cannot release a n
 The lifecycle agent reported 15 focused tests passing. A final combined check and physical taps
 remain gates; this record does not claim every original assertion was reproduced before editing.
 
-## Prompt 05 — generated arrival and conversation
+## Prompt 05: generated arrival and conversation
 
 Current source renders generated text at full presence with a generated label and dotted underline,
 without the old per-sentence fade. Spoken/speaking/pending/unspoken retain separate meanings.
@@ -59,7 +59,7 @@ remains open. Modal v33 includes the audited preview update. The brief's strictl
 pipeline claim was corrected against source: generation and sentence synthesis overlap. No
 first-time-user second-by-second phone result or improved audibility is claimed.
 
-## Prompt 06 — mood isolation
+## Prompt 06: mood isolation
 
 The reported Assamese mood displayed in a Bodo session could not be reproduced from the
 current source. There is no client mood field or mood rendering path. The server parses the

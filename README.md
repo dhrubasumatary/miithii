@@ -1,6 +1,6 @@
 # Miithii
 
-**Developer handoff — 7 October 2026.** This repository contains the current LiveKit source,
+**Developer handoff: 7 October 2026.** This repository contains the current LiveKit source,
 language packs, Android app, and Cloudflare download site. Use `main` for the developer handoff.
 
 Miithii is an Android voice companion for Assamese and Bodo speakers. The app sends microphone

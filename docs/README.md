@@ -3,7 +3,7 @@
 This directory contains a developer guide, supporting research, and captured evidence. None
 overrides the live repository.
 
-**GitHub handoff — 7 October 2026:** the current LiveKit source, constraints, and indexed
+**GitHub handoff: 7 October 2026:** the current LiveKit source, constraints, and indexed
 status/research documents are published together for `main` through PR #3.
 Historical screenshots/XML under `audit-2026-09-29` are omitted from this handoff;
 private `.tmp` provider/device captures remain local. Their mentions are evidence references,
@@ -22,10 +22,10 @@ blockers and next actions; it does not override repository invariants or current
 
 For any implementation work, use these sources in this order:
 
-1. `AGENTS.md` — current product/runtime invariants and the active tree.
+1. `AGENTS.md`: current product/runtime invariants and the active tree.
 2. Current source and tests under `apps/mobile`, `services/agent`, `packages/language-packs`, and
    `packages/language-core-ts`.
-3. `services/agent/README.md` — operational notes for the current LiveKit agent.
+3. `services/agent/README.md`: operational notes for the current LiveKit agent.
 4. `docs/developer-guide.md` as a source-oriented explanation; other indexed files as status,
    research, or evidence according to their descriptions here.
 

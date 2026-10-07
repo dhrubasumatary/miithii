@@ -4,8 +4,8 @@ Reviewed against the local working tree on **7 October 2026**, based on commit `
 The current source snapshot is published through PR #3 to `main`. This document describes
 that migration; it does not certify a deployed agent revision or the APK's exact build-time source.
 
-This guide is a map of the implementation, not a promise that its behavior is complete. When
-source and prose disagree, inspect the source and update the guide. Repository constraints in
+This guide describes the current implementation and its known gaps. When source and prose
+disagree, inspect the source and update the guide. Repository constraints in
 `AGENTS.md` remain authoritative; dated phone observations belong in `current-work.md` and
 `miithii-mobile-ui.md`.
 
@@ -49,8 +49,8 @@ network calls or mutate shared state. Do not infer an external action from a con
    failed startup, and worker cancellation.
 
 Finished turns are retained in React state outside the remounted session subtree. This is
-in-memory display history, not durable storage or a promise that a new agent session remembers
-the earlier conversation. Language selection and the clear action clear that record.
+in-memory display history. It is not saved to durable storage, and a new agent session does not
+receive the earlier conversation. Language selection and the clear action clear that record.
 
 **Admission is unfinished.** The token function has no identity authentication. Routing
 restrictions do not establish who is requesting access or control public provider spending.

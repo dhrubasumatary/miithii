@@ -1,4 +1,4 @@
-# Miithii continuation — 2026-10-05
+# Miithii continuation: 2026-10-05
 
 This is the indexed current status, not an architecture authority. Follow root/mobile AGENTS.md,
 current source and docs/README.md. Preserve the dirty/staged/untracked tree; no auto-commit,
@@ -63,7 +63,7 @@ retired-runtime restoration or additional subagents. Do not repeat paid probes o
 - A fresh physical-phone conversation is visible after installation. Three completed replies in
   reduced-after.png show no mood markers, and theme switching preserves LISTENING. Current worker
   logs confirm Flash plus the exact female v4 Turbo voice. Nine agent-speaking transitions measured
-  747–3477 ms from committed turns; these exclude STT endpointing and phone audibility. One turn
+  747-3477 ms from committed turns; these exclude STT endpointing and phone audibility. One turn
   withheld an incomplete model tail after an accepted sentence; do not describe the run as flawless.
   Evidence: worker-fresh-phone-v38.log. No additional paid audio probes were run this turn.
   That session subsequently ended with CLIENT_INITIATED disconnect at 18:11 IST.

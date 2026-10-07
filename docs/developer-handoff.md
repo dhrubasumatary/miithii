@@ -1,4 +1,4 @@
-# Developer handoff — 7 October 2026
+# Developer handoff: 7 October 2026
 
 Start with the root README and developer guide. Use `main` for the current system after PR #3
 is merged. That pull request records the replacement of the retired tree.

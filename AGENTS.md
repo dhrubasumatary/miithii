@@ -1,4 +1,4 @@
-# AGENTS.md — Miithii voice app
+# AGENTS.md: Miithii voice app
 
 Last updated: 2026-09-30.
 
@@ -9,14 +9,14 @@ runtime code into the active tree unless the user explicitly asks for a historic
 
 ## The active tree
 
-- `apps/mobile` — Expo SDK 57 / React Native 0.86.3, official `@livekit/react-native` 3.0.0.
-- `services/agent` — LiveKit Agents 1.8.3 on Modal. Sarvam realtime STT, Gemini 2.5 Flash through
+- `apps/mobile`: Expo SDK 57 / React Native 0.86.3, official `@livekit/react-native` 3.0.0.
+- `services/agent`: LiveKit Agents 1.8.3 on Modal. Sarvam realtime STT, Gemini 2.5 Flash through
   AIMLAPI by default. Standard speech uses Bodhan for Bodo; Assamese can explicitly select
   ElevenLabs v4 through server configuration. Expression controls require separate validation.
-- `packages/language-packs` — the source of truth for language data. Packs use canonical ISO 639-3
+- `packages/language-packs`: the source of truth for language data. Packs use canonical ISO 639-3
   ids (`asm`, `brx`), are schema-validated, compile to one hash-verified JSON artifact, and remain
   draft until native review has approved production language content.
-- `packages/language-core-ts` — the thin TypeScript reader used by mobile for the language registry
+- `packages/language-core-ts`: the thin TypeScript reader used by mobile for the language registry
   and shared sentence-boundary data. Python runtime logic lives in `services/agent/miithii_agent` and
   reads the same compiled language-pack artifact.
 
