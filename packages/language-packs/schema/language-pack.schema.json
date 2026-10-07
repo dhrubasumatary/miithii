@@ -1,0 +1,210 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://miithii.in/schema/language-pack.schema.json",
+  "title": "Miithii language pack",
+  "type": "object",
+  "required": ["id", "version", "provenance", "names", "codes", "scripts", "agentName", "addressForm", "prompt", "gate", "tts", "safety", "review"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^[a-z]{3}$" },
+    "version": { "type": "string", "minLength": 1 },
+    "provenance": {
+      "type": "object",
+      "required": ["languageInstructions"],
+      "properties": {
+        "languageInstructions": {
+          "type": "object",
+          "required": ["source", "sourceCommit", "sourcePath", "reviewStatus", "reviewer"],
+          "properties": {
+            "source": { "const": "historical-language-core" },
+            "sourceCommit": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+            "sourcePath": { "type": "string", "minLength": 1 },
+            "reviewStatus": { "const": "native-approved" },
+            "reviewer": { "type": "string", "minLength": 1 }
+          }
+        }
+      }
+    },
+    "names": {
+      "type": "object",
+      "required": ["english", "native", "romanized"],
+      "additionalProperties": { "type": "string" }
+    },
+    "codes": {
+      "type": "object",
+      "required": ["sarvam", "bodhan", "llmName", "bcp47"],
+      "properties": {
+        "sarvam": {
+          "type": "object",
+          "required": ["realtime-stt"],
+          "properties": { "realtime-stt": { "type": "string", "minLength": 1 } },
+          "additionalProperties": false
+        },
+        "bodhan": {
+          "type": "object",
+          "required": ["speech"],
+          "properties": { "speech": { "type": "string", "minLength": 1 } },
+          "additionalProperties": false
+        },
+        "elevenlabs": {
+          "type": "object",
+          "required": ["speech"],
+          "properties": { "speech": { "type": "string", "minLength": 1 } },
+          "additionalProperties": false
+        },
+        "llmName": { "type": "string", "minLength": 1 },
+        "bcp47": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "scripts": {
+      "type": "object",
+      "required": ["native", "pipeline"],
+      "properties": {
+        "native": {
+          "type": "object",
+          "required": ["name", "unicodeRanges", "foreignIndicRanges", "distinctiveLetters", "suspectLetters", "normalizations"],
+          "properties": {
+            "name": { "type": "string", "minLength": 1 },
+            "unicodeRanges": { "$ref": "#/$defs/unicodeRanges" },
+            "foreignIndicRanges": { "$ref": "#/$defs/unicodeRanges" },
+            "distinctiveLetters": { "$ref": "#/$defs/nonEmptyStringList", "minItems": 0 },
+            "suspectLetters": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["text", "severity", "reviewStatus"],
+                "properties": {
+                  "text": { "type": "string", "minLength": 1 },
+                  "severity": { "enum": ["score", "low", "high"] },
+                  "reviewStatus": { "enum": ["research-seed", "native-approved"] },
+                  "reviewer": { "type": "string", "minLength": 1 }
+                },
+                "additionalProperties": false
+              }
+            },
+            "normalizations": { "type": "array", "items": { "type": "object" } }
+          },
+          "additionalProperties": false
+        },
+        "pipeline": {
+          "type": "object",
+          "required": ["llmWorking", "ttsInput", "display"],
+          "properties": {
+            "llmWorking": { "type": "string", "minLength": 1 },
+            "ttsInput": { "type": "string", "minLength": 1 },
+            "display": { "type": "string", "minLength": 1 }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "agentName": {
+      "type": "object",
+      "required": ["display", "tts", "sttKeyterms"],
+      "properties": {
+        "display": { "type": "string", "minLength": 1 },
+        "tts": { "type": "string", "minLength": 1 },
+        "sttKeyterms": { "$ref": "#/$defs/nonEmptyStringList", "minItems": 0 }
+      },
+      "additionalProperties": false
+    },
+    "addressForm": {
+      "type": "object",
+      "required": ["default", "allowed", "reviewStatus", "reviewer"],
+      "properties": {
+        "default": { "type": "string", "minLength": 1 },
+        "allowed": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "reviewStatus": { "const": "native-approved" },
+        "reviewer": { "type": "string", "minLength": 1 }
+      }
+    },
+    "prompt": {
+      "type": "object",
+      "required": ["languageInstructionsFile", "constraints", "grammarFacts"],
+      "properties": {
+        "languageInstructionsFile": { "type": "string", "minLength": 1 },
+        "constraints": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "grammarFacts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["text", "reviewStatus", "reviewer"],
+            "properties": {
+              "text": { "type": "string", "minLength": 1 },
+              "reviewStatus": { "enum": ["research-seed", "native-approved"] },
+              "reviewer": { "type": "string", "minLength": 1 }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "gate": {
+      "type": "object",
+      "required": ["sentenceTerminators", "maxTurnChars", "generationMaxTokens", "maxLatinRatio"],
+      "properties": {
+        "sentenceTerminators": { "$ref": "#/$defs/nonEmptyStringList" },
+        "maxTurnChars": { "type": "integer", "minimum": 1 },
+        "generationMaxTokens": { "type": "integer", "minimum": 1 },
+        "maxLatinRatio": { "type": "number", "minimum": 0, "maximum": 1 }
+      },
+      "additionalProperties": false
+    },
+    "tts": {
+      "type": "object",
+      "required": ["recommendedVoice", "maxCharsPerRequest"],
+      "properties": {
+        "recommendedVoice": { "type": "string", "minLength": 1 },
+        "maxCharsPerRequest": { "type": "integer", "minimum": 1 }
+      },
+      "additionalProperties": false
+    },
+    "safety": {
+      "type": "object",
+      "required": ["crisisFile", "fallbackFile"],
+      "properties": {
+        "crisisFile": { "type": "string", "minLength": 1 },
+        "fallbackFile": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "review": {
+      "type": "object",
+      "required": ["reviewers", "status"],
+      "properties": {
+        "reviewers": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "lastReviewed": { "type": ["string", "null"] },
+        "status": { "enum": ["draft", "reviewed", "shipped"] }
+      },
+      "additionalProperties": false
+    }
+  },
+  "$defs": {
+    "nonEmptyStringList": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "unicodeRanges": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "array",
+        "prefixItems": [
+          { "type": "integer", "minimum": 0, "maximum": 1114111 },
+          { "type": "integer", "minimum": 0, "maximum": 1114111 }
+        ],
+        "items": false,
+        "minItems": 2,
+        "maxItems": 2
+      }
+    }
+  },
+  "additionalProperties": false
+}

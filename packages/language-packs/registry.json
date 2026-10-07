@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "defaultLanguage": "asm",
+  "languages": [
+    {
+      "id": "asm",
+      "directory": "asm",
+      "aliases": ["as"],
+      "enabledForDevelopment": true
+    },
+    {
+      "id": "brx",
+      "directory": "brx",
+      "aliases": [],
+      "enabledForDevelopment": true
+    }
+  ]
+}

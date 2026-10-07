@@ -1,0 +1,6 @@
+{
+  "purpose":"Fluent-speaker review rubric for Bodo Voice evaluation outputs. These are review dimensions, not machine-asserted grammar rules or gold translations.",
+  "scale":{"0":"wrong or unusable","1":"understandable but clearly unnatural or contaminated","2":"mostly natural with a noticeable issue","3":"natural and appropriate"},
+  "dimensions":["meaning_preserved","bodo_not_hindi_or_assamese_grammar","natural_word_order_and_information_structure","person_and_honorific_reference","tense_aspect_and_negation","question_or_imperative_structure_when_relevant","classifier_choice_when_relevant","register_and_conversational_naturalness","borrowing_and_code_switching_naturalness","orthography_readability"],
+  "failure_tags":["semantic","hindi_contamination","assamese_contamination","english_syntax","case","pronoun_honorific","tense_aspect","negation","question","imperative","classifier","orthography","dialect_register","unnatural_borrowing","too_formal","too_literal"]
+}

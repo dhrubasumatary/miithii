@@ -2,20 +2,13 @@
   "name": "miithii",
   "private": true,
   "packageManager": "pnpm@11.19.0",
-  "engines": {
-    "node": ">=24 <25"
-  },
   "scripts": {
-    "bootstrap": "pnpm install --frozen-lockfile && npm ci --prefix workers/api",
-    "dev": "concurrently --names api,rtc \"pnpm dev:api\" \"pnpm dev:rtc\"",
-    "dev:api": "npm --prefix workers/api run dev",
-    "dev:rtc": "uv run --directory services/voice-rtc python bot.py --transport webrtc",
-    "dev:mobile": "pnpm --dir apps/mobile start",
-    "typecheck": "pnpm --dir apps/mobile typecheck && pnpm --filter @miithii/language-core typecheck",
-    "check": "pnpm typecheck && pnpm --filter @miithii/language-core test && pnpm --filter @miithii/language-core check:voice-contracts && uv run --directory services/voice-rtc ruff check . && uv run --directory services/voice-rtc python -m unittest discover tests && npm --prefix workers/api test && npm --prefix workers/api run build"
-  },
-  "devDependencies": {
-    "concurrently": "^9.2.4",
-    "playwright-core": "^1.63.0"
+    "compile:language-packs": "pnpm --filter @miithii/language-packs compile",
+    "typecheck": "pnpm --filter @miithii/language-core-ts typecheck && pnpm --dir apps/mobile exec tsc --noEmit",
+    "test": "pnpm --filter @miithii/language-packs test && pnpm --filter @miithii/mobile test && pnpm agent:test",
+    "agent:check": "uv run --directory services/agent ruff check .",
+    "agent:test": "uv run --directory services/agent pytest",
+    "android": "pnpm --dir apps/mobile android",
+    "check": "pnpm --filter @miithii/language-packs check && pnpm typecheck && pnpm test && pnpm agent:check"
   }
 }

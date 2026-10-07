@@ -1,0 +1,9 @@
+{
+  "name": "miithii-voice",
+  "account_id": "66f97ccf87b3349218040db7b434e97d",
+  "main": "worker.js",
+  "compatibility_date": "2026-10-07",
+  "workers_dev": false,
+  "routes": [{ "pattern": "voice.miithii.in", "custom_domain": true }],
+  "assets": { "directory": "./public", "binding": "ASSETS", "run_worker_first": ["/Miithii.apk"] }
+}

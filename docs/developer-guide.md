@@ -1,8 +1,8 @@
 # Miithii developer guide
 
 Reviewed against the local working tree on **7 October 2026**, based on commit `0a107fe`.
-There are substantial uncommitted changes in this checkout. This document describes those files,
-not a verified deployed revision or the current contents of GitHub's default branch.
+The current source snapshot is published through PR #3 to `main`. This document describes
+that migration; it does not certify a deployed agent revision or the APK's exact build-time source.
 
 This guide is a map of the implementation, not a promise that its behavior is complete. When
 source and prose disagree, inspect the source and update the guide. Repository constraints in
@@ -277,4 +277,3 @@ speech-end to first audible phone output. Record those phone boundaries separate
 For a change, update the relevant focused test and run the root check. If it affects speech,
 record the provider/phone evidence and what remains unheard. Update this guide when the session
 flow or setup changes; keep incident details and build observations in the indexed evidence files.
-

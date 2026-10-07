@@ -1,33 +1,29 @@
 node_modules
+.pnpm/
 .pnpm-store
-.turbo
-.wrangler
-.wrangler-dry-run
-.codex/*.log
-.vercel
-
-.next
-out
-dist
-build
+.expo/
+apps/mobile/android/
+apps/mobile/ios/
 coverage
 *.tsbuildinfo
-
 .env
 .env.local
 .env.*.local
-
 *.log
 .DS_Store
 Thumbs.db
-
-# Python voice runtime
 .venv
 __pycache__/
 *.py[cod]
 .pytest_cache/
 .ruff_cache/
-
-# local scratch
 /tmp/
-/px0/
+/.tmp/
+/test-voice-desktop.png
+.toolcache/
+.agents/
+skills-lock.json
+.wrangler/
+# phone.png exposes an ElevenLabs API key in a screenshot. Never commit it. Rotate the key.
+docs/audit-2026-09-29/phone.png
+miithii-current.png

@@ -1,0 +1,82 @@
+{
+  "id": "asm",
+  "version": "0.2.0-draft",
+  "provenance": {
+    "languageInstructions": {
+      "source": "historical-language-core",
+      "sourceCommit": "88bc15a3aa9ae5e3f33b8cf979333adcdcc1d544",
+      "sourcePath": "packages/language-core/src/profiles/assamese.ts",
+      "reviewStatus": "native-approved",
+      "reviewer": "project-owner"
+    }
+  },
+  "names": {
+    "english": "Assamese",
+    "native": "অসমীয়া",
+    "romanized": "Asomiya"
+  },
+  "codes": {
+    "sarvam": { "realtime-stt": "as-IN" },
+    "bodhan": { "speech": "as" },
+    "elevenlabs": { "speech": "as" },
+    "llmName": "Assamese",
+    "bcp47": "as-IN"
+  },
+  "scripts": {
+    "native": {
+      "name": "Bengali-Assamese",
+      "unicodeRanges": [[2432, 2559]],
+      "foreignIndicRanges": [[2304, 2431], [43232, 43263]],
+      "distinctiveLetters": ["ৰ", "ৱ"],
+      "suspectLetters": [
+        { "text": "র", "severity": "score", "reviewStatus": "research-seed" }
+      ],
+      "normalizations": []
+    },
+    "pipeline": {
+      "llmWorking": "native",
+      "ttsInput": "native",
+      "display": "native"
+    }
+  },
+  "agentName": {
+    "display": "Miithii",
+    "tts": "Miithii",
+    "sttKeyterms": ["Miithii"]
+  },
+  "addressForm": {
+    "default": "toi",
+    "allowed": ["toi", "tumi"],
+    "reviewStatus": "native-approved",
+    "reviewer": "project-owner"
+  },
+  "prompt": {
+    "languageInstructionsFile": "language-instructions.txt",
+    "constraints": [
+      "Reply in modern colloquial Assamese using standard Assamese orthography.",
+      "Do not drift into Bengali grammar or Bengali function words merely because the script is shared.",
+      "Do not translate into Hindi. English code-mixing is allowed when it is natural or when a target-language word is uncertain.",
+      "Do not invent slang, dialect spellings, grammar rules, or etymologies."
+    ],
+    "grammarFacts": []
+  },
+  "gate": {
+    "sentenceTerminators": [".", "?", "!", "।", "॥", "…"],
+    "maxTurnChars": 360,
+    "generationMaxTokens": 512,
+    "maxLatinRatio": 0.55
+  },
+  "tts": {
+    "recommendedVoice": "Prastuti",
+    "maxCharsPerRequest": 360
+  },
+  "safety": {
+    "crisisFile": "crisis.json",
+    "fallbackFile": "fallback.json"
+  },
+  "review": {
+    "reviewers": [],
+    "lastReviewed": null,
+    "status": "draft"
+  }
+}

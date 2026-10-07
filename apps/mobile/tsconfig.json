@@ -1,6 +1,18 @@
 {
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
-    "strict": true
-  }
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    // The pure display logic is tested with Node's native test runner, whose ESM resolver
+    // requires explicit file extensions on relative imports. Metro resolves these too.
+    "allowImportingTsExtensions": true,
+    // Required so the `node:test` imports in the display-logic tests resolve. The Expo base
+    // config does not restrict `types`, so the React Native ambient types still apply.
+    "types": ["node", "react"]
+  },
+  "include": [
+    "App.tsx",
+    "src/**/*.ts",
+    "src/**/*.tsx"
+  ]
 }

@@ -3,11 +3,11 @@
 This directory contains a developer guide, supporting research, and captured evidence. None
 overrides the live repository.
 
-**GitHub publication scope — 7 October 2026:** only the root README, this index, and
-`developer-guide.md` are included in this publication. The current LiveKit source, updated
-constraints, status notes, and evidence files described below remain in the local working tree.
-GitHub's `main` still has the retired runtime and older documentation. The inventory below
-describes the local checkout; it is not a claim that all these files are published.
+**GitHub handoff — 7 October 2026:** the current LiveKit source, constraints, and indexed
+status/research documents are published together for `main` through PR #3.
+Historical screenshots/XML under `audit-2026-09-29` are omitted from this handoff;
+private `.tmp` provider/device captures remain local. Their mentions are evidence references,
+not downloadable files in the handoff.
 
 ## Current authority
 
@@ -69,4 +69,3 @@ specifications and should not be used to reconstruct deleted product behavior.
 Old handoffs, fresh-build plans, and architecture research briefs were intentionally removed on
 2026-09-30 because they described superseded code and repeatedly caused agents to resurrect retired
 systems.
-

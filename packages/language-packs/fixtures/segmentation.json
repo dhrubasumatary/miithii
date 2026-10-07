@@ -1,0 +1,25 @@
+{
+  "terminators": ["।", "॥", ".", "!", "?", "…"],
+  "abbreviations": ["mr", "mrs", "ms", "dr", "prof", "sr", "jr", "st", "vs", "etc", "eg", "ie", "approx", "no", "fig", "kg", "km", "cm", "mm", "min", "max", "sec"],
+  "closers": ["\"", "'", "’", "”", "』", "」", ")", "]", "}", "»"],
+  "conformance": [
+    { "text": "নমস্কাৰ। আপুনি কেমন আছে?", "sentences": ["নমস্কাৰ।", "আপুনি কেমন আছে?"] },
+    { "text": "প্ৰথম বাক্য। দ্বিতীয় বাক্য॥", "sentences": ["প্ৰথম বাক্য।", "দ্বিতীয় বাক্য॥"] },
+    { "text": "এটা 3.5 কিলোমিটাৰ দূৰ।", "sentences": ["এটা 3.5 কিলোমিটাৰ দূৰ।"] },
+    { "text": "দুটা 3,5 কিলোমিটাৰ দূৰ।", "sentences": ["দুটা 3,5 কিলোমিটাৰ দূৰ।"] },
+    { "text": "চাই আপুনি Mr. Sharma ৰ সৈতে যাব নেকি?", "sentences": ["চাই আপুনি Mr. Sharma ৰ সৈতে যাব নেকি?"] },
+    { "text": "যোৱাটো example.com নহয়", "sentences": ["যোৱাটো example.com নহয়"] },
+    { "text": "example.com আৰু https://a.b/c চাই", "sentences": ["example.com আৰু https://a.b/c চাই"] },
+    { "text": "Hello there! How are you? Fine.", "sentences": ["Hello there!", "How are you?", "Fine."] },
+    { "text": "সে ক'ও কৈছে \"হয়।\" তাৎৎ কপাল।", "sentences": ["সে ক'ও কৈছে \"হয়।\"", "তাৎৎ কপাল।"] },
+    { "text": "दुनिटा गाव।", "sentences": ["दुनिटा गाव।"] },
+    { "text": "अस्मी नमस्ते। आपणि किमणि आछो?", "sentences": ["अस्मी नमस्ते।", "आपणि किमणि आछो?"] },
+    { "text": "তিনিটা।। চাৰিটা", "sentences": ["তিনিটা।।", "চাৰিটা"] },
+    { "text": "অসমীয়া আৰু বৰ্গমাই ভাষা", "sentences": ["অসমীয়া আৰু বৰ্গমাই ভাষা"] },
+    { "text": "", "sentences": [] },
+    { "text": "   \n\t ", "sentences": [] },
+    { "text": "।।। শুধু চিহ্ন।", "sentences": ["।।।", "শুধু চিহ্ন।"] },
+    { "text": "এটা… দুটা।", "sentences": ["এটা…", "দুটা।"] },
+    { "text": "St. Road।", "sentences": ["St. Road।"] }
+  ]
+}

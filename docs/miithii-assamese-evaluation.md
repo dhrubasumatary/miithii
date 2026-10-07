@@ -1,5 +1,10 @@
 # MIITHII Assamese: validation protocol
 
+**Historical research protocol, not an implementation spec.** This predates the current
+`packages/language-packs` architecture and includes Romanized-Assamese evaluation ideas that are not
+the active Voice display-script contract. Reuse the evaluation methodology only after adapting it
+to the current pack and review rules in `AGENTS.md`.
+
 This is a proposed experiment, not results. The system prompt and its examples have not yet received native-speaker or model-based validation.
 
 ## Language review before benchmarking

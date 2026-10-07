@@ -1,46 +1,95 @@
 {
   "expo": {
     "name": "Miithii",
-    "slug": "miithii-voice",
-    "version": "1.0.0",
+    "slug": "miithii-voice-gate0",
+    "version": "0.0.1",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "scheme": "miithii-gate0",
     "userInterfaceStyle": "dark",
+    "backgroundColor": "#08090A",
+    "splash": {
+      "backgroundColor": "#08090A",
+      "resizeMode": "contain"
+    },
     "ios": {
-      "bundleIdentifier": "in.miithii.voice",
-      "supportsTablet": true
+      "supportsTablet": false,
+      "bundleIdentifier": "in.miithii.voice.gatezero",
+      "deploymentTarget": "16.4",
+      "infoPlist": {
+        "NSMicrophoneUsageDescription": "Miithii needs microphone access so you can talk during voice conversations."
+      }
     },
     "android": {
-      "package": "in.miithii.voice",
+      "package": "in.miithii.voice.gatezero",
+      "permissions": [
+        "android.permission.INTERNET",
+        "android.permission.ACCESS_NETWORK_STATE",
+        "android.permission.MODIFY_AUDIO_SETTINGS",
+        "android.permission.RECORD_AUDIO"
+      ],
+      "blockedPermissions": [
+        "android.permission.BLUETOOTH",
+        "android.permission.BLUETOOTH_CONNECT",
+        "android.permission.BLUETOOTH_SCAN",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.READ_MEDIA_VIDEO",
+        "android.permission.SYSTEM_ALERT_WINDOW",
+        "android.permission.WAKE_LOCK",
+        "android.permission.POST_NOTIFICATIONS",
+        "android.permission.VIBRATE"
+      ],
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
-      },
-      "predictiveBackGestureEnabled": false
-    },
-    "web": {
-      "favicon": "./assets/favicon.png"
+        "foregroundImage": "./assets/icon-foreground-padded.png",
+        "backgroundColor": "#08090A"
+      }
     },
     "plugins": [
+      "@livekit/react-native-expo-plugin",
+      "@config-plugins/react-native-webrtc",
       [
-        "@daily-co/config-plugin-rn-daily-js",
+        "expo-font",
         {
-          "enableCamera": false,
-          "enableMicrophone": true,
-          "enableScreenShare": false
-        }
-      ],
-      [
-        "expo-build-properties",
-        {
+          "fonts": [
+            "./assets/fonts/HindSiliguri-Regular.ttf",
+            "./assets/fonts/AnnapurnaSIL-Regular.ttf",
+            "./assets/fonts/AnnapurnaSIL-SemiBold.ttf"
+          ],
           "android": {
-            "minSdkVersion": 24,
-            "usesCleartextTraffic": true
+            "fonts": [
+              {
+                "fontFamily": "HindSiliguri",
+                "fontDefinitions": [
+                  {
+                    "path": "./assets/fonts/HindSiliguri-Regular.ttf",
+                    "weight": 400
+                  }
+                ]
+              },
+              {
+                "fontFamily": "AnnapurnaSIL",
+                "fontDefinitions": [
+                  {
+                    "path": "./assets/fonts/AnnapurnaSIL-Regular.ttf",
+                    "weight": 400
+                  },
+                  {
+                    "path": "./assets/fonts/AnnapurnaSIL-SemiBold.ttf",
+                    "weight": 600
+                  }
+                ]
+              }
+            ]
           }
         }
       ]
-    ]
+    ],
+    "extra": {
+      "livekitDevelopmentTokenServerId": "",
+      "livekitTokenEndpoint": "https://dhrubasumatary--miithii-livekit-agent-token.modal.run",
+      "livekitAgentName": "miithii-voice"
+    },
+    "icon": "./assets/icon.png"
   }
 }

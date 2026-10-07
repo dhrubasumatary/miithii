@@ -1,6 +1,6 @@
 # MIITHII: Bodo/Boro language research notes
 
-Prepared 15 September 2026. These notes support the `packages/language-core` Bodo (`brx`) profile. They are a research layer for prompt design and evaluation, not a claim that MIITHII has native-speaker-level Bodo competence. The profile should keep a smaller set of well-supported structural rules instead of growing a guessed grammar.
+Prepared 15 September 2026. **Historical research only:** these notes predate the current language-pack architecture. Any surviving Bodo (`brx`) research must enter `packages/language-packs` only after the review rules in `AGENTS.md` are satisfied. They are a research layer for prompt design and evaluation, not a claim that MIITHII has native-speaker-level Bodo competence. The active pack should keep a smaller set of well-supported structural rules instead of growing a guessed grammar.
 
 ## Naming and standard written form
 
